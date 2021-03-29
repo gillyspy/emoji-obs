@@ -1,0 +1,26 @@
+#always-ignore
+node_modules/
+.tmp/
+*.log
+*.rej
+*~
+*.diff
+*.err
+*.orig
+*.rej
+*.swp
+*.vi
+*.sass-cache
+
+
+
+#OS files
+.cache
+Thumbs.db
+.DS_Store
+.project
+.settings
+.tmproj
+*.esproj
+/dist/
+docs/
