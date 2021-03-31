@@ -31,16 +31,18 @@ $(document).ready( function ($) {
   myFavs.stashIt(target.text());
   console.log(myFavs);
 
+  var highlightFave = function (emoji) {
+    emoji = emoji || target.text();
+    $highlight = $('#' + emoji).addClass('highlight');
+  }
   var archiveFave = function () {
-    if ($highlight.length) {
-      $highlight.removeClass('highlight');
-    }
+    $('.highlight').removeClass('highlight');
     $highlight = [];
 
     //add unique entry to the history
-    if( $('#'+target.text() ).length === 0 ){
+    if ($('#' + target.text()).length === 0) {
       $('#col1')
-        .prepend('<span id="'+ target.text() + '" class="history">' + target.text() + '</span>');
+        .prepend('<span id="' + target.text() + '" class="history">' + target.text() + '</span>');
     }
 
     //update size of icons
@@ -56,31 +58,34 @@ $(document).ready( function ($) {
     // reset animation on every new emoji
 
     //a highlighted one means we have nothing to archive
-    if(!$highlight.length){
       archiveFave();
-    }
+
     var fave = myFavs.stashIt(selection.emoji);
 
-    console.log('in picker.on', 'fave:', fave);
-    console.log(fave);
     if (fave.sticky) {
       myAnimation.removeAnimation();
     } else {
       myAnimation.addAnimation();
     }
 
-    target.text( selection.emoji );
-    // $target.fadeOut( 20000 );
+    target.text(selection.emoji);
+
+    //try to highlight in history
+    highlightFave(target.text());
+
     return false;
   });
 
   var switchEmoji = function(direction) {
-    if ($highlight.length) {
-      //archive the current one
-      archiveFave();
-    }
+
+    //archive the current one
+    archiveFave();
+
     var lastFave = myFavs.recallIt(direction);
     target.text(lastFave.emoji);
+    //lookup the emoji in the history for highlighting
+    highlightFave(target.text());
+
     if (lastFave.sticky) {
       myAnimation.removeAnimation();
     } else {
@@ -90,12 +95,12 @@ $(document).ready( function ($) {
 
   $('#col1').on('click', 'span', function (ev) {
     archiveFave();
+    target.text($(this).text());
 
-    $highlight = $(this).addClass('highlight');
+    highlightFave(target.text);
 
     var fave = myFavs.stashIt($highlight.text(), false);
 
-    target.text($highlight.text());
     if (fave.sticky) {
       myAnimation.removeAnimation();
     } else {
@@ -107,9 +112,9 @@ $(document).ready( function ($) {
   $('body').on('keydown', (ev) => {
     var direction = 0;
     if (ev.which == 38) {
-      direction = 1;
-    } else if (ev.which == 40) {
       direction = -1;
+    } else if (ev.which == 40) {
+      direction = 1;
     }
     if (direction != 0) {
       switchEmoji(direction);
