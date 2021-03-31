@@ -15,20 +15,57 @@
         font-size: 200px;
         height: 675px;
         display: block;
-
+        width: 375px;
+        overflow: hidden;
+        white-space: nowrap;
         padding-left: 50px;
     }
+
+    div#col1 {
+        font-size: 20px;
+        height: 675px;
+        display: none;
+        width: 25px;
+        overflow: hidden;
+        padding-left: 0px;
+        padding-top:0px;
+    }
+    td
+    button.big {
+        font-size : 48px;
+    }
+
+    .pin {
+        opacity : 0.5;
+        font-size : 25px;
+        margin-left : -75px;
+        vertical-align: bottom;
+    }
+
 
 </style>
 
 </head>
-<body>
+<body><table><tr><td><div id="col1">
+    <span>☁️</span>
+    <span>☁️</span>
+    <span>☁️</span>
+    <span>☁️</span>
+    <span>☁️</span>
+    <span>☁️</span>
+    <span>☁️</span>
+    <span>☁️</span>
+</div></td><td>
 <div class="outer">
     <span class="buffer">&nbsp;</span>
     <span class="target">✌🏻</span>
-
+    <span id="pin" class="pin">📌</span>
 </div>
-<button class="trigger">Emoji</button>
+<button class="trigger big">Emoji</button>
+
+<button id="stickybutton" class="stopFade big">Sticky</button>
+</td></tr></table>
 <script src="bundled.js"></script>
+
 </body>
 </html>

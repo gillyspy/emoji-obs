@@ -19,7 +19,10 @@ let config = {
         rules : [ //
         // cssConfig
          ]
-    }
+    }/*,
+    optimization : {
+        runtimeChunk: "multiple"
+    }*/
 }
 
 if (currentTask == 'dev') {
