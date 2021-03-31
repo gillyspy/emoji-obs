@@ -11,14 +11,18 @@
     .buffer{
 
     }
+
+    table{
+        margin-bottom: 350px
+    }
     div.outer {
         font-size: 200px;
-        height: 675px;
+        height: 875px;
         display: block;
         width: 375px;
         overflow: hidden;
         white-space: nowrap;
-        margin-left: -20px;
+        margin-right: -90px;
     }
 
     div#col1 {
@@ -29,6 +33,7 @@
         overflow: hidden;
         padding-left: 0px;
         padding-top:0px;
+        padding-bottom : 300px
     }
 
     button.big {
@@ -50,12 +55,14 @@
         text-decoration-line: underline;
         opacity : 1.0;
     }
+    .stickybutton {
+
+    }
 
 </style>
 
 </head>
-<body><table><tr><td><div id="col1">
-</div></td><td>
+<body><table><tr><td>
 <div class="outer">
 
     <span class="target">✌🏻</span>
@@ -64,7 +71,15 @@
 <button class="trigger big">Emoji</button>
 
 <button id="stickybutton" class="stopFade big">Sticky</button>
-</td></tr></table>
+</td><td><div id="col1">
+</div></td></tr></table>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
 <script src="bundled.js"></script>
 
 </body>

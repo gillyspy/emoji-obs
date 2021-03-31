@@ -12,6 +12,11 @@ $(document).ready( function ($) {
   const stickyButton = $('#stickybutton');
   const $outer = $('.outer');
 
+
+  var init = ['💩','👍🏻','🔥','✅','❌','👂🏻','🧠','🐧','🦈','☁️','️','🌧','🌮','🎧','🔋','🛠️',
+    '🧲','📅','🛏️','💤','⁉️','‍️⚠️','🔫','🤦🏻‍♂️'];
+
+
   stickyButton.on('click', (ev) => {
     //make the current emoji sticky
     if (!myFavs.recallFave().sticky) {
@@ -27,9 +32,6 @@ $(document).ready( function ($) {
   myFavs.stashIt(target.text());
 
   const myAnimation = new Animation(target);
-  Window.TEST = myFavs;
-  myFavs.stashIt(target.text());
-  console.log(myFavs);
 
   var highlightFave = function (emoji) {
     emoji = emoji || target.text();
@@ -47,12 +49,28 @@ $(document).ready( function ($) {
 
     //update size of icons
     var histCt = $('.history').length;
-    var size = 675 / 50;
+    var size = (675 / 50)+15;
     if (histCt < 14) {
       size = Math.max(size, 50);
     }
     $('.history').css('font-size', size + 'px');
-  }
+  } //archiveFave
+
+  init.forEach((emoji) => {
+    archiveFave();
+
+    var fave = myFavs.stashIt(emoji);
+
+    if (fave.sticky) {
+      myAnimation.removeAnimation();
+    } else {
+      myAnimation.addAnimation();
+    }
+    target.text(emoji);
+
+    //try to highlight in history
+    highlightFave(target.text());
+  }); // init for each
 
   picker.on('emoji', selection => {
     // reset animation on every new emoji
@@ -97,7 +115,7 @@ $(document).ready( function ($) {
     archiveFave();
     target.text($(this).text());
 
-    highlightFave(target.text);
+    highlightFave(target.text() );
 
     var fave = myFavs.stashIt($highlight.text(), false);
 
