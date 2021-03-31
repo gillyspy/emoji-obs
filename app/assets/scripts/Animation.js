@@ -20,7 +20,7 @@ class Animation {
       .fadeIn(1000)
       .stop()
       .css('opacity',1.0 )
-      .fadeOut(5000,);
+      .fadeOut(20000,);
     return this;
   }
 

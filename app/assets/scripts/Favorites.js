@@ -48,7 +48,10 @@ class Favorites {
     //return favorite.sticky;
   }
 
-  stashIt(emoji) {
+  stashIt(emoji, addHistory) {
+    if(typeof addHistory === 'undefined'){
+      addHistory = true;
+    }
     console.log('stashIt', emoji);
     if (this.nameIndex.length >= this.max) {
       //remove the oldest one
@@ -66,7 +69,9 @@ class Favorites {
         position: this.nameIndex.length // this is correct at the time because index does not have it yet
       }
       // add to NameIndex
-      this.nameIndex.push(emoji);
+      if( addHistory) {
+        this.nameIndex.push(emoji);
+      }
     }
     let fave = this.stash[emoji];
 
