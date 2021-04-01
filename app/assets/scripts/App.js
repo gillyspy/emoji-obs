@@ -1,37 +1,56 @@
+const $ = require("jquery");
 import {EmojiButton} from '@joeattardi/emoji-button';
 import Favorites from "./Favorites";
 import Animation from './Animation';
-const $ = require("jquery");
-const picker = new EmojiButton();
 
-$(document).ready( function ($) {
+
+const picker = new EmojiButton();
+const myFavs = new Favorites();
+const myAnimation = new Animation();
+$(document).ready(function () {
   const trigger = document.querySelector('.trigger');
   var $highlight = [];
   const target = $('.target');
 //$target.fadeOut(40000);//default
   const stickyButton = $('#stickybutton');
   const $outer = $('.outer');
+  const $afk = $('.AFK');
+  myAnimation.init(target);
+
+  var init = ['💩', '👍🏻', '🔥', '✅', '❌', '👂🏻', '🧠', '🐧', '🦈', '☁️', '️', '🌧', '🌮', '🎧', '🔋', '🛠️',
+    '🧲', '📅', '🛏️', '💤', '⁉️', '‍️⚠️', '🔫', '🤦🏻‍♂️', '🥓','👋🏻','✋🏻','💡','✌🏻'];
 
 
-  var init = ['💩','👍🏻','🔥','✅','❌','👂🏻','🧠','🐧','🦈','☁️','️','🌧','🌮','🎧','🔋','🛠️',
-    '🧲','📅','🛏️','💤','⁉️','‍️⚠️','🔫','🤦🏻‍♂️'];
+  $afk.on('click', function(ev){
+    let $this = $('#afk');
+    $this.toggle();
+    if($this.is(':hidden')){
+      $('#' + '✌🏻').click();
+    } else {
+      $('#' + '💤').click();
+      stickyButton.click();
+    }
+    ev.preventDefault();
+    return false;
+  });
+
 
 
   stickyButton.on('click', (ev) => {
     //make the current emoji sticky
-    if (!myFavs.recallFave().sticky) {
-      myFavs.toggleSticky();
-      myAnimation.removeAnimation();
+    var fav= myFavs.recallFave(target.text() );
+    if(fav){
+      fav.sticky = !fav.sticky;
+      if( fav.sticky){
+          myAnimation.removeAnimation();
+      } else {
+        myAnimation.restartAnimation()
+      }
+
     }
     ev.preventDefault();
     return false;
-
   });
-
-  const myFavs = new Favorites();
-  myFavs.stashIt(target.text());
-
-  const myAnimation = new Animation(target);
 
   var highlightFave = function (emoji) {
     emoji = emoji || target.text();
@@ -56,6 +75,7 @@ $(document).ready( function ($) {
     $('.history').css('font-size', size + 'px');
   } //archiveFave
 
+  /**********************/
   init.forEach((emoji) => {
     archiveFave();
 
@@ -72,6 +92,8 @@ $(document).ready( function ($) {
     highlightFave(target.text());
   }); // init for each
 
+  stickyButton.click(); //initialize sticky  for the last emoji
+  /*******************/
   picker.on('emoji', selection => {
     // reset animation on every new emoji
 

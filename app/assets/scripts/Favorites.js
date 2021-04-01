@@ -89,7 +89,7 @@ class Favorites {
     } else {
       favorite = this.stash[favorite];
     }
-    this.position = favorite.position;
+    this.position = favorite ? favorite.position : this.position;
     return favorite;
   }
 

@@ -14,21 +14,21 @@ let pages = fse.readdirSync('./app').filter(function(f){
 
 let config = {
     entry: './app/assets/scripts/App.js',
-    plugins : pages,
-    module : {
+    plugins : pages //,
+   /* module : {
         rules : [ //
         // cssConfig
          ]
-    }/*,
+    }/* /*,
     optimization : {
-        runtimeChunk: "multiple"
+        runtimeChunk : "multiple"
     }*/
 }
 
 if (currentTask == 'dev') {
     config.output = {
         filename : 'bundled.js',
-        path : path.resolve( __dirname, 'app' ) //multiplatform friendly
+        path : path.resolve( __dirname, '/app' ) //multiplatform friendly
     };
     config.devServer = {
         before : function(app, server){

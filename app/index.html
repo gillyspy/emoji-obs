@@ -3,37 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <title>home</title>
-<script defer src="bundled.js"></script><script defer src="bundled.js"></script>
 <style>
     .target {
         vertical-align: top;
     }
-    .buffer{
+
+    .buffer {
 
     }
 
-    table{
-        margin-bottom: 350px
+    table {
+        margin-bottom: 0px;
     }
+
+    div#col0 {
+        width: 500px;
+        height: 500px;
+        padding: 0px;
+        border: 1px;
+        z-index: -10000;
+
+    }
+
     div.outer {
         font-size: 200px;
-        height: 875px;
+        height: 750px;
         display: block;
         width: 375px;
         overflow: hidden;
         white-space: nowrap;
-        margin-right: -90px;
+        margin-right: -130px;
+        margin-left: 150px;
+        position: relative;
     }
 
     div#col1 {
         font-size: 20px;
-        height: 675px;
+        z-index: 1000;
+        height: 600px;
         display: block;
         width: 90px;
         overflow: hidden;
         padding-left: 0px;
-        padding-top:0px;
-        padding-bottom : 300px
+        padding-top: 0px;
+        position: relative;
+        margin-top : -105px;
     }
 
     button.big {
@@ -53,26 +67,59 @@
 
     .highlight {
         text-decoration-line: underline;
-        opacity : 1.0;
+        opacity: 1.0;
+    }
+    .together{
+        margin-top : -100px;
     }
     .stickybutton {
 
     }
 
+    #afk {
+        opacity: .9;
+        margin-bottom: -1000px;
+        background-color: rgba(117, 202, 221, .8);
+        position: fixed;
+        z-index: -1;
+        width: 100%;
+    }
+
+    img {
+        box-shadow: 0 0 5px 10px #555;
+    }
 </style>
 
 </head>
-<body><table><tr><td>
-<div class="outer">
+<body><div id="afk">
+                    <img width="100%" src="https://i.giphy.com/media/fG000AVCIO98Y/source.gif">
+                </div>
+<table>
+    <tr>
+        <td id="td0">
+            <div id="col0">
 
-    <span class="target">✌🏻</span>
-    <span id="pin" class="pin">📌</span>
+            </div>
+        </td>
+        <td>
+            <div class="outer">
+
+                <span class="target">✌🏻</span>
+                <span id="pin" class="pin">📌</span>
+            </div>
+        </td>
+        <td>
+            <div id="col1">
+            </div>
+        </td>
+    </tr>
+</table>
+
+<div class="together">
+    <button class="AFK big">AFK</button>
+    <button class="trigger big">Emoji</button>
+    <button id="stickybutton" class="stopFade big">Sticky</button>
 </div>
-<button class="trigger big">Emoji</button>
-
-<button id="stickybutton" class="stopFade big">Sticky</button>
-</td><td><div id="col1">
-</div></td></tr></table>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
@@ -80,7 +127,6 @@
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
-<script src="bundled.js"></script>
 
 </body>
 </html>

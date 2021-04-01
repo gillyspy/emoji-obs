@@ -1,16 +1,21 @@
-var $ = require('jquery');
+const $ = require('jquery');
 class Animation {
-  constructor(el){
-    this.$el = el;
+  constructor(){
+    this.$el;
     this.debug=true;
-    this.pin = $('.pin');
+    this.pin;
+    this.maxFade = 40000;
     //el might not be jQuery object
   }
-
+  init(el){
+    this.$el = $(el);
+    this.pin = $('#pin');
+  }
   removeAnimation(sticky){
+    this.pin.show();
     this.$el.stop().fadeIn(100)
       .show();
-    this.pin.show();
+
     return this;
   }
 
@@ -20,7 +25,7 @@ class Animation {
       .fadeIn(1000)
       .stop()
       .css('opacity',1.0 )
-      .fadeOut(20000,);
+      .fadeOut(this.maxFade,);
     return this;
   }
 
