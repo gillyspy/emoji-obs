@@ -93,7 +93,7 @@ if (currentTask == 'dev') {
     config.output = {
         filename     : '[name].[chunkhash].js',
         chunkFilename: '[name].[chunkhash].js',
-        path         : path.resolve(__dirname, 'docsgit s') //multiplatform friendly
+        path         : path.resolve(__dirname, 'docs') //multiplatform friendly
     };
     config.mode = 'production';
     config.optimization = {
