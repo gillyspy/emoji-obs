@@ -4,12 +4,29 @@
     <meta charset="UTF-8">
     <title>home</title>
 <style>
+    body {
+        background-color: rgba(0, 0, 0, 1);
+        margin: 0px auto;
+        overflow: hidden;
+    }
+
     .target {
         vertical-align: top;
     }
 
     .buffer {
 
+    }
+
+    .wrapper {
+        font-weight: 900;
+        opacity: .8;
+        font-size: 3.5em;
+    }
+
+    .wrapper .aniLetter {
+        display: inline-block;
+        line-height: 1em;
     }
 
     table {
@@ -26,20 +43,21 @@
     }
 
     div.outer {
-        font-size: 200px;
-        height: 750px;
+        font-size: 60px;
+        height: 600px;
         display: block;
-        width: 375px;
+        width: 1200px;
         overflow: hidden;
         white-space: nowrap;
-        margin-right: -130px;
-        margin-left: 150px;
+        margin-left: 105px;
+        margin-top : -150px;
         position: relative;
+        z-index: 2000;
     }
 
     div#col1 {
         font-size: 20px;
-        z-index: 1000;
+        z-index: 3000;
         height: 600px;
         display: block;
         width: 90px;
@@ -47,7 +65,7 @@
         padding-left: 0px;
         padding-top: 0px;
         position: relative;
-        margin-top : -105px;
+       margin: 0px;
     }
 
     button.big {
@@ -55,9 +73,8 @@
     }
 
     .pin {
-        opacity : 0.5;
         font-size : 50px;
-        margin-left : -75px;
+        margin-left : -85px;
         vertical-align: bottom;
     }
 
@@ -70,8 +87,16 @@
         opacity: 1.0;
     }
     .together{
-        margin-top : -100px;
+        margin-top : 150px;
+        position: relative;
+        z-index: 5000;
+        height: 500px;
     }
+    .emoji-picker__wrapper{
+        z-index : 10000;
+        margin-top : 300px; !important
+    }
+
     .stickybutton {
 
     }
@@ -83,10 +108,30 @@
         position: fixed;
         z-index: -1;
         width: 100%;
+        display: none;
     }
 
     img {
         box-shadow: 0 0 5px 10px #555;
+    }
+
+    #emojipreview {
+        font-size: 2em;
+        margin-left: 300px;
+        margin-top: -200px
+    }
+    .emoji_preview-name{
+        font-size: 1.5em;
+    }
+    .emoji_preview-emoji {
+        font-size: 5em;
+    }
+    .together__col1{
+        width : 40%
+    }
+    .together__col2 {
+        width: 60%;
+        text-decoration: white;
     }
 </style>
 
@@ -97,29 +142,39 @@
 <table>
     <tr>
         <td id="td0">
-            <div id="col0">
+            <div id="col1">
 
             </div>
         </td>
         <td>
             <div class="outer">
-
-                <span class="target">✌🏻</span>
-                <span id="pin" class="pin">📌</span>
+<h1 class="wrapper">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <span id="target" class="aniLetter">✌🏻</span>
+                <span id="pin" class="pin aniLetter">📌</span>
+</h1>
             </div>
         </td>
         <td>
-            <div id="col1">
+            <div id="col0">
             </div>
         </td>
     </tr>
 </table>
-
-<div class="together">
+<table>
+    <tr><td class="together__col1"><div class="together">
     <button class="AFK big">AFK</button>
     <button class="trigger big">Emoji</button>
     <button id="stickybutton" class="stopFade big">Sticky</button>
-</div>
+</div></td >
+    <td class="together__col2">
+   <div id="emojipreview" class="emoji-picker__container">
+        <button class="emoji_preview-name"></button>
+       <button class="emoji_preview-emoji"></button>
+
+       <button class="sticky">📌</button>
+   </div></td></tr>
+</table>
+
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>

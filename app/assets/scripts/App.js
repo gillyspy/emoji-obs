@@ -10,21 +10,28 @@ const myAnimation = new Animation();
 $(document).ready(function () {
   const trigger = document.querySelector('.trigger');
   var $highlight = [];
-  const target = $('.target');
+  const target = $('#target');
 //$target.fadeOut(40000);//default
   const stickyButton = $('#stickybutton');
   const $outer = $('.outer');
   const $afk = $('.AFK');
+  const $emojipreview = $('#emojipreview');
   myAnimation.init(target);
 
-  var init = ['💩', '👍🏻', '🔥', '✅', '❌', '👂🏻', '🧠', '🐧', '🦈', '☁️', '️', '🌧', '🌮', '🎧', '🔋', '🛠️',
-    '🧲', '📅', '🛏️', '💤', '⁉️', '‍️⚠️', '🔫', '🤦🏻‍♂️', '🥓','👋🏻','✋🏻','💡','✌🏻'];
+  Window.TEST = $;
 
+  const init = ['💩', '🔇', '🏳️', '👍🏻', '🔥', '✅', '❌', '👂🏻', '🧠',
+    '🐧', '🦈', '☁️','⛈️', '🌮', '🎧', '🔋', '🛠️',
+    '🧲', '📅', '🛏️', '💤', '⁉️', '‍️⚠️', '🔫', '🤦🏻‍♂️', '🥓',
+    '👋🏻', '✋🏻', '💡', '✌🏻'];
+  const stickyInit = {
+    "🔇": true
+  }
 
-  $afk.on('click', function(ev){
+  $afk.on('click', function (ev) {
     let $this = $('#afk');
     $this.toggle();
-    if($this.is(':hidden')){
+    if ($this.is(':hidden')) {
       $('#' + '✌🏻').click();
     } else {
       $('#' + '💤').click();
@@ -33,8 +40,6 @@ $(document).ready(function () {
     ev.preventDefault();
     return false;
   });
-
-
 
   stickyButton.on('click', (ev) => {
     //make the current emoji sticky
@@ -68,7 +73,7 @@ $(document).ready(function () {
 
     //update size of icons
     var histCt = $('.history').length;
-    var size = (675 / 50)+15;
+    var size = (675 / 50) + 5;
     if (histCt < 14) {
       size = Math.max(size, 50);
     }
@@ -80,6 +85,7 @@ $(document).ready(function () {
     archiveFave();
 
     var fave = myFavs.stashIt(emoji);
+    fave.sticky = !!(stickyInit[fave.emoji])
 
     if (fave.sticky) {
       myAnimation.removeAnimation();
@@ -93,12 +99,10 @@ $(document).ready(function () {
   }); // init for each
 
   stickyButton.click(); //initialize sticky  for the last emoji
-  /*******************/
-  picker.on('emoji', selection => {
-    // reset animation on every new emoji
 
+  const injectSelection = function (selection) {
     //a highlighted one means we have nothing to archive
-      archiveFave();
+    archiveFave();
 
     var fave = myFavs.stashIt(selection.emoji);
 
@@ -114,9 +118,15 @@ $(document).ready(function () {
     highlightFave(target.text());
 
     return false;
+  }
+  /*******************/
+  picker.on('emoji', selection => {
+    // reset animation on every new emoji
+    return injectSelection(selection);
+
   });
 
-  var switchEmoji = function(direction) {
+  var switchEmoji = function (direction) {
 
     //archive the current one
     archiveFave();
@@ -141,10 +151,11 @@ $(document).ready(function () {
 
     var fave = myFavs.stashIt($highlight.text(), false);
 
+    myAnimation.addAnimation();
     if (fave.sticky) {
       myAnimation.removeAnimation();
     } else {
-      myAnimation.addAnimation();
+
     }
 
   });
@@ -161,6 +172,7 @@ $(document).ready(function () {
     }
   });
 
+
   $outer.on('click', (ev) => {
     var direction = ev.shiftKey ? 1 : -1;
 
@@ -173,8 +185,32 @@ $(document).ready(function () {
   trigger.addEventListener('click', (ev) => {
     ev.preventDefault();
     picker.togglePicker(trigger);
+    $('.emoji-picker__wrapper').css('margin-top', '190px')
+      // $('.emoji-picker__container')
+      .on('mouseover', 'button.emoji-picker__emoji', function () {
+        $('#emojipreview > .emoji_preview-emoji').text($(this).text());
+        $('#emojipreview > .emoji_preview-name').text($(this).attr('title'))
+      });
+
     return false;
   });
+
+  $emojipreview.on('click','button', function () {
+
+     injectSelection({
+      emoji: $emojipreview.find('.emoji_preview-emoji').text()
+    })
+    if( $(this).hasClass('sticky')){
+      stickyButton.click();
+    }
+  })
+  /*
+    target.html(
+      target.text()
+        .replace(/\S/g, "<span class='letter'>$&</span>")
+    );
+  */
+
 
   /*
 
