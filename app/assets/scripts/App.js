@@ -16,6 +16,8 @@ $(document).ready(function () {
   const $outer = $('.outer');
   const $afk = $('.AFK');
   const $emojipreview = $('#emojipreview');
+  const $history = $('#history');
+  const $moveHistory = $('#moveHistory');
   myAnimation.init(target);
 
 
@@ -58,8 +60,8 @@ $(document).ready(function () {
 
     //add unique entry to the history
     if ($('#' + target.text()).length === 0) {
-      $('#col1')
-        .prepend('<span id="' + target.text() + '" class="history">' + target.text() + '</span>');
+      $history
+        .prepend('<button id="' + target.text() + '" class="history">' + target.text() + '</button>');
     }
 
     //update size of icons
@@ -134,7 +136,7 @@ $(document).ready(function () {
     }
   }
 
-  $('#col1').on('click', 'span', function (ev) {
+  $history.on('click', 'button', function (ev) {
     archiveFave();
     target.text($(this).text());
 
@@ -194,6 +196,15 @@ $(document).ready(function () {
     if( $(this).hasClass('sticky')){
       stickyButton.click();
     }
+  });
+
+  $moveHistory.on('click', function(){
+    if( $history.parent('div').hasClass('together') ){
+      $history.appendTo( $('#col1') );
+    } else {
+      $history.appendTo( $('div.together') );
+    }
+
   })
   /*
     target.html(

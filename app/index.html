@@ -77,19 +77,26 @@
     }
 
     .history {
-        opacity : .5
+        opacity : .5;
+        background-color : transparent;
+        background-repeat: no-repeat;
+        border: none;
+        cursor: pointer;
+        overflow: hidden;
+        outline : none;
     }
 
     .highlight {
         text-decoration-line: underline;
         opacity: 1.0;
     }
-    .together{
-        margin-top : 150px;
+    .together {
+        margin-top: 150px;
         position: relative;
         z-index: 5000;
         height: 500px;
     }
+
     .emoji-picker__wrapper{
         z-index : 10000;
         margin-top : 300px; !important
@@ -131,6 +138,9 @@
         width: 60%;
         text-decoration: white;
     }
+    #moveHistory {
+        font-size : 24px;
+    }
 </style>
 
 </head>
@@ -140,8 +150,8 @@
 <table>
     <tr>
         <td id="td0">
-            <div id="col1">
-
+            <div id="col1" class="column">
+                <div id="history"></div>
             </div>
         </td>
         <td>
@@ -160,9 +170,10 @@
 </table>
 <table>
     <tr><td class="together__col1"><div class="together">
-    <button class="AFK big">AFK</button>
+    <button class="AFK big">💤</button>
     <button class="trigger big">Emoji</button>
-    <button id="stickybutton" class="stopFade big">Sticky</button>
+    <button id="stickybutton" class="stopFade big">🔃📌</button>
+        <button id="moveHistory" class="big">🔃📜</button>
 </div></td >
     <td class="together__col2">
    <div id="emojipreview" class="emoji-picker__container">
