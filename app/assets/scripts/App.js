@@ -2,6 +2,7 @@ const $ = require("jquery");
 import {EmojiButton} from '@joeattardi/emoji-button';
 import Favorites from "./modules/Favorites";
 import Animation from './modules/Animation';
+import Init from './modules/Init.js';
 
 const picker = new EmojiButton();
 const myFavs = new Favorites();
@@ -17,15 +18,6 @@ $(document).ready(function () {
   const $emojipreview = $('#emojipreview');
   myAnimation.init(target);
 
-  Window.TEST = $;
-
-  const init = ['💩', '🔇', '🏳️', '👍🏻', '🔥', '✅', '❌', '👂🏻', '🧠',
-    '🐧', '🦈', '☁️','⛈️', '🌮', '🎧', '🔋', '🛠️',
-    '🧲', '📅', '🛏️', '💤', '⁉️', '‍️⚠️', '🔫', '🤦🏻‍♂️', '🥓',
-    '👋🏻', '✋🏻', '💡', '✌🏻'];
-  const stickyInit = {
-    "🔇": true
-  }
 
   $afk.on('click', function (ev) {
     let $this = $('#afk');
@@ -80,11 +72,11 @@ $(document).ready(function () {
   } //archiveFave
 
   /**********************/
-  init.forEach((emoji) => {
+  Init.init.forEach((emoji) => {
     archiveFave();
 
     var fave = myFavs.stashIt(emoji);
-    fave.sticky = !!(stickyInit[fave.emoji])
+    fave.sticky = !!(Init.stickyInit[fave.emoji])
 
     if (fave.sticky) {
       myAnimation.removeAnimation();
