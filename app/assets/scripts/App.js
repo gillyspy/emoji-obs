@@ -1,8 +1,7 @@
 const $ = require("jquery");
 import {EmojiButton} from '@joeattardi/emoji-button';
-import Favorites from "./Favorites";
-import Animation from './Animation';
-
+import Favorites from "./modules/Favorites";
+import Animation from './modules/Animation';
 
 const picker = new EmojiButton();
 const myFavs = new Favorites();
