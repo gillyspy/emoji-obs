@@ -22,17 +22,36 @@ class Animation {
 
     return this;
   }
-  /*
-  add */
 
+  toggleHide(sticky){
+    if(this.$el.is(':hidden')){
+      this.restartAnimation();
+      if( sticky ){
+        this.removeAnimation();
+      }
+    } else {
+      this.$el.stop().hide();
+      this.pin.hide();
+    // this.restartAnimation();
+    }
+  }
   restartAnimation(){
     this.pin.hide();
     this.$el.show().stop()
       .fadeIn(1000)
       .stop()
-      .css('opacity',1.0 )
+      .css('opacity', 1.0)
       .fadeOut(this.maxFade,);
 
+
+    return this;
+  }
+
+  addAnimation() {
+    if (this.debug) {
+      console.log('addAnimation');
+    }
+    this.restartAnimation();
     anime.timeline({loop: 1})
       .add({
         targets   : '.' + this.wrapper + ' .' + this.target,
@@ -43,21 +62,14 @@ class Animation {
         duration  : 950,
         delay     : (el, i) => 70 * i
       }).add({
-      targets : '.' + this.target,
-      opacity : 0,
+      targets: '.' + this.target,
+      opacity: 0,
       // duration: this.maxFade,
-      easing  : "easeOutExpo",
-      delay   : this.maxFade
+      easing : "easeOutExpo",
+      delay  : this.maxFade
     });
-
     return this;
-  }
 
-  addAnimation(){
-    if(this.debug){
-      console.log('addAnimation');
-    }
-    return this.restartAnimation();
   };
 };
 

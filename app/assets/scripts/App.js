@@ -18,6 +18,7 @@ $(document).ready(function () {
   const $emojipreview = $('#emojipreview');
   const $history = $('#history');
   const $moveHistory = $('#moveHistory');
+  const $hideButton = $('#hideEmoji');
   myAnimation.init(target);
 
 
@@ -33,6 +34,12 @@ $(document).ready(function () {
     ev.preventDefault();
     return false;
   });
+
+  $hideButton.on('click', function(){
+    //archiveFave();
+    var fav= myFavs.recallFave(target.text() );
+    myAnimation.toggleHide(fav.sticky);
+  })
 
   stickyButton.on('click', (ev) => {
     //make the current emoji sticky
