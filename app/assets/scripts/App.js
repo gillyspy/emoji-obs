@@ -5,8 +5,21 @@ import Animation from './modules/Animation';
 import Init from './modules/Init.js';
 import Draw from 'draw-on-canvas';
 
-
-const picker = new EmojiButton();
+const picker = new EmojiButton({
+  theme : 'dark',
+  rows : 2,
+  emojisPerRow : 12,
+  showRecents : true,
+  initialCategory : 'recents',
+  showVariants : true,
+ /* position: {
+    top: '100',
+    left: '0'
+  },*/
+   position: 'bottom-start',
+  emojiSize : '60px',
+  showPreview : false
+});
 const myFavs = new Favorites();
 const myAnimation = new Animation();
 $(document).ready(function () {
@@ -30,12 +43,28 @@ $(document).ready(function () {
   const Drawing  = new Draw($drawing.find('#drawingPane')[0], window.innerWidth, Init.visibleHeight, Init.canvas);
 
   $drawing.on('click', 'button', function(){
-    if($(this).hasClass('reset')){
+    let $this = $(this);
+    if($this.hasClass('reset')){
       return Drawing.reset();
-    }else if($(this).hasClass('stop')){
+    }else if($this.hasClass('stop')){
       $drawButton.click();
-    } else if( $(this).hasClass('nogrid')){
+    } else if( $this.hasClass('nogrid')){
       $('#Grid').toggle();
+    } else if( $this.hasClass('redDraw')){
+      //change color
+      Drawing.strokeColor ='red';
+    }else if( $this.hasClass('orangeDraw')){
+      //change color
+      Drawing.strokeColor = 'orange';
+    }else if( $this.hasClass('blueDraw')){
+      //change color
+      Drawing.strokeColor = 'blue';
+    }else if( $this.hasClass('greenDraw')){
+      //change color
+      Drawing.strokeColor = 'green';
+    }else if( $this.hasClass('purpleDraw')){
+      //change color
+      Drawing.strokeColor = 'purple';
     }
   });
 
@@ -43,13 +72,13 @@ $(document).ready(function () {
   $drawButton.on('click', ()=>{
     if( $drawing.is(':hidden') ){
       $drawing.show();
-      $('#Grid').show();
+      //$('#Grid').show();
     } else {
       $drawing.hide();
       $('#Grid').hide();
     }
   });
-
+  $drawButton.click();
   $afk.on('click', function (ev) {
     let $this = $('#afk');
     $this.toggle();
@@ -237,7 +266,7 @@ $(document).ready(function () {
 
   trigger.addEventListener('click', (ev) => {
     ev.preventDefault();
-    picker.togglePicker(trigger);
+    picker.togglePicker($('#col1b')[0]); //trigger);
     $('.emoji-picker__wrapper').css('margin-top', '190px')
       // $('.emoji-picker__container')
       .on('mouseover', 'button.emoji-picker__emoji', function () {
@@ -247,7 +276,7 @@ $(document).ready(function () {
 
     return false;
   });
-
+//
   $emojipreview.on('click','button', function () {
 
      injectSelection({
@@ -304,30 +333,6 @@ $(document).ready(function () {
     }
 
   })
-  /*
-    target.html(
-      target.text()
-        .replace(/\S/g, "<span class='letter'>$&</span>")
-    );
-  */
-
-
-  /*
-
-
-  import { EmojiButton } from '@joeattardi/emoji-button';
-
-const picker = new EmojiButton();
-const trigger = document.querySelector('.trigger');
-
-picker.on('emoji', selection => {
-  trigger.innerHTML = selection.emoji;
-});
-
-trigger.addEventListener('click',
-() => picker.togglePicker(trigger));
-   */
-
 });
 
 if( module.hot) {

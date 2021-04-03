@@ -15,7 +15,7 @@
   \***********************************/
 /***/ (() => {
 
-eval("alert('hello world!!!');\n\n//# sourceURL=webpack://emoji/./app/assets/scripts/App.js?");
+//eval("alert('hello world!!!');\n\n//# sourceURL=webpack://emoji/./app/assets/scripts/App.js?");
 
 /***/ })
 
