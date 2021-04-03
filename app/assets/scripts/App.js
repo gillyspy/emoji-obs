@@ -8,7 +8,7 @@ import Draw from 'draw-on-canvas';
 const picker = new EmojiButton({
   theme : 'dark',
   rows : 2,
-  emojisPerRow : 12,
+  emojisPerRow : 11,
   showRecents : true,
   initialCategory : 'recents',
   showVariants : true,
@@ -269,11 +269,11 @@ $('#MessageSource').on('keypress click','form', function(){
   trigger.addEventListener('click', (ev) => {
     ev.preventDefault();
     picker.togglePicker($('#col1b')[0]); //trigger);
-    $('.emoji-picker__wrapper').css('margin-top', '190px')
+    $('.emoji-picker__wrapper').css('margin-top', '100px')
       // $('.emoji-picker__container')
       .on('mouseover', 'button.emoji-picker__emoji', function () {
         $('#emojipreview > .emoji_preview-emoji').text($(this).text());
-        $('#emojipreview > .emoji_preview-name').text($(this).attr('title'))
+        $('.emoji_preview-name').text($(this).attr('title'))
       });
 
     return false;
