@@ -34,7 +34,7 @@
     }
 
     div#col0 {
-        width: 500px;
+        width: 0px;
         height: 500px;
         padding: 0px;
         border: 1px;
@@ -94,14 +94,16 @@
     }
     #col1b{
         margin: 0px;
-        height: 80px
+        height: 80px;
+        padding-right: 200px;
+        display: inline-block;
 
     }
     .together {
         position: absolute
         z-index: 5000;
         height: 500px;
-        margin-left: 50px;
+        margin-left: 0px;
         margin-right: 100px;
         width: 650px
 
@@ -151,6 +153,36 @@
         margin-top : 50px
     }
 
+    .ml1 {
+  font-weight: 900;
+}
+
+.ml1 .letter {
+  display: inline-block;
+  line-height: 1em;
+}
+
+.ml1 .text-wrapper {
+  position: relative;
+  display: inline-block;
+  padding-top: 0.1em;
+  padding-right: 0.05em;
+  padding-bottom: 0.15em;
+}
+
+.ml1 .line {
+  opacity: 0;
+  position: absolute;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  background-color: #fff;
+  transform-origin: 0 0;
+}
+
+.ml1 .line1 {
+    top: 0px; }
+.ml1 .line2 { bottom: 0; }
 </style>
 
 </head>
@@ -178,7 +210,16 @@
         </td>
     </tr>
 </table>
-<table id="buttons"><tr><td colspan="2"><div  id="col1b"></div></td></tr>
+<table id="buttons"><tr><td colspan="2"><div  id="col1b">
+    <h1 class="ml1">
+    <span class="text-wrapper">
+    <span class="line line1"></span>
+    <span id="letters" class="letters"></span>
+    <span class="line line2"></span>
+  </span>
+    </h1>
+
+</div></td></tr>
     <tr><td class="together__col1">
         <div class="together">
             <button class="AFK big">💤</button>

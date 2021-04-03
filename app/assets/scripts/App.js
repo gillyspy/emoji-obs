@@ -68,7 +68,7 @@ $(document).ready(function () {
     //add unique entry to the history
     if ($('#' + target.text()).length === 0) {
       $history
-        .prepend('<button id="' + target.text() + '" class="history">' + target.text() + '</button>');
+        .prepend('<span class="letters"><button id="' + target.text() + '" class="history">' + target.text() + '</button></span>');
     }
 
     //update size of icons
@@ -225,10 +225,48 @@ $(document).ready(function () {
   });
 
   $moveHistory.on('click', function(){
-    if( $history.parent('#col1b').length > 0 ){
-      $history.appendTo( $('#col1a') );
-    } else {
-      $history.appendTo( $('#col1b') );
+    //$('.history').hide();
+    if ($history.parent('#col1a').length > 0) {
+
+      $history.appendTo($('#letters'));
+      myAnimation.anime.timeline({loop: 1})
+        .add({
+          targets   : '#history .history',
+          scale     : [0.3, 1],
+          opacity   : [0, 1],
+          translateZ: 0,
+          easing    : "easeOutExpo",
+          duration  : 600,
+          delay     : (el, i) => 70 * (i + 1)
+        })
+        .add({
+        targets : '.ml1 .line',
+        scaleX  : [0, 1],
+        opacity : [0.5, 1],
+        easing  : "easeOutExpo",
+        duration: 700,
+        offset  : '-=875',
+        delay   : (el, i, l) => 80 * (l - i)
+      }).add({
+        targets : '.ml1 .line',
+        opacity : 0,
+        duration: 1000,
+        easing  : "easeOutExpo",
+        delay   : 1000
+      });
+    }else{
+        $history.appendTo($('#col1a'));
+      myAnimation.anime.timeline({loop : 1})
+        .add({
+          targets   : '#history .history',
+          scale     : [0.3, 1],
+          opacity   : [0, 1],
+          translateZ: 0,
+          easing    : "easeOutExpo",
+          duration  : 600,
+          delay     : (el, i) => 70 * (i + 1)
+        })
+
     }
 
   })

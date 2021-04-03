@@ -8,7 +8,8 @@ class Animation {
     this.pin;
     this.maxFade = 40000;
     this.target = 'aniLetter';
-    this.wrapper = 'wrapper'
+    this.wrapper = 'wrapper';
+    this.anime = anime;
     //el might not be jQuery object
   }
   init(el){
@@ -41,7 +42,7 @@ class Animation {
       .fadeIn(1000)
       .stop()
       .css('opacity', 1.0)
-      .fadeOut(this.maxFade,);
+      .fadeOut(this.maxFade);
 
 
     return this;
@@ -61,13 +62,13 @@ class Animation {
         easing    : "easeOutExpo",
         duration  : 950,
         delay     : (el, i) => 70 * i
-      }).add({
+      }); /* .add({
       targets: '.' + this.target,
       opacity: 0,
       // duration: this.maxFade,
       easing : "easeOutExpo",
       delay  : this.maxFade
-    });
+    });*/
     return this;
 
   };

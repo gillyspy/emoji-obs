@@ -7,6 +7,15 @@ class Favorites {
     if (firstItem) {
       this.stashIt(firstItem);
     }
+    this.debug = false;
+    this.console = {
+      log: function (...rest) {
+        if (this.debug) {
+          return console.log(...rest);
+        }
+        return;
+      }
+    }
   }
 
   getNameFromIndex(position) {
@@ -40,10 +49,10 @@ class Favorites {
         favorite = this.stash[this.getNameFromIndex(position)];
       }
     }
-    console.log('toggleSticky', this.position, favorite, this);
+    this.console.log('toggleSticky', this.position, favorite, this);
     favorite.sticky = !favorite.sticky;
     // favorite = this.toggleSticky(this.position, favorite); //recursively set sticky on now-known favorite
-    console.log(favorite);
+    this.console.log(favorite);
     return favorite;
     //return favorite.sticky;
   }
@@ -52,7 +61,7 @@ class Favorites {
     if(typeof addHistory === 'undefined'){
       addHistory = true;
     }
-    console.log('stashIt', emoji);
+    this.console.log('stashIt', emoji);
     if (this.nameIndex.length >= this.max) {
       //remove the oldest one
       delete this.stash(this.nameIndex[0]);
@@ -77,14 +86,14 @@ class Favorites {
 
     //update position to this position
     this.position = this.stash[emoji].position;  // (this.nameIndex.length - 1);
-    console.log('stashed', this.stash)
+    this.console.log('stashed', this.stash)
     return this.stash[emoji];
   }
 
   // favorite is one particular stash entry
   recallFave(favorite) {
     if (!favorite) {
-      console.log('no favourite', this.stash)
+      this.console.log('no favourite', this.stash)
       favorite = this.stash[this.getNameFromIndex()];
     } else {
       favorite = this.stash[favorite];
