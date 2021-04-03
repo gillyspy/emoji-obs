@@ -161,15 +161,37 @@ $(document).ready(function () {
   });
 
   $('body').on('keydown', (ev) => {
-    var direction = 0;
-    if (ev.which == 38) {
-      direction = -1;
-    } else if (ev.which == 40) {
-      direction = 1;
+   // let direction = 0;
+    // let Halign = 0;
+    const o  = {}
+    switch( ev.which){
+      case 38:
+        o.top = -20
+        break;
+      case 40:
+        o.top=20
+        break;
+      case 37: //left
+        o.left = -20;
+        break;
+      case 39:
+        o.left = +20;
+        break;
     }
-    if (direction != 0) {
+    for( var direction in o){
+      let curMargin = $('.wrapper').css('margin-'+direction);
+      let newMargin;
+      newMargin = (curMargin.match(/.?\d*/)[0]*1 + o[direction]) + 'px';
+      $('.wrapper').css('margin-'+direction, newMargin );
+    }
+
+  /*  if (direction != 0) {
+       let curMargin = $('.wrapper').css('margin-top');
+      let newMargin;
+      newMargin = (curMargin.match(/.?\d/)[0]*1 + direction) + 'px';
+      $('.wrapper').css('margin-top', newMargin )
       switchEmoji(direction);
-    }
+    } */
   });
 
 
@@ -206,10 +228,10 @@ $(document).ready(function () {
   });
 
   $moveHistory.on('click', function(){
-    if( $history.parent('div').hasClass('together') ){
-      $history.appendTo( $('#col1') );
+    if( $history.parent('#col1b').length > 0 ){
+      $history.appendTo( $('#col1a') );
     } else {
-      $history.appendTo( $('div.together') );
+      $history.appendTo( $('#col1b') );
     }
 
   })

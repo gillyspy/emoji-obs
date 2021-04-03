@@ -20,6 +20,8 @@
         font-weight: 900;
         opacity: .8;
         font-size: 3.5em;
+        margin-top : 70px
+        margin-left: 0px
     }
 
     .wrapper .aniLetter {
@@ -42,7 +44,7 @@
 
     div.outer {
         font-size: 60px;
-        height: 600px;
+        height: 500px;
         display: block;
         width: 1200px;
         overflow: hidden;
@@ -53,10 +55,10 @@
         z-index: 2000;
     }
 
-    div#col1 {
+    div#col1a {
         font-size: 20px;
         z-index: 3000;
-        height: 600px;
+        height: 500px;
         display: block;
         width: 90px;
         overflow: hidden;
@@ -90,11 +92,19 @@
         text-decoration-line: underline;
         opacity: 1.0;
     }
+    #col1b{
+        margin: 0px;
+        height: 80px
+
+    }
     .together {
-        margin-top: 150px;
-        position: relative;
+        position: absolute
         z-index: 5000;
         height: 500px;
+        margin-left: 50px;
+        margin-right: 100px;
+        width: 500px
+
     }
 
     .emoji-picker__wrapper{
@@ -122,8 +132,6 @@
 
     #emojipreview {
         font-size: 2em;
-        margin-left: 300px;
-        margin-top: -200px
     }
     .emoji_preview-name{
         font-size: 1.5em;
@@ -132,15 +140,17 @@
         font-size: 5em;
     }
     .together__col1{
-        width : 40%
+        width : 40%;
+        align-content: normal;
     }
     .together__col2 {
         width: 60%;
         text-decoration: white;
     }
-    #moveHistory {
-        font-size : 24px;
+    #buttons {
+        margin-top : 50px
     }
+
 </style>
 
 </head>
@@ -150,13 +160,13 @@
 <table>
     <tr>
         <td id="td0">
-            <div id="col1" class="column">
+            <div id="col1a" class="column">
                 <div id="history"></div>
             </div>
         </td>
         <td>
             <div class="outer">
-<h1 class="wrapper">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<h1 class="wrapper">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <span id="target" class="aniLetter">✌🏻</span>
                 <span id="pin" class="pin aniLetter">📌</span>
 </h1>
@@ -168,21 +178,21 @@
         </td>
     </tr>
 </table>
-<table>
+<table id="buttons"><tr><td colspan="2"><div  id="col1b"></div></td></tr>
     <tr><td class="together__col1">
         <div class="together">
             <button class="AFK big">💤</button>
-            <button class="trigger big">Emoji</button>
+            <button class="trigger big">😎🏻</button>
             <button id="stickybutton" class="stopFade big">🔃📌</button>
             <button id="hideEmoji" class="hideEmoji big">🛑</button>
             <button id="moveHistory" class="big">🔃📜</button>
 </div></td >
     <td class="together__col2">
-   <div id="emojipreview" class="emoji-picker__container">
-        <button class="emoji_preview-name"></button>
-       <button class="emoji_preview-emoji"></button>
+   <div id="emojipreview" class="together">
 
-       <button class="sticky">📌</button>
+       <button class="emoji_preview-emoji big">🏻</button>
+       <button class="sticky big">📌</button>
+       <button class="emoji_preview-name big">🏻</button>
    </div></td></tr>
 </table>
 
