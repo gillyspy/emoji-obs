@@ -163,19 +163,23 @@ $(document).ready(function () {
   $('body').on('keydown', (ev) => {
    // let direction = 0;
     // let Halign = 0;
+    if($('.emoji-picker__wrapper').is(':visible')){
+      //only move the emoji when the picker is hidden
+      return;
+    }
     const o  = {}
     switch( ev.which){
       case 38:
-        o.top = -20
+        o.top = -10
         break;
       case 40:
-        o.top=20
+        o.top=10
         break;
       case 37: //left
-        o.left = -20;
+        o.left = -10;
         break;
       case 39:
-        o.left = +20;
+        o.left = +10;
         break;
     }
     for( var direction in o){
@@ -185,13 +189,6 @@ $(document).ready(function () {
       $('.wrapper').css('margin-'+direction, newMargin );
     }
 
-  /*  if (direction != 0) {
-       let curMargin = $('.wrapper').css('margin-top');
-      let newMargin;
-      newMargin = (curMargin.match(/.?\d/)[0]*1 + direction) + 'px';
-      $('.wrapper').css('margin-top', newMargin )
-      switchEmoji(direction);
-    } */
   });
 
 
