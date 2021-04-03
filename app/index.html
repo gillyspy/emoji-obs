@@ -30,7 +30,7 @@
     #drawing, #Grid, #MessageWrapper{
 
         position: fixed;
-        width: 84%;
+        width: 100%;
         height: 300px;
         top: 0;
         left: 0;
@@ -270,13 +270,6 @@
     <tr>
         <td colspan="2">
             <div id="col1b">
-                <h1 class="ml1">
-    <span class="text-wrapper">
-    <span class="line line1"></span>
-    <span id="letters" class="letters"></span>
-    <span class="line line2"></span>
-  </span>
-                </h1>
 
             </div>
         </td>
@@ -291,7 +284,7 @@
                 <button id="hideEmoji" class="hideEmoji big">🛑</button>
                 <button id="moveHistory" class="big">🔃📜</button>
             </div><div id="MessageSource">
-            <form><button type="reset" class="big">🔄</button><textarea id="Message" rows="4" cols="80" placeholder="Enter an on-screen message here"></textarea></form>
+            <form><button type="reset" class="big">🔄</button><textarea id="Message" rows="4" cols="65" placeholder="Enter an on-screen message here"></textarea></form>
             </div>
         </td>
         <td class="together__col2">
@@ -302,7 +295,16 @@
             <button class="emoji_preview-name big">🏻</button>
 
         </td>
-    </tr>
+    </tr><tr><td colspan="2">
+     <h1 class="ml1">
+    <span class="text-wrapper">
+    <span class="line line1"></span>
+    <span id="letters" class="letters"></span>
+    <span class="line line2"></span>
+  </span>
+                </h1>
+
+</td></tr>
 </table>
 <div id="drawing">
     <div id="drawingPane"></div>

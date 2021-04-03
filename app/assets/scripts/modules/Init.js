@@ -11,7 +11,7 @@
     strokeColor:"orange",
     strokeWeight:10
   },
-   visibleHeight : 550
+   visibleHeight : 575
  };
 
  export default Init;
