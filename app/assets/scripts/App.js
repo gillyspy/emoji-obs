@@ -68,7 +68,9 @@ $(document).ready(function () {
     }
   });
 
-
+$('#MessageSource').on('keypress click','form', function(){
+  $('#MessageTarget').text( $('#Message').val());
+});
   $drawButton.on('click', ()=>{
     if( $drawing.is(':hidden') ){
       $drawing.show();

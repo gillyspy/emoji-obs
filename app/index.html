@@ -9,13 +9,25 @@
         margin: 0px auto;
         overflow: hidden;
     }
+    #MessageTarget{
+        color: whitesmoke;
+        font-weight: bold;
+        opacity: .9;
+        text-align: justify-all;
+        background-color: rgba(129,129,129,.6);
+        font-size: 90px;
+        z-index: 8000;
+    }
 
+    #MessageSource{
+        vertical-align: top;
+    }
 
     #drawing {
         z-index: 10000;
     }
 
-    #drawing, #Grid {
+    #drawing, #Grid, #MessageWrapper{
 
         position: fixed;
         width: 84%;
@@ -23,8 +35,10 @@
         top: 0;
         left: 0;
     }
-
-
+    #MessageWrapper{
+        z-index:8000;
+        position: fixed;
+    }
 
     #Grid {
         display: none;
@@ -104,7 +118,8 @@
     }
 
     button.big {
-        font-size : 48px;
+        font-size : 40px;
+        vertical-align: top;
     }
 
     .pin {
@@ -140,7 +155,6 @@
     }
     .together {
         z-index: 5000;
-        height: 500px;
         margin-left: 0px;
         margin-right: 100px;
         width: 650px
@@ -178,14 +192,17 @@
     }
     .together__col1{
         width : 40%;
-        align-content: normal;
+        vertical-align: top;
     }
     .together__col2 {
         width: 60%;
         text-decoration: white;
+        vertical-align: top;
     }
     #buttons {
-        margin-top : 50px
+        margin-top : 50px;
+        z-index : 8001;
+        position:relative;
     }
 
     .ml1 {
@@ -271,6 +288,8 @@
                 <button id="stickybutton" class="stopFade big">🔃📌</button>
                 <button id="hideEmoji" class="hideEmoji big">🛑</button>
                 <button id="moveHistory" class="big">🔃📜</button>
+            </div><div id="MessageSource">
+            <form><button type="reset" class="big">🔄</button><textarea id="Message" rows="4" cols="80" placeholder="Enter an on-screen message here"></textarea></form>
             </div>
         </td>
         <td class="together__col2">
@@ -279,6 +298,7 @@
                 <button class="sticky big">📌</button>
                 <button class="emoji_preview-name big">🏻</button>
             </div>
+
         </td>
     </tr>
 </table>
@@ -293,6 +313,9 @@
     <button class="orangeDraw big">🟧</button>
     <button class="greenDraw big">🟩</button>
     <button class="purpleDraw big">🟪</button>
+</div>
+<div id="MessageWrapper">
+    <span id="MessageTarget"></span>
 </div>
 <div id="Grid">
     <div class="grid">
