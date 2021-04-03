@@ -10,12 +10,46 @@
         overflow: hidden;
     }
 
+
+    #drawing {
+        z-index: 10000;
+    }
+
+    #drawing, #Grid {
+
+        position: fixed;
+        width: 84%;
+        height: 300px;
+        top: 0;
+        left: 0;
+    }
+
+
+
+    #Grid {
+        display: none;
+        z-index: 9000;
+        position: fixed;
+    }
+
+    .grid {
+        display: flex; /* establish flex container */
+        flex-wrap: wrap; /* enable flex items to wrap */
+        justify-content: space-around;
+    }
+
+    .cell {
+        flex: 1 1 32%; /* don't grow, don't shrink, width */
+        border: 2px dashed #ffffff;
+    }
+
     .target {
         vertical-align: top;
     }
 
     .buffer {
     }
+
     .wrapper {
         font-weight: 900;
         opacity: .8;
@@ -53,6 +87,7 @@
         margin-top : -150px;
         position: relative;
         z-index: 2000;
+        cursor: pointer;
     }
 
     div#col1a {
@@ -79,20 +114,25 @@
     }
 
     .history {
-        opacity : .5;
-        background-color : transparent;
+        opacity: .5;
+        background-color: transparent;
         background-repeat: no-repeat;
         border: none;
         cursor: pointer;
         overflow: hidden;
-        outline : none;
+        outline: none;
+    }
+
+    .history, .aniLetter {
+        color: white;
     }
 
     .highlight {
         text-decoration-line: underline;
         opacity: 1.0;
     }
-    #col1b{
+
+    #col1b {
         margin: 0px;
         height: 80px;
         padding-right: 200px;
@@ -183,6 +223,8 @@
 .ml1 .line1 {
     top: 0px; }
 .ml1 .line2 { bottom: 0; }
+
+
 </style>
 
 </head>
@@ -210,32 +252,62 @@
         </td>
     </tr>
 </table>
-<table id="buttons"><tr><td colspan="2"><div  id="col1b">
-    <h1 class="ml1">
+<table id="buttons">
+    <tr>
+        <td colspan="2">
+            <div id="col1b">
+                <h1 class="ml1">
     <span class="text-wrapper">
     <span class="line line1"></span>
     <span id="letters" class="letters"></span>
     <span class="line line2"></span>
   </span>
-    </h1>
+                </h1>
 
-</div></td></tr>
-    <tr><td class="together__col1">
-        <div class="together">
-            <button class="AFK big">💤</button>
-            <button class="trigger big">😎🏻</button>
-            <button id="stickybutton" class="stopFade big">🔃📌</button>
-            <button id="hideEmoji" class="hideEmoji big">🛑</button>
-            <button id="moveHistory" class="big">🔃📜</button>
-</div></td >
-    <td class="together__col2">
-   <div id="emojipreview" class="together">
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="together__col1">
+            <div class="together">
+                <button class="draw big">✍🏻</button>
+                <button class="AFK big">💤</button>
+                <button class="trigger big">😎🏻</button>
+                <button id="stickybutton" class="stopFade big">🔃📌</button>
+                <button id="hideEmoji" class="hideEmoji big">🛑</button>
+                <button id="moveHistory" class="big">🔃📜</button>
+            </div>
+        </td>
+        <td class="together__col2">
+            <div id="emojipreview" class="together">
 
-       <button class="emoji_preview-emoji big">🏻</button>
-       <button class="sticky big">📌</button>
-       <button class="emoji_preview-name big">🏻</button>
-   </div></td></tr>
+                <button class="emoji_preview-emoji big">🏻</button>
+                <button class="sticky big">📌</button>
+                <button class="emoji_preview-name big">🏻</button>
+            </div>
+        </td>
+    </tr>
 </table>
+<div id="drawing">
+    <div id="drawingPane"></div>
+
+    <button class="reset big">🔄</button>
+    <button class="stop big">🛑</button>
+    <button class="nogrid big">📉</button>
+</div>
+<div id="Grid">
+    <div class="grid">
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+    </div>
+</div>
 
 <p>&nbsp;</p>
 <p>&nbsp;</p>

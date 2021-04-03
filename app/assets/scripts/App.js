@@ -3,6 +3,8 @@ import {EmojiButton} from '@joeattardi/emoji-button';
 import Favorites from "./modules/Favorites";
 import Animation from './modules/Animation';
 import Init from './modules/Init.js';
+import Draw from 'draw-on-canvas';
+
 
 const picker = new EmojiButton();
 const myFavs = new Favorites();
@@ -20,7 +22,33 @@ $(document).ready(function () {
   const $moveHistory = $('#moveHistory');
   const $hideButton = $('#hideEmoji');
   myAnimation.init(target);
+  const $drawing = $('#drawing').hide();
+  const $drawButton = $('button.draw');
+  const $drawButton2 = $('button.nogrid');
+  const $Grid = $('#Grid');
+  $Grid.find('.grid').css('min-height', Init.visibleHeight+'px');
+  const Drawing  = new Draw($drawing.find('#drawingPane')[0], window.innerWidth, Init.visibleHeight, Init.canvas);
 
+  $drawing.on('click', 'button', function(){
+    if($(this).hasClass('reset')){
+      return Drawing.reset();
+    }else if($(this).hasClass('stop')){
+      $drawButton.click();
+    } else if( $(this).hasClass('nogrid')){
+      $('#Grid').toggle();
+    }
+  });
+
+
+  $drawButton.on('click', ()=>{
+    if( $drawing.is(':hidden') ){
+      $drawing.show();
+      $('#Grid').show();
+    } else {
+      $drawing.hide();
+      $('#Grid').hide();
+    }
+  });
 
   $afk.on('click', function (ev) {
     let $this = $('#afk');
@@ -163,6 +191,12 @@ $(document).ready(function () {
   $('body').on('keydown', (ev) => {
    // let direction = 0;
     // let Halign = 0;
+    if($drawing.is(':visible')){
+      if(ev.which === 27){
+        $drawButton.click();
+      }
+    }
+
     if($('.emoji-picker__wrapper').is(':visible')){
       //only move the emoji when the picker is hidden
       return;
