@@ -81,8 +81,8 @@ const Init = {
             picker.options.makeEmojiSticky = !picker.options.makeEmojiSticky;
 
             //alert('hello from the 📌 ' + picker.options.makeEmojiSticky);
-            console.log('what is THIS???', this);
-            console.log('what is picker???', picker);
+
+//            console.log('what is picker???', picker);
           });
           return button;
 
