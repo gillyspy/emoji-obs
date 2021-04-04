@@ -78,6 +78,7 @@ $(document).ready(function () {
 
     $drawing.on('click', 'button', function () {
       let $this = $(this);
+      $drawing.find('button').removeClass('pressed');
       if ($this.hasClass('reset')) {
         return Drawing.reset();
       } else if ($this.hasClass('stop')) {
@@ -87,18 +88,23 @@ $(document).ready(function () {
       } else if ($this.hasClass('redDraw')) {
         //change color
         Drawing.strokeColor = 'red';
+        $this.addClass('pressed');
       } else if ($this.hasClass('orangeDraw')) {
         //change color
         Drawing.strokeColor = 'orange';
+        $this.addClass('pressed');
       } else if ($this.hasClass('blueDraw')) {
         //change color
         Drawing.strokeColor = 'blue';
+        $this.addClass('pressed');
       } else if ($this.hasClass('greenDraw')) {
         //change color
         Drawing.strokeColor = 'green';
+        $this.addClass('pressed');
       } else if ($this.hasClass('purpleDraw')) {
         //change color
         Drawing.strokeColor = 'purple';
+        $this.addClass('pressed');
       }
     });
 
