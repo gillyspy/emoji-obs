@@ -141,15 +141,20 @@
         cursor: pointer;
         overflow: hidden;
         outline: none;
+
     }
 
+
     .history, .aniLetter {
-        color: white;
+        color: red;
+        font-weight: bold;
     }
 
     .highlight {
-        text-decoration-line: underline;
+       /* text-decoration: underline solid red ; */
         opacity: 1.0;
+        font-size: 1.2em !important;
+        border: 1px dashed white;
     }
 
     #col1b {
@@ -161,17 +166,40 @@
     .together {
         z-index: 5000;
         margin-left: 0px;
-        margin-right: 100px;
+        margin-right: 0px;
         width: 650px
+    }
+    div.drawing{
+        padding-left: 4px;
     }
 
     .emoji-picker__wrapper {
         z-index: 10000;
     }
+    button{
+        color: white;
+        border-radius: 14px;
+        padding: 0px 3px 2px;
+        margin: 6px 0px 0px 0px;
+        border: 2px dashed white;
+        background: rgba(255, 255, 255, .1);
+        /* margin:0px */
+    }
+    textarea {
+        font-weight: bold;
+        color : white  ;
+        background-color: darkgray;
+        border-radius: 14px;
+        margin : 5px;
+    }
+    textarea:-internal-autofill-previewed, ::placeholder {
+        color: white;
+        font-size: 1.5em;
+    }
 
     button.pressed {
         appearance: none;
-        background-color: grey;
+        background-color: lightgrey;
     }
 
     .stickybutton {
@@ -285,22 +313,24 @@
     <tr>
         <td class="together__col1">
             <div class="together">
-                <button class="draw big">✍🏻</button>
-                <button class="AFK big">💤</button>
-                <button class="trigger big">😎🏻</button>
-                <button id="stickybutton" class="stopFade big">🔃📌</button>
-                <button id="hideEmoji" class="hideEmoji big">🛑</button>
-                <button id="moveHistory" class="big">🔃📜</button>
+                <button class="draw big" title="Toggle Drawing Pad">✍🏻</button>
+                <button class="AFK big" title="Toggle Away From Keyboard">💤</button>
+                <button class="trigger big" title="Pick an Emoji!">🔎</button>
+                <button id="stickybutton" class="stopFade big pressed" title="Toggle the pin">📌</button>
+                <button id="hideEmoji" class="hideEmoji big" title="Toggle Hiding the Emoji">⛔</button>
+                <button id="moveHistory" class="big" title="Toggle Location of History">📜</button>
+                <button id="scrollUp" class="big up" title="Scroll Up Through Recents">◀️</button>
+                <button id="scrollDown" class="big down" title="Scroll Up Through Recents">▶️</button>
             </div><div id="MessageSource">
-            <form><button type="reset" class="big">🔄</button><textarea id="Message" rows="4" cols="65" placeholder="Enter an on-screen message here"></textarea></form>
+            <form><button type="reset" class="big" title="Reset On-Screen Message">🧽</button><textarea id="Message" rows="4" cols="65" placeholder="  Type an on-screen message here"></textarea></form>
             </div>
         </td>
         <td class="together__col2">
             <div id="emojipreview" class="together">
-                <button class="emoji_preview-emoji big">🏻</button>
-                <button class="sticky big">📌</button><br/>
+                <button class="emoji_preview-emoji big" title="Preview of on-deck emoji">😎</button>
+                <button class="sticky big" title="Activate on-deck with a pin">📌</button><br/>
             </div>
-            <button class="emoji_preview-name big">🏻</button>
+            <button class="emoji_preview-name big" title="Preview emoji's name">…</button>
 
         </td>
     </tr><tr><td colspan="2">
@@ -315,16 +345,17 @@
 </td></tr>
 </table>
 <div id="drawing">
-    <div id="drawingPane"></div>
-
-    <button class="reset big">🔄</button>
-    <button class="stop big">🛑</button>
-    <button class="nogrid big">📉</button>
-    <button class="redDraw big">🟥</button>
-    <button class="blueDraw big">🟦</button>
-    <button class="orangeDraw big pressed">🟧</button>
-    <button class="greenDraw big">🟩</button>
-    <button class="purpleDraw big">🟪</button>
+    <div id="drawingPane" "></div>
+<div class="drawing">
+    <button class="reset big drawing" title="Wipe drawing">🧽</button>
+    <button class="stop big drawing" title="Close Drawing Panel">🛑</button>
+    <button class="nogrid big drawing" title="Close Drawing grid">📉</button>
+    <button class="redDraw pens big drawing" title="Red Pen">🟥</button>
+    <button class="blueDraw pens big drawing" title="Blue Pen">🟦</button>
+    <button class="orangeDraw pens big pressed drawing" title="Orange Pen">🟧</button>
+    <button class="greenDraw pens big drawing" title="Green Pen">🟩</button>
+    <button class="purpleDraw pens big drawing" title="Purple Pen">🟪</button>
+</div>
 </div>
 <div id="MessageWrapper">
     <span id="MessageTarget"></span>

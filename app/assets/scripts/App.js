@@ -78,58 +78,63 @@ $(document).ready(function () {
 
     $drawing.on('click', 'button', function () {
       let $this = $(this);
-      $drawing.find('button').removeClass('pressed');
+
       if ($this.hasClass('reset')) {
         return Drawing.reset();
       } else if ($this.hasClass('stop')) {
         $drawButton.click();
+        return;
       } else if ($this.hasClass('nogrid')) {
         $('#Grid').toggle();
-      } else if ($this.hasClass('redDraw')) {
-        //change color
+        $this.toggleClass('pressed');
+        return;
+      }
+      //change color
+      $drawing.find('.pens').removeClass('pressed');
+      $this.addClass('pressed');
+      if ($this.hasClass('redDraw')) {
         Drawing.strokeColor = 'red';
-        $this.addClass('pressed');
       } else if ($this.hasClass('orangeDraw')) {
-        //change color
         Drawing.strokeColor = 'orange';
-        $this.addClass('pressed');
       } else if ($this.hasClass('blueDraw')) {
-        //change color
         Drawing.strokeColor = 'blue';
-        $this.addClass('pressed');
       } else if ($this.hasClass('greenDraw')) {
-        //change color
         Drawing.strokeColor = 'green';
-        $this.addClass('pressed');
       } else if ($this.hasClass('purpleDraw')) {
-        //change color
         Drawing.strokeColor = 'purple';
-        $this.addClass('pressed');
       }
     });
 
-    $('#MessageSource').on('keyup click', 'form', function () {
-      $('#MessageTarget').text($('#Message').val());
-
+    $('#MessageSource').on('keyup click', 'form', function (ev) {
+      if (ev.type === 'keyup') {
+        $('#MessageTarget').text($('#Message').val());
+      } else {
+        $('#MessageTarget').text('');
+      }
     });
     $drawButton.on('click', () => {
       if ($drawing.is(':hidden')) {
         $drawing.show();
+        $drawButton.addClass('pressed');
         //$('#Grid').show();
       } else {
         $drawing.hide();
+        $drawButton.removeClass('pressed');
         $('#Grid').hide();
       }
     });
-    $drawButton.click();
+
     $afk.on('click', function (ev) {
       let $this = $('#afk');
       $this.toggle();
       if ($this.is(':hidden')) {
         $('#' + '✌🏻').click();
+        $('button.AFK').removeClass('pressed');
       } else {
         $('#' + '💤').click();
         stickyButton.click();
+        $('button.AFK').addClass('pressed');
+
       }
       ev.preventDefault();
       return false;
@@ -139,6 +144,7 @@ $(document).ready(function () {
       //archiveFave();
       var fav = myFavs.recallFave(target.text());
       myAnimation.toggleHide(fav.sticky);
+      $hideButton.toggleClass('pressed');
     })
 
     stickyButton.on('click', function (ev) {
@@ -148,29 +154,42 @@ $(document).ready(function () {
         fav.sticky = !fav.sticky;
         if (fav.sticky) {
           myAnimation.removeAnimation();
-        } else {
-          myAnimation.restartAnimation()
-        }
+          stickyButton.addClass('pressed');
 
+        } else {
+          myAnimation.restartAnimation();
+          stickyButton.removeClass('pressed');
+        }
+        highlightFave(target.text(), fav.sticky);
       }
       //ev.preventDefault();
       return false;
     });
 
     //
-    const highlightFave = function (emoji) {
+    const highlightFave = function (emoji, sticky = false) {
       emoji = emoji || target.text();
+      $('.highlight').removeClass('highlight');
       $highlight = $('#' + emoji).addClass('highlight');
+      //if emoji is sticky then make it "pressed"
+      if (sticky) {
+        $('#' + emoji).addClass('pressed');
+      } else {
+        $('#' + emoji).removeClass('pressed');
+      }
+
     }
-    var archiveFave = function () {
+    const archiveFave = function (sticky = false, emoji) {
+      var firstClass = sticky ? 'history pressed' : 'history';
       $('.highlight').removeClass('highlight');
       $highlight = [];
-
+      emoji = emoji || target.text();
       //add unique entry to the history
-      if ($('#' + target.text()).length === 0) {
+      if ($('#' + emoji).length === 0) {
         $history
-        .prepend('<span class="letters"><button id="' + target.text() + '" class="history">' + target.text() + '</button></span>');
-    }
+          .prepend('<span class="letters"><button id="' + emoji + '" class="' + firstClass + '">' + emoji + '</button></span>');
+
+      }
 
       //update size of icons
       var histCt = $('.history').length;
@@ -183,7 +202,7 @@ $(document).ready(function () {
 
     /**********************/
     Init.init.forEach(function (emoji, i, a) {
-      archiveFave();
+
 
       var fave = myFavs.stashIt(emoji);
       fave.sticky = !!(Init.stickyInit[fave.emoji]);
@@ -202,11 +221,12 @@ $(document).ready(function () {
         } else {
           myAnimation.addAnimation();
         }
-
+        target.text(emoji);
       }
-      target.text(emoji);
+
+      archiveFave(fave.sticky, emoji);
       //try to highlight in history
-      highlightFave(target.text());
+      highlightFave(target.text(), fave.sticky);
     }); // init for each
 
     //add to the emojiPicker cache
@@ -219,138 +239,173 @@ $(document).ready(function () {
       );
     }
 
-    stickyButton.click(); //initialize sticky  for the last emoji
+    //stickyButton.click(); //initialize sticky  for the last emoji
 
     const injectSelection = function (selection) {
       //a highlighted one means we have nothing to archive
-      archiveFave();
+
 
       var fave = myFavs.stashIt(selection.emoji);
 
+      myAnimation.addAnimation();
       if (fave.sticky) {
         myAnimation.removeAnimation();
+        stickyButton.addClass('pressed');
       } else {
-        myAnimation.addAnimation();
+         stickyButton.removeClass('pressed');
       }
+
 
       target.text(selection.emoji);
 
+      archiveFave(fave.sticky, selection.emoji);
       //try to highlight in history
-      highlightFave(target.text());
+      highlightFave(target.text(), fave.sticky);
 
       return false;
     }
-  /*******************/
-  picker.on('emoji', selection => {
-    // reset animation on every new emoji
+    /*******************/
+    picker.on('emoji', selection => {
+      // reset animation on every new emoji
 
-    return injectSelection(selection);
+      return injectSelection(selection);
 
-  });
+    });
 
-  var switchEmoji = function (direction) {
-
-    //archive the current one
-    archiveFave();
-
-    var lastFave = myFavs.recallIt(direction);
-    target.text(lastFave.emoji);
-    //lookup the emoji in the history for highlighting
-    highlightFave(target.text());
-
-    if (lastFave.sticky) {
-      myAnimation.removeAnimation();
-    } else {
-      myAnimation.restartAnimation();
-    }
-  }
-
-  $history.on('click', 'button', function (ev) {
-    archiveFave();
-    target.text($(this).text());
-
-    highlightFave(target.text() );
-
-    var fave = myFavs.stashIt($highlight.text(), false);
-
-    myAnimation.addAnimation();
-    if (fave.sticky) {
-      myAnimation.removeAnimation();
-    } else {
-
-    }
-
-  });
-
-  $('body').on('keydown', (ev) => {
-   // let direction = 0;
-    // let Halign = 0;
-    if($drawing.is(':visible')){
-      if(ev.which === 27){
-        $drawButton.click();
+    var switchEmoji = function (direction, wrap = true) {
+      if (typeof switchEmoji.bump === 'undefined') {
+        switchEmoji.bump = 0;
       }
-    }
+      var lastFave = myFavs.recallIt(direction);
 
-    if($('.emoji-picker__wrapper').is(':visible')){
-      //only move the emoji when the picker is hidden
-      return;
-    }
-    const o  = {}
-    switch( ev.which){
-      case 38:
-        o.top = -10
-        break;
-      case 40:
-        o.top=10
-        break;
-      case 37: //left
-        o.left = -10;
-        break;
-      case 39:
-        o.left = +10;
-        break;
-    }
-    for( var direction in o){
-      let curMargin = $('.wrapper').css('margin-'+direction);
-      let newMargin;
-      newMargin = (curMargin.match(/.?\d*/)[0]*1 + o[direction]) + 'px';
-      $('.wrapper').css('margin-'+direction, newMargin );
-    }
+      //get last history emoji and compare
+      if (lastFave.position === 0) {
+        switchEmoji.bump++;
+      } else if (lastFave.position === myFavs.nameIndex.length - 1) {
+        switchEmoji.bump++;
+      } else {
+        switchEmoji.bump = 0;
+      }
+      console.log(lastFave, myFavs.position, myFavs.nameIndex.length, switchEmoji.bump, direction);
+      //archive the current one
+      target.text(lastFave.emoji);
+      //if target text already equals the
+      //lookup the emoji in the history for highlighting
+      highlightFave(target.text(), lastFave.sticky);
+      //if the previous run was a bump then we need to wrap
 
-  });
+      if (lastFave.sticky) {
+        myAnimation.removeAnimation();
+        stickyButton.addClass('pressed');
+      } else {
+        stickyButton.removeClass('pressed');
+        if (switchEmoji.bump < 2) {
+          myAnimation.restartAnimation();
+        }
+      }
+      if (switchEmoji.bump > 1 && direction > 0 && wrap) {
+        direction = myFavs.nameIndex.length - 1;
+        switchEmoji.bump = 0;
+        switchEmoji(direction, false);
+      } else if (switchEmoji.bump > 1 && direction < 0 && wrap) {
+        direction = 0;
+        switchEmoji.bump = 0;
+        switchEmoji(direction, false);
+      }
+    } //switchEmoji
+    switchEmoji.bump = 1; //we start at the top already
 
+    $history.on('click', 'button', function (ev) {
+      target.text($(this).text());
 
-  $outer.on('click', (ev) => {
-    var direction = ev.shiftKey ? 1 : -1;
+      var fave = myFavs.stashIt(target.text(), false);
+      archiveFave(fave.sticky, target.text());
+      highlightFave(target.text(), fave.sticky);
 
-    switchEmoji(direction);
-    ev.preventDefault();
-    return false;
-    // $target.show().fadeIn(1000);
-  });
+      myAnimation.addAnimation();
+      if (fave.sticky) {
+        myAnimation.removeAnimation();
+        stickyButton.addClass('pressed');
+      } else {
+        stickyButton.removeClass('pressed');
+      }
 
-  trigger.addEventListener('click', (ev) => {
-    ev.preventDefault();
-    picker.togglePicker($('#col1b')[0]); //trigger);
-    $('.emoji-picker__wrapper').css('margin-top', '100px')
-      // $('.emoji-picker__container')
-      .on('mouseover', 'button.emoji-picker__emoji', function () {
-        $('#emojipreview > .emoji_preview-emoji').text($(this).text());
-        $('.emoji_preview-name').text($(this).attr('title'))
-      });
+    });
 
-    return false;
-  });
+    $('body').on('keydown', function (ev) {
+      // let direction = 0;
+      // let Halign = 0;
+      if ($drawing.is(':visible')) {
+        if (ev.which === 27) {
+          $drawButton.click();
+        }
+      }
+
+      if ($('.emoji-picker__wrapper').is(':visible')) {
+        //only move the emoji when the picker is hidden
+        return;
+      }
+      const o = {};
+      switch (ev.which) {
+        case 38:
+          o.top = -10
+          break;
+        case 40:
+          o.top = 10
+          break;
+        case 37: //left
+          o.left = -10;
+          break;
+        case 39:
+          o.left = +10;
+          break;
+      }
+      for (var direction in o) {
+        let curMargin = $('.wrapper').css('margin-' + direction);
+        let newMargin;
+        newMargin = (curMargin.match(/.?\d*/)[0] * 1 + o[direction]) + 'px';
+        $('.wrapper').css('margin-' + direction, newMargin);
+      }
+
+    });//body on click
+
+    $('#scrollUp').on('click', (ev) => {
+      //  var direction = ev.shiftKey ? 1 : -1;
+      switchEmoji(-1);
+      ev.preventDefault();
+      return false;
+      // $target.show().fadeIn(1000);
+    });
+    $('#scrollDown').on('click', (ev) => {
+      //  var direction = ev.shiftKey ? 1 : -1;
+      switchEmoji(1);
+      ev.preventDefault();
+      return false;
+      // $target.show().fadeIn(1000);
+    });
+
+    trigger.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      picker.togglePicker($('#col1b')[0]); //trigger);
+      $('.emoji-picker__wrapper').css('margin-top', '100px')
+        // $('.emoji-picker__container')
+        .on('mouseover', 'button.emoji-picker__emoji', function () {
+          $('#emojipreview > .emoji_preview-emoji').text($(this).text());
+          $('.emoji_preview-name').text($(this).attr('title'))
+        });
+
+      return false;
+    });
 //
-  $emojipreview.on('click','button', function () {
+    $emojipreview.on('click', 'button', function () {
 
-     injectSelection({
-      emoji: $emojipreview.find('.emoji_preview-emoji').text()
-    })
-    if( $(this).hasClass('sticky')){
-      stickyButton.click();
-    }
-  });
+      injectSelection({
+        emoji: $emojipreview.find('.emoji_preview-emoji').text()
+      })
+      if ($(this).hasClass('sticky')) {
+        stickyButton.click();
+      }
+    });
 
   $moveHistory.on('click', function(){
     //$('.history').hide();
@@ -394,15 +449,18 @@ $(document).ready(function () {
           duration  : 600,
           delay     : (el, i) => 70 * (i + 1)
         })
-
     }
+  }); //moveHistory
 
-  });
-    //localStorage.setItem('emojiPicker.recent')
+    $drawButton.click(); // default
+    $moveHistory.click();
+    $history.find('.highlight').click();
+
 
   }
-);
+)
+;
 
-if( module.hot) {
+if (module.hot) {
   module.hot.accept();
 }

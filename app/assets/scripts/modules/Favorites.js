@@ -108,9 +108,11 @@ class Favorites {
     if (direction === 'backwards' || direction === 1) {
       this.position--;
       this.position = Math.max(this.position, 0);
-    } else { //forwards || -1
+    } else if( direction === 'forwards' || direction === -1) { //forwards || -1
       this.position++;
       this.position = Math.min(this.nameIndex.length - 1, this.position);
+    } else {
+      this.position = direction;
     }
     return this.stash[this.getNameFromIndex(this.position)];
   }
