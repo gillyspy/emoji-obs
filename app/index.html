@@ -9,7 +9,20 @@
         margin: 0px auto;
         overflow: hidden;
     }
-    #MessageTarget{
+    #MessageWrapper pre{
+        color: whitesmoke;
+        font-weight: bold;
+        opacity: .9;
+        background-color: rgba(129,129,129,.6);
+        font-size: 90px;
+        z-index: 8000;
+        margin: 0;
+        width : 100%;
+        word-wrap: break-word;
+        white-space : pre-wrap;
+       /* padding: 20px; */
+    }
+       #MessageWrapper span{
         color: whitesmoke;
         font-weight: bold;
         opacity: .9;
@@ -17,10 +30,12 @@
         border-bottom: 4px solid rgba(129,129,129,.1);
         font-size: 90px;
         z-index: 8000;
+       /* padding: 20px; */
     }
 
     #MessageSource{
         vertical-align: top;
+        padding: 20px;
     }
 
     #drawing {
@@ -42,7 +57,8 @@
         z-index:8000;
         position: fixed;
         text-align: justify;
-        width: 100%;
+        width: 95%;
+        padding: 20px;
     }
 
     #Grid {
@@ -245,6 +261,7 @@
 
     .ml1 {
   font-weight: 900;
+        margin-top: -30px;
 }
 
 .ml1 .letter {
@@ -368,7 +385,7 @@
 </div>
 </div>
 <div id="MessageWrapper">
-    <span id="MessageTarget"></span>
+    <pre id="MessageTarget"></pre>
 </div>
 <div id="Grid">
     <div class="grid">

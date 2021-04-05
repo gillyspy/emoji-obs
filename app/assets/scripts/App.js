@@ -72,11 +72,12 @@ $(document).ready(function () {
     const $hideButton = $('#hideEmoji');
     myAnimation.init(target);
     const $drawing = $('#drawing').hide();
+    const $drawingTarget = $('#drawingPane');
     const $drawButton = $('button.draw');
     const $drawButton2 = $('button.nogrid');
     const $Grid = $('#Grid');
     $Grid.find('.grid').css('min-height', Init.visibleHeight + 'px');
-    const Drawing = new Draw($drawing.find('#drawingPane')[0], window.innerWidth, Init.visibleHeight, Init.canvas);
+    const Drawing = new Draw($drawingTarget[0], window.innerWidth, Init.visibleHeight, Init.canvas);
     var emojiCache =  JSON.parse(localStorage.getItem('emojiPicker.recent')) || [];
 
     $drawing.on('click', 'button', function () {
@@ -109,11 +110,26 @@ $(document).ready(function () {
     });
 
     $('#MessageSource').on('keyup click', 'form', function (ev) {
+      let $M = $('#MessageTarget');
       if (ev.type === 'keyup') {
-        $('#MessageTarget').text($('#Message').val());
+        $M.text($('#Message').val());
       } else {
-        $('#MessageTarget').text('');
+        $M.text('');
       }
+      //check if the element is wider or higher than the panel on the screen
+      //if it is then diminish the font until it is 20px
+
+      var fontSize=  $M.css('font-size').match(/\d*/)[0]++;
+      while( ($M.width() > $drawingTarget.width() || $M.height() > $drawingTarget.height()) &&
+      fontSize > 20  ){
+        fontSize--;
+        $M.css('font-size', fontSize);
+      }
+
+      if($M.width < $drawingTarget.width && $M.height < $drawingTarget.height){
+        $M.css('font-size', '90px');
+      }
+
     });
     $drawButton.on('click', () => {
       if ($drawing.is(':hidden')) {
