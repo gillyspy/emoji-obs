@@ -1,5 +1,7 @@
 const $ = require('jquery');
 import anime from 'animejs';
+import Log from './Log.js';
+const log = new Log(false);
 
 class Animation {
   constructor(el){
@@ -50,7 +52,7 @@ class Animation {
 
   addAnimation() {
     if (this.debug) {
-      console.log('addAnimation');
+      log.browser('addAnimation');
     }
     this.restartAnimation();
     anime.timeline({loop: 1})

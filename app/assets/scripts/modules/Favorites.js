@@ -1,3 +1,6 @@
+import Log from './Log.js';
+const log = new Log(false);
+
 class Favorites {
   constructor(firstItem) {
     this.stash = {}; //a stash of favorites
@@ -7,15 +10,7 @@ class Favorites {
     if (firstItem) {
       this.stashIt(firstItem);
     }
-    this.debug = false;
-    this.console = {
-      log: function (...rest) {
-        if (this.debug) {
-          return console.log(...rest);
-        }
-        return;
-      }
-    }
+
   }
 
   getNameFromIndex(position) {
@@ -49,10 +44,10 @@ class Favorites {
         favorite = this.stash[this.getNameFromIndex(position)];
       }
     }
-    this.console.log('toggleSticky', this.position, favorite, this);
+    log.browser('toggleSticky', this.position, favorite, this);
     favorite.sticky = !favorite.sticky;
     // favorite = this.toggleSticky(this.position, favorite); //recursively set sticky on now-known favorite
-    this.console.log(favorite);
+    log.browser(favorite);
     return favorite;
     //return favorite.sticky;
   }
@@ -61,7 +56,7 @@ class Favorites {
     if(typeof addHistory === 'undefined'){
       addHistory = true;
     }
-    this.console.log('stashIt', emoji);
+    log.browser('stashIt', emoji);
     if (this.nameIndex.length >= this.max) {
       //remove the oldest one
       delete this.stash(this.nameIndex[0]);
@@ -86,14 +81,14 @@ class Favorites {
 
     //update position to this position
     this.position = this.stash[emoji].position;  // (this.nameIndex.length - 1);
-    this.console.log('stashed', this.stash)
+    log.browser('stashed', this.stash)
     return this.stash[emoji];
   }
 
   // favorite is one particular stash entry
   recallFave(favorite) {
     if (!favorite) {
-      this.console.log('no favourite', this.stash)
+      log.browser('no favourite', this.stash)
       favorite = this.stash[this.getNameFromIndex()];
     } else {
       favorite = this.stash[favorite];
@@ -103,7 +98,7 @@ class Favorites {
   }
 
   recallIt(direction = 'backwards') {
-    //console.log(this.stash, this.index, this.position);
+    //log.browser(this.stash, this.index, this.position);
     //if we're going backwards then return the previous one to the index
     if (direction === 'backwards' || direction === 1) {
       this.position--;

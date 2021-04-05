@@ -4,6 +4,9 @@ import Favorites from "./modules/Favorites";
 import Animation from './modules/Animation';
 import Init from './modules/Init.js';
 import Draw from 'draw-on-canvas';
+import Log from './modules/Log.js';
+
+const log = new Log(false);
 
 Array.prototype.unique = function (property) {
   var a = this.concat();
@@ -294,7 +297,7 @@ $(document).ready(function () {
       } else {
         switchEmoji.bump = 0;
       }
-      console.log(lastFave, myFavs.position, myFavs.nameIndex.length, switchEmoji.bump, direction);
+      log.browser(lastFave, myFavs.position, myFavs.nameIndex.length, switchEmoji.bump, direction);
       //archive the current one
       target.text(lastFave.emoji);
       //if target text already equals the
