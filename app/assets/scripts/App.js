@@ -74,7 +74,7 @@ $(document).ready(function () {
     const $Grid = $('#Grid');
     $Grid.find('.grid').css('min-height', Init.visibleHeight + 'px');
     const Drawing = new Draw($drawing.find('#drawingPane')[0], window.innerWidth, Init.visibleHeight, Init.canvas);
-    var emojiCache = JSON.parse(localStorage.getItem('emojiPicker.recent'));
+    var emojiCache =  JSON.parse(localStorage.getItem('emojiPicker.recent')) || [];
 
     $drawing.on('click', 'button', function () {
       let $this = $(this);
