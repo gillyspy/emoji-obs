@@ -242,11 +242,16 @@ $(document).ready(function () {
 
     //add to the emojiPicker cache
     if (emojiCache.length) {
-      var newArray = Init.init.concat(emojiCache).unique('emoji').slice(0, 50);
+      let newArray = Init.init.concat(emojiCache).unique('emoji').slice(0, 50);
 
       localStorage.setItem(
         "emojiPicker.recent",
         JSON.stringify(newArray)
+      );
+    } else {
+      localStorage.setItem(
+        "emojiPicker.recent",
+        JSON.stringify(Init.init)
       );
     }
 
