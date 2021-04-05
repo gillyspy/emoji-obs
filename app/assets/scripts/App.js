@@ -125,17 +125,25 @@ $(document).ready(function () {
     });
 
     $afk.on('click', function (ev) {
-      let $this = $('#afk');
-      $this.toggle();
-      if ($this.is(':hidden')) {
+      var randomId, $this;
+      var doShow = true;
+      $('#afkImages').find('div:visible').each(function () {
+        doShow = false;
+        $this = $(this);
+        $this.hide();
         $('#' + '✌🏻').click();
         $('button.AFK').removeClass('pressed');
-      } else {
-        $('#' + '💤').click();
-        stickyButton.click();
-        $('button.AFK').addClass('pressed');
+      });
 
+      if (doShow) {
+        randomId = '#afk' + (Math.floor(Math.random() * 1000) % 3 + 1);
+        let $this = $(randomId);
+        $this.show();
+        $('#' + '💤').click();
+        // stickyButton.click();
+        $('button.AFK').addClass('pressed');
       }
+
       ev.preventDefault();
       return false;
     });
