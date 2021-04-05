@@ -30,14 +30,15 @@ Download and install OBS (exercise for the reader -- no special configs needed).
 * Click on any emoji in the history to make it active
 * Emoji's, by default, will slowly fade out over 40 seconds unless you 📌 them 
 * ✍ to toggle drawing with your mouse. Drawing is on by default
-    *  🔄 refresh
+    * 🧽 refresh
     * 🛑 stop drawing (also ✍ )
     * 📉 hide the grid-assist
-* 😎 will bring up the emoji picker menu (use tab or mouse to select)
-* 📌 button to toggle emoji auto-fade.  Will be indicated on-screen.
-* Use the 📜 to move the history / log to off the main screen and below the buttons
-* Use the 🛑 button to stop using (hide) any emoji immediately. Click again to resume. 
-* 📜 combined with the 🛑 will clear the visible area of all.
+* 🧽 will bring up the emoji picker menu (use tab or mouse to select)
+* 📌 button to toggle emoji auto-fade.  State be indicated on button.
+* Use the 📜 to move/dock the history / log to off the main screen and below the buttons
+* Use the ⛔ button to stop using (hide) any emoji immediately. Click again to resume. 
+* Docking 📜 combined with the ⛔ will clear the visible area of all.
+* Click the ◀️▶️ to navigate through the dock/history. Arrow keys do something else
 * 💤 for  "Away from keyboard" and will toggle an afk splash screen image
     * (default: Gif of Kakashi sensei using Rasengan and a 💤 emoji.  Change this image through customization…see below)
 * Up / Down/ left/right arrow keys will: 
