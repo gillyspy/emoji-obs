@@ -1,4 +1,4 @@
-const $ = require("jquery");
+const J$ = require("jquery").noConflict();
 import {EmojiButton} from '@joeattardi/emoji-button';
 import Favorites from "./modules/Favorites";
 import Animation from './modules/Animation';
@@ -13,6 +13,7 @@ Array.prototype.unique = function (property) {
   var a = this.concat();
   if (typeof property !== 'undefined') {
     for (var i = 0; i < a.length; ++i) {
+      a[i].position = i;
       for (var j = i + 1; j < a.length; ++j) {
         if (a[i][property] === a[j][property])
           a.splice(j--, 1);
@@ -29,11 +30,11 @@ Array.prototype.unique = function (property) {
   return a;
 } // unique
 
-const followMouse = new FollowMouse($, '#fakeMouse');
+const followMouse = new FollowMouse(J$, '#fakeMouse');
 const myFavs = new Favorites();
 const myAnimation = new Animation();
 
-$(document).ready(function () {
+J$(document).ready(function ($) {
     console.log('ready');
     followMouse.startTracking();
     const stickyButton = $('#stickybutton');
@@ -242,7 +243,8 @@ $(document).ready(function () {
         emoji : fave.emoji,
         name  : 'myInit' + i,
         key   : (fave.name || emoji),
-        sticky: fave.sticky
+        sticky: fave.sticky,
+        position : i
       };
     }); // init for each
 
@@ -297,9 +299,9 @@ $(document).ready(function () {
       }
 
 
-      target.text(selection.emoji);
+      target.text(fave.emoji);
 
-      archiveFave(fave.sticky, selection.emoji);
+      archiveFave(fave.sticky, fave.emoji);
       //try to highlight in history
       highlightFave(target.text(), fave.sticky);
 
@@ -376,7 +378,7 @@ $(document).ready(function () {
 
       const e = JSON.parse(localStorage.getItem("emojiPicker.recent")) || [];
       //const a = (e ? JSON.parse(e) : []).filter((e => !!e.emoji));
-      const a = e.concat([fave]).unique('emoji').slice(0, Init.historySize);
+      const a = [fave].concat(e).unique('emoji').slice(0, Init.historySize);
       localStorage.setItem("emojiPicker.recent", JSON.stringify(a));
     });//history.on
 
@@ -419,14 +421,14 @@ $(document).ready(function () {
 
     $('#scrollUp').on('click', (ev) => {
       //  var direction = ev.shiftKey ? 1 : -1;
-      switchEmoji(-1);
+      switchEmoji(1);
       ev.preventDefault();
       return false;
       // $target.show().fadeIn(1000);
     });
     $('#scrollDown').on('click', (ev) => {
       //  var direction = ev.shiftKey ? 1 : -1;
-      switchEmoji(1);
+      switchEmoji(-1);
       ev.preventDefault();
       return false;
       // $target.show().fadeIn(1000);
