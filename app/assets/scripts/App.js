@@ -5,6 +5,9 @@ import Animation from './modules/Animation';
 import Init from './modules/Init.js';
 import Draw from 'draw-on-canvas';
 import Log from './modules/Log.js';
+import FollowMouse from './modules/FollowMouse.js';
+
+
 
 const log = new Log(false);
 
@@ -28,11 +31,13 @@ Array.prototype.unique = function (property) {
   return a;
 } // unique
 
-
+const followMouse = new FollowMouse($,'#fakeMouse');
 const myFavs = new Favorites();
 const myAnimation = new Animation();
 
 $(document).ready(function () {
+  console.log('ready');
+    followMouse.startTracking();
     const stickyButton = $('#stickybutton');
     const picker = new EmojiButton({
       theme          : 'dark',
