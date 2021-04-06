@@ -69,6 +69,7 @@ class Favorites {
       //add it
       this.stash[emoji] = {
         emoji   : emoji,
+        key : emoji,
         sticky  : false,
         position: this.nameIndex.length // this is correct at the time because index does not have it yet
       }
@@ -80,9 +81,9 @@ class Favorites {
     let fave = this.stash[emoji];
 
     //update position to this position
-    this.position = this.stash[emoji].position;  // (this.nameIndex.length - 1);
+    this.position = fave.position;  // (this.nameIndex.length - 1);
     log.browser('stashed', this.stash)
-    return this.stash[emoji];
+    return fave;
   }
 
   // favorite is one particular stash entry

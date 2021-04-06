@@ -7,8 +7,6 @@ import Draw from 'draw-on-canvas';
 import Log from './modules/Log.js';
 import FollowMouse from './modules/FollowMouse.js';
 
-
-
 const log = new Log(false);
 
 Array.prototype.unique = function (property) {
@@ -31,15 +29,16 @@ Array.prototype.unique = function (property) {
   return a;
 } // unique
 
-const followMouse = new FollowMouse($,'#fakeMouse');
+const followMouse = new FollowMouse($, '#fakeMouse');
 const myFavs = new Favorites();
 const myAnimation = new Animation();
 
 $(document).ready(function () {
-  console.log('ready');
+    console.log('ready');
     followMouse.startTracking();
     const stickyButton = $('#stickybutton');
     const picker = new EmojiButton({
+      rootElement    : document.getElementById('picker'),
       theme          : 'dark',
       rows           : 2,
       emojisPerRow   : 11,
@@ -55,7 +54,7 @@ $(document).ready(function () {
       showPreview    : false,
       recentsCount   : 50,
       zIndex         : 10000,
-      plugins        : [Init.setDefaults()], //
+      plugins        : [Init.stickyHandler, Init.closeHandler], //
       stickyHandler  : {
         element: stickyButton,
         event  : 'click'
@@ -234,47 +233,52 @@ $(document).ready(function () {
 
     /**********************/
     Init.init.forEach(function (emoji, i, a) {
-
-
       var fave = myFavs.stashIt(emoji);
       fave.sticky = !!(Init.stickyInit[fave.emoji]);
       let name = fave.name || emoji;
 
       //put our emojis into a nice format
       a[i] = {
-        emoji: emoji,
-        name : 'myInit' + i,
-        key  : name
+        emoji : fave.emoji,
+        name  : 'myInit' + i,
+        key   : (fave.name || emoji),
+        sticky: fave.sticky
       };
-
-      if ((i + 1) === Init.init.length) {
-        if (fave.sticky) {
-          myAnimation.removeAnimation();
-        } else {
-          myAnimation.addAnimation();
-        }
-        target.text(emoji);
-      }
-
-      archiveFave(fave.sticky, emoji);
-      //try to highlight in history
-      highlightFave(target.text(), fave.sticky);
     }); // init for each
 
     //add to the emojiPicker cache
-    if (emojiCache.length) {
-      let newArray = Init.init.concat(emojiCache).unique('emoji').slice(0, 50);
+    function populateDock() {
+      let myA;
+      if (emojiCache.length) {
+        myA = emojiCache.concat(Init.init).unique('emoji').slice(0, 50);
 
+      } else {
+        myA = Init.init;
+      }
       localStorage.setItem(
         "emojiPicker.recent",
-        JSON.stringify(newArray)
+        JSON.stringify(myA)
       );
-    } else {
-      localStorage.setItem(
-        "emojiPicker.recent",
-        JSON.stringify(Init.init)
-      );
-    }
+      for (var i = (myA.length-1); i >= 0; i--) {
+        let fave = myA[i];
+        if(!fave){
+          continue;
+        }
+        if (i == 0) {
+          if (fave.sticky) {
+            myAnimation.removeAnimation();
+          } else {
+            myAnimation.addAnimation();
+          }
+          target.text(fave.emoji);
+        }
+        archiveFave(!!fave.sticky, fave.emoji);
+        //try to highlight in history
+        highlightFave(fave.emoji, !!fave.sticky);
+      }
+
+    } //populateDock
+    populateDock();
 
     //stickyButton.click(); //initialize sticky  for the last emoji
 
@@ -367,7 +371,14 @@ $(document).ready(function () {
         stickyButton.removeClass('pressed');
       }
 
-    });
+      //update browser history
+
+
+      const e = JSON.parse(localStorage.getItem("emojiPicker.recent")) || [];
+      //const a = (e ? JSON.parse(e) : []).filter((e => !!e.emoji));
+      const a = e.concat([fave]).unique('emoji').slice(0, Init.historySize);
+      localStorage.setItem("emojiPicker.recent", JSON.stringify(a));
+    });//history.on
 
     $('body').on('keydown', function (ev) {
       // let direction = 0;

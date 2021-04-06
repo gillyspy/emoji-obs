@@ -1,56 +1,70 @@
 const Init = {
     init         : ['💩', '🔇', '🏳️', '👍🏻', '🔥', '❌', '👂🏻', '🧠', '🦈', '☁️', '⛈️', '🌮', '🛠️',
-      '🧲', '📅','💤', '⁉️', '‍️⚠️', '🔫',
+      '🧲', '📅', '💤', '⁉️', '‍️⚠️', '🔫',
       '👋🏻', '💡', '✌🏻'],
     stickyInit   : {
       "🔇" : true,
       '💤' : true,
       '✌🏻': true
     },
+    historySize : 50,
     canvas       : {
       backgroundColor: "rgba(85,0,255,0)", //"#5500ff",
       strokeColor    : "orange",
       strokeWeight   : 10
     },
     visibleHeight: 575,
-    setDefaults  : function () {
+    closeHandler : {
+      render: function (picker) {
+        const button = document.createElement('button');
+        button.setAttribute('style', "border: 1px solid black; border-radius: 0px; width:100%; align:right");
+        button.innerHTML = '✖';
+
+        button.addEventListener('click', () => {
+          //close the picker
+          document.getElementById('drawingPane').click();
+        });
+        return button;
+      }
+    },
+    stickyHandler: {
       // track the picker being called for the first time
       //if it is NOT the first time the picker is being rendered then render a button that allows the emoji to be made "sticky"
-      return {
-        render: function (picker) {
-          /*
-          if no emoji is selected then nothing happens -- no sticky pin applied either.
-           */
-          var doHandlerOnHide = false; // temporary cache on whether to set the selected emoji as sticky.
-          var isFirstRunComplete = false;
 
-          //ONLY if there is a stickyHandler then we can evaluate whether or not to apply a sticky pin
-          if (typeof picker.options.stickyHandler !== 'object') {
-            //stickyHandler is a function of what to do when an object is marked sticky
+      render: function (picker) {
+        /*
+        if no emoji is selected then nothing happens -- no sticky pin applied either.
+         */
+        var doHandlerOnHide = false; // temporary cache on whether to set the selected emoji as sticky.
+        var isFirstRunComplete = false;
+
+        //ONLY if there is a stickyHandler then we can evaluate whether or not to apply a sticky pin
+        if (typeof picker.options.stickyHandler !== 'object') {
+          //stickyHandler is a function of what to do when an object is marked sticky
+          return;
+        } else {
+          //add the stickyHandler
+          picker.on('emoji', function () {
+            // console.log(picker.options);
+            //if the sticky button is pressed when emoji is selected then set the temporary flag
+            if (picker.options.makeEmojiSticky) {
+              doHandlerOnHide = true;
+            } else {
+              //unset the temporary flag
+              doHandlerOnHide = false
+            }
             return;
-          } else {
-            //add the stickyHandler
-            picker.on('emoji', function () {
-              // console.log(picker.options);
-              //if the sticky button is pressed when emoji is selected then set the temporary flag
-              if (picker.options.makeEmojiSticky) {
-                doHandlerOnHide = true;
-              } else {
-                //unset the temporary flag
-                doHandlerOnHide = false
-              }
-              return;
-            });
+          });
 
-            picker.on('hidden', function () {
-              if (doHandlerOnHide) {
-                picker.options.stickyHandler['element'].trigger(picker.options.stickyHandler['event']);
-              }
-              //always set the doHandlerOnHide to false here as this is a temporary flag
-              doHandlerOnHide = false;
-              return;
-            })
-          }
+          picker.on('hidden', function () {
+            if (doHandlerOnHide) {
+              picker.options.stickyHandler['element'].trigger(picker.options.stickyHandler['event']);
+            }
+            //always set the doHandlerOnHide to false here as this is a temporary flag
+            doHandlerOnHide = false;
+            return;
+          })
+        }
           //if it is the first time then populate the recents category with several default emojis
           if (!isFirstRunComplete) {
             //the list of defaults is optionally provided by the user. If there are no defaults then ??
@@ -83,11 +97,11 @@ const Init = {
 
 //            console.log('what is picker???', picker);
           });
-          return button;
+        return button;
 
-        } //setDefaults emoji plugin
-      };
+      } //setDefaults emoji plugin
     }
+
   }
 ;
 
