@@ -52,7 +52,7 @@ $(document).ready(function () {
       position       : 'bottom-start',
       emojiSize      : '60px',
       showPreview    : false,
-      recentsCount   : 50,
+      recentsCount   : Init.historySize,
       zIndex         : 10000,
       plugins        : [Init.stickyHandler, Init.closeHandler], //
       stickyHandler  : {
