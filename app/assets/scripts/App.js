@@ -505,15 +505,40 @@ J$(document).ready(function ($) {
     $('.messageSource__changeW').on('click', function () {
       let $ms = $('.messageTarget__pre');
       if($ms.css('margin-left')[0] === '0'){
-        $ms.css('margin-left', '20%' );
+        $ms.css('margin-left', '20%');
         $ms.css('width', '60%');
-         $('.messageSource__changeW').addClass('pressed');
+        $('.messageSource__changeW').addClass('pressed');
       } else {
         $ms.css('margin-left', 0);
         $ms.css('width', '100%');
         $('.messageSource__changeW').removeClass('pressed');
       }
       return false;
+    });
+
+    $('#PageHelp > .pageHelp__button').on('click', function () {
+      alert(`
+      ✍🏻 : Toggle Draw menu.
+      🧽 : wipe drawing or text
+      📉 : toggle grid assist for drawing
+      🟥 : change color of pen
+      📌 : toggle sticky of the current emoji (and remember this setting)
+      ↩ : change width of text area (cuz teams cutting the screen)
+      ◀️▶️ : scroll recents in order of their use
+      ⛔ : toggle hide of the emoji
+      💤 : bring up AFK screen
+      🔎 : search for a new emoji
+      
+      Keys:
+      - Esc => toggle drawing   (when emoji picker is not visible)
+      - Esc => close emoji picker (when emoji picker is visible)
+      - Arrows => move the emoji around
+      
+      Mouse: 
+      - double-click => toggle drawing
+      - click+drag => drag emoji
+      - click+drag => draw on canvas when visible
+      `);
     });
 
     $('.messageSource__changeW').click(); //skinny by default
