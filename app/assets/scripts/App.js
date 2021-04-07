@@ -121,29 +121,31 @@ J$(document).ready(function ($) {
       }
     });
 
-    $('#MessageSource').on('keyup click', 'form', function (ev) {
+    $('#MessageSource').on('keyup click change', 'textarea, button', function (ev) {
       let $M = $('#MessageTarget');
+      let $reset = $(this);
       if (ev.type === 'keyup') {
         $M.text($('#Message').val());
-      } else {
-      //  $M.text('');
-       // return true;
+      } else if ($reset.attr('type') === 'reset') {
+        $M.text('');
+        // return true;
       }
       //check if the element is wider or higher than the panel on the screen
       //if it is then diminish the font until it is 20px
 
-      var fontSize=  $M.css('font-size').match(/\d*/)[0]++;
-      while( ($M.width() > $('#chromKey').width() || $M.height() > $('#chromaKey').height()) &&
+      var fontSize = $M.css('font-size').match(/\d*/)[0]++;
+      while (($M.width() > $('#chromKey').width() || $M.height() > $('#chromaKey').height()) &&
       fontSize > 20  ){
         fontSize--;
         $M.css('font-size', fontSize);
       }
 
+      //restore font
       if($M.width < $drawingTarget.width && $M.height < $drawingTarget.height){
         $M.css('font-size', '90px');
       }
-
     });
+
     $drawButton.on('click', () => {
       if ($drawing.is(':hidden')) {
         $drawing.show();
@@ -412,6 +414,10 @@ J$(document).ready(function ($) {
       if (ev.which >= 37 && ev.which <= 40)
         emojiWrapperAnimation.moveTarget(ev.which); //
     });//body on click
+
+    $(document).on('dblclick', function(){
+      $drawButton.click();
+    });
 
     $('#scrollUp').on('click', (ev) => {
       //  var direction = ev.shiftKey ? 1 : -1;
