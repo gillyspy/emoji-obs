@@ -161,7 +161,20 @@ J$(document).ready(function ($) {
     });
 
     $('#MessageWrapper').on('click', function(){
-      myAnimation.restartAnimation();
+      /* refresh the animation when the message area is clicked
+      Assumption here is that someone is only clicking on the message area when:
+      - drawing canvas is hidden
+      - ### thus they want to drag the emoji ###
+       */
+      var fav = myFavs.recallFave($target.text());
+      if (fav) {
+        if (fav.sticky) {
+          myAnimation.removeAnimation();
+        } else {
+          myAnimation.restartAnimation();
+        }
+      }
+
     });
 
     $afk.on('click', function (ev) {
@@ -518,8 +531,8 @@ J$(document).ready(function ($) {
       return false;
     });
 
-    $('#PageHelp > .pageHelp__button').on('click', function () {
-      let help =`
+    $('#PageHelp > .pageHelp__button').on('click', function (ev) {
+      let help = `
       ✍🏻 : Toggle Draw menu.
       🧽 : wipe drawing or text
       📉 : toggle grid assist for drawing
@@ -542,8 +555,25 @@ J$(document).ready(function ($) {
       - click+drag => draw on canvas when visible
       v1.0
       `;
-      $('#Message').text( help ).keyup();
+      let $this = $(this);
+      if (!$this.hasClass('pressed')) {
+        $this.addClass('pressed');
+        //add help via message tool
+        $('#Message').text(help).keyup();
 
+        // add a one-time handler to reset sponge in case that is used
+        $('#MessageSource').find('.messageSource__reset').one('click', function () {
+          $this.removeClass('pressed');
+          return true;
+        });
+      } else {
+        $this.removeClass('pressed');
+        $('#MessageSource').find('.messageSource__reset').click(); // fire that reset
+        //  ev.preventDefault();
+        //  ev.stopPropagation();
+        return false;
+      }
+      return false;
     });
 
     $('.messageSource__changeW').click(); //skinny by default
