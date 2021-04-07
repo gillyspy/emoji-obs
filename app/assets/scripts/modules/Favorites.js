@@ -67,7 +67,8 @@ class Favorites {
     } else {
       //add it
       if(emoji.emoji){
-        alert('wtf, how did we get here');
+        emoji = emoji.emoji;
+       // alert('wtf, how did we get here');
       }
       this.stash[emoji] = {
         emoji   : emoji,

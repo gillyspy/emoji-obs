@@ -126,13 +126,14 @@ J$(document).ready(function ($) {
       if (ev.type === 'keyup') {
         $M.text($('#Message').val());
       } else {
-        $M.text('');
+      //  $M.text('');
+       // return true;
       }
       //check if the element is wider or higher than the panel on the screen
       //if it is then diminish the font until it is 20px
 
       var fontSize=  $M.css('font-size').match(/\d*/)[0]++;
-      while( ($M.width() > $drawingTarget.width() || $M.height() > $drawingTarget.height()) &&
+      while( ($M.width() > $('#chromKey').width() || $M.height() > $('#chromaKey').height()) &&
       fontSize > 20  ){
         fontSize--;
         $M.css('font-size', fontSize);
@@ -495,6 +496,21 @@ J$(document).ready(function ($) {
     }
   }); //moveHistory
 
+    $('.messageSource__changeW').on('click', function () {
+      let $ms = $('.messageTarget__pre');
+      if($ms.css('margin-left')[0] === '0'){
+        $ms.css('margin-left', '20%' );
+        $ms.css('width', '60%');
+         $('.messageSource__changeW').addClass('pressed');
+      } else {
+        $ms.css('margin-left', 0);
+        $ms.css('width', '100%');
+        $('.messageSource__changeW').removeClass('pressed');
+      }
+      return false;
+    });
+
+    $('.messageSource__changeW').click(); //skinny by default
     $drawButton.click(); // default
     $moveHistory.click();
     $history.find('.highlight').click();
