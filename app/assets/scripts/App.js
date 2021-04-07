@@ -30,16 +30,17 @@ Array.prototype.unique = function (property) {
   return a;
 } // unique
 
-const followMouse = new FollowMouse(J$, '#fakeMouse');
+const followMouse = new FollowMouse(J$, '#fakeMouse>button');
 const myFavs = new Favorites();
-const myAnimation = new Animation();
+
 
 J$(document).ready(function ($) {
     console.log('ready');
     followMouse.startTracking();
     const stickyButton = $('#stickybutton');
+    const $picker = $('#picker');
     const picker = new EmojiButton({
-      rootElement    : document.getElementById('picker'),
+      rootElement    : $picker[0],
       theme          : 'dark',
       rows           : 2,
       emojisPerRow   : 11,
@@ -67,15 +68,21 @@ J$(document).ready(function ($) {
 
     const trigger = document.querySelector('.trigger');
     var $highlight = [];
-    const target = $('#target');
+    const $target = $('#emoji');
+    const $pin = $('#pin');
+    const myAnimation = new Animation($target, $pin);
+    const emojiWrapperAnimation = new Animation($('.targetWrapper__emoji'));
+    const dragEmoji = new FollowMouse($, '.targetWrapper__emoji', '#MessageWrapper');
+    dragEmoji.makeDraggable();
+
 //$target.fadeOut(40000);//default
-    const $outer = $('.outer');
+    //const $outer = $('.outer');
     const $afk = $('.AFK');
     const $emojipreview = $('#emojipreview');
+
     const $history = $('#history');
     const $moveHistory = $('#moveHistory');
     const $hideButton = $('#hideEmoji');
-    myAnimation.init(target);
     const $drawing = $('#drawing').hide();
     const $drawingTarget = $('#drawingPane');
     const $drawButton = $('button.draw');
@@ -148,6 +155,10 @@ J$(document).ready(function ($) {
       }
     });
 
+    $('#MessageWrapper').on('click', function(){
+      myAnimation.restartAnimation();
+    });
+
     $afk.on('click', function (ev) {
       var randomId, $this;
       var doShow = true;
@@ -174,14 +185,14 @@ J$(document).ready(function ($) {
 
     $hideButton.on('click', function () {
       //archiveFave();
-      var fav = myFavs.recallFave(target.text());
+      var fav = myFavs.recallFave($target.text());
       myAnimation.toggleHide(fav.sticky);
       $hideButton.toggleClass('pressed');
     })
 
     stickyButton.on('click', function (ev) {
       //make the current emoji sticky
-      var fav = myFavs.recallFave(target.text());
+      var fav = myFavs.recallFave($target.text());
       if (fav) {
         fav.sticky = !fav.sticky;
         if (fav.sticky) {
@@ -192,7 +203,7 @@ J$(document).ready(function ($) {
           myAnimation.restartAnimation();
           stickyButton.removeClass('pressed');
         }
-        highlightFave(target.text(), fav.sticky);
+        highlightFave($target.text(), fav.sticky);
       }
       //ev.preventDefault();
       return false;
@@ -200,7 +211,7 @@ J$(document).ready(function ($) {
 
     //
     const highlightFave = function (emoji, sticky = false) {
-      emoji = emoji || target.text();
+      emoji = emoji || $target.text();
       $('.highlight').removeClass('highlight');
       $highlight = $('#' + emoji).addClass('highlight');
       //if emoji is sticky then make it "pressed"
@@ -215,7 +226,7 @@ J$(document).ready(function ($) {
       var firstClass = sticky ? 'history pressed' : 'history';
       $('.highlight').removeClass('highlight');
       $highlight = [];
-      emoji = emoji || target.text();
+      emoji = emoji || $target.text();
       //add unique entry to the history
       if ($('#' + emoji).length === 0) {
         $history
@@ -234,16 +245,19 @@ J$(document).ready(function ($) {
 
     /**********************/
     Init.init.forEach(function (emoji, i, a) {
+      if (emoji.emoji) {
+        emoji = emoji.emoji;
+      }
       var fave = myFavs.stashIt(emoji);
       fave.sticky = !!(Init.stickyInit[fave.emoji]);
       let name = fave.name || emoji;
 
       //put our emojis into a nice format
       a[i] = {
-        emoji : fave.emoji,
-        name  : 'myInit' + i,
-        key   : (fave.name || emoji),
-        sticky: fave.sticky,
+        emoji    : fave.emoji,
+        name     : 'myInit' + i,
+        key      : (fave.name || emoji),
+        sticky   : fave.sticky,
         position : i
       };
     }); // init for each
@@ -272,7 +286,7 @@ J$(document).ready(function ($) {
           } else {
             myAnimation.addAnimation();
           }
-          target.text(fave.emoji);
+          $target.text(fave.emoji);
         }
         archiveFave(!!fave.sticky, fave.emoji);
         //try to highlight in history
@@ -286,8 +300,6 @@ J$(document).ready(function ($) {
 
     const injectSelection = function (selection) {
       //a highlighted one means we have nothing to archive
-
-
       var fave = myFavs.stashIt(selection.emoji);
 
       myAnimation.addAnimation();
@@ -298,12 +310,11 @@ J$(document).ready(function ($) {
          stickyButton.removeClass('pressed');
       }
 
-
-      target.text(fave.emoji);
+      $target.text(fave.emoji);
 
       archiveFave(fave.sticky, fave.emoji);
       //try to highlight in history
-      highlightFave(target.text(), fave.sticky);
+      highlightFave($target.text(), fave.sticky);
 
       return false;
     }
@@ -331,10 +342,10 @@ J$(document).ready(function ($) {
       }
       log.browser(lastFave, myFavs.position, myFavs.nameIndex.length, switchEmoji.bump, direction);
       //archive the current one
-      target.text(lastFave.emoji);
+      $target.text(lastFave.emoji);
       //if target text already equals the
       //lookup the emoji in the history for highlighting
-      highlightFave(target.text(), lastFave.sticky);
+      highlightFave($target.text(), lastFave.sticky);
       //if the previous run was a bump then we need to wrap
 
       if (lastFave.sticky) {
@@ -359,11 +370,11 @@ J$(document).ready(function ($) {
     switchEmoji.bump = 1; //we start at the top already
 
     $history.on('click', 'button', function (ev) {
-      target.text($(this).text());
+      $target.text($(this).text());
 
-      var fave = myFavs.stashIt(target.text(), false);
-      archiveFave(fave.sticky, target.text());
-      highlightFave(target.text(), fave.sticky);
+      var fave = myFavs.stashIt($target.text(), false);
+      archiveFave(fave.sticky, $target.text());
+      highlightFave($target.text(), fave.sticky);
 
       myAnimation.addAnimation();
       if (fave.sticky) {
@@ -385,38 +396,20 @@ J$(document).ready(function ($) {
     $('body').on('keydown', function (ev) {
       // let direction = 0;
       // let Halign = 0;
-      if ($drawing.is(':visible')) {
-        if (ev.which === 27) {
-          $drawButton.click();
-        }
+      //handle ESC key to toggle drawing drawing
+      if( $('.emoji-picker__wrapper') && ev.which === 27) {
+        $drawButton.click();
       }
 
+      // if emoji selector is being navigated then do nothing
       if ($('.emoji-picker__wrapper').is(':visible')) {
         //only move the emoji when the picker is hidden
         return;
       }
-      const o = {};
-      switch (ev.which) {
-        case 38:
-          o.top = -10
-          break;
-        case 40:
-          o.top = 10
-          break;
-        case 37: //left
-          o.left = -10;
-          break;
-        case 39:
-          o.left = +10;
-          break;
-      }
-      for (var direction in o) {
-        let curMargin = $('.wrapper').css('margin-' + direction);
-        let newMargin;
-        newMargin = (curMargin.match(/.?\d*/)[0] * 1 + o[direction]) + 'px';
-        $('.wrapper').css('margin-' + direction, newMargin);
-      }
 
+      //lastly, move emoji with arrow key controls
+      if (ev.which >= 37 && ev.which <= 40)
+        emojiWrapperAnimation.moveTarget(ev.which); //
     });//body on click
 
     $('#scrollUp').on('click', (ev) => {

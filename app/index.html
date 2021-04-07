@@ -5,9 +5,10 @@
     <title>home</title>
 <style>
     body {
-        background-color: rgba(0,0,0,1);
+        background-color: rgba(0, 0, 0, 1);
         margin: 0px auto;
         overflow: hidden;
+        cursor: pointer;
     }
     #chromaKey {
         background-color: rgba(255,255,0,1);
@@ -49,7 +50,7 @@
        /* padding: 20px; */
     }
 
-    #MessageSource{
+    #MessageSource {
         vertical-align: top;
         padding: 20px;
     }
@@ -58,23 +59,28 @@
         z-index: 10000;
     }
 
-    #drawing, #Grid, #MessageWrapper{
-
+    #drawing, #Grid, #MessageWrapper {
+        border-top: 0;
         position: fixed;
         width: 100%;
         height: 300px;
         top: 0;
         left: 0;
     }
-    #drawingPane{
+
+    #drawingPane {
         border: 1px solid white;
+        border-top: 0px;
+
     }
-    #MessageWrapper{
-        z-index:8000;
+
+    #MessageWrapper {
+        z-index: 8000;
         position: fixed;
         text-align: justify;
         width: 95%;
         padding: 20px;
+        height : 600px
     }
 
     #Grid {
@@ -94,24 +100,8 @@
         border: 1px dashed white;
     }
 
-    .target {
-        vertical-align: top;
-    }
 
     .buffer {
-    }
-
-    .wrapper {
-        font-weight: 900;
-        opacity: .8;
-        font-size: 3.5em;
-        margin-top: 70px;
-        margin-left: 0px;
-    }
-
-    .wrapper .aniLetter {
-        display: inline-block;
-        line-height: 1em;
     }
 
     table {
@@ -127,19 +117,42 @@
 
     }
 
-    div.outer {
+    .target {
         font-size: 60px;
-        height: 500px;
+        font-weight: 900;
+        /* height: 500px;*/
         display: block;
-        width: 1200px;
+        width: 100%;
         overflow: hidden;
         white-space: nowrap;
-        margin-left: 105px;
-        margin-top : -150px;
-        position: relative;
         z-index: 2000;
-        cursor: pointer;
+        opacity: .8;
     }
+
+    .targetWrapper__emoji {
+                /* have to use pixels for jquery */
+        left: 800px; /* 80%; */
+        top: 20px; /* 5rem; */
+        position: absolute;
+    }
+
+    .target__aniLetter--emoji {
+        vertical-align: bottom;
+        font-size: 3em;
+    }
+
+    .target__aniLetter--pin {
+        font-size: 0.5em;
+        margin-left: -1em;
+        margin-top: .5em;
+        vertical-align: sub;
+    }
+
+    /*
+        .wrapper__aniLetter {
+            display: inline-block;
+            line-height: 1em;
+        } */
 
     div#col1a {
         font-size: 20px;
@@ -159,11 +172,6 @@
         vertical-align: top;
     }
 
-    .pin {
-        font-size : 50px;
-        margin-left : -85px;
-        vertical-align: bottom;
-    }
 
     .history {
         opacity: .5;
@@ -327,20 +335,28 @@
 
 </head>
 <body>
- <div id="fakeMouse">
-        <button>🚀</button></div>
+<div id="fakeMouse">
+    <button>🚀</button>
+</div>
 <div id="chromaKey">
-   </div>
+</div>
 <div id="afkImages">
-<div id="afk1">
-    <img width="100%" src="assets/img/afk.gif">
+    <div id="afk1">
+        <img width="100%" src="assets/img/afk.gif">
+    </div>
+    <div id="afk2">
+        <img width="100%" src="assets/img/afk2.gif">
+    </div>
+    <div id="afk3">
+        <img width="100%" src="assets/img/afk3.gif">
+    </div>
 </div>
-<div id="afk2">
-    <img width="100%" src="assets/img/afk2.gif">
+<div id="targetWrapper" class="target">
+    <div class="targetWrapper__emoji">
+        <span id="emoji" class="target__aniLetter target__aniLetter--emoji">✌🏻</span>
+        <span id="pin" class="target__aniLetter target__aniLetter--pin">📌</span>
+    </div>
 </div>
-<div id="afk3">
-<img width="100%" src="assets/img/afk3.gif">
-</div></div>
 <table id="tableTop">
     <tr>
         <td id="td0">
@@ -349,29 +365,25 @@
             </div>
         </td>
         <td>
-            <div class="outer">
-<h1 class="wrapper">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <span id="target" class="aniLetter">✌🏻</span>
-                <span id="pin" class="pin aniLetter">📌</span>
-</h1>
-            </div>
+
         </td>
         <td>
             <div id="col0">
             </div>
         </td>
     </tr>
-</table><div id="picker">
+</table>
+<div id="picker">
 
- </div>
+</div>
 <table id="buttons">
-   <!-- <tr>
-        <td colspan="2">
-            <div id="col1b">
+    <!-- <tr>
+         <td colspan="2">
+             <div id="col1b">
 
-            </div>
-        </td>
-    </tr> -->
+             </div>
+         </td>
+     </tr> -->
     <tr>
         <td class="together__col1">
             <div class="together">

@@ -10,7 +10,6 @@ class Favorites {
     if (firstItem) {
       this.stashIt(firstItem);
     }
-
   }
 
   getNameFromIndex(position) {
@@ -67,6 +66,9 @@ class Favorites {
       //do nothing
     } else {
       //add it
+      if(emoji.emoji){
+        alert('wtf, how did we get here');
+      }
       this.stash[emoji] = {
         emoji   : emoji,
         key : emoji,
