@@ -128,6 +128,7 @@ J$(document).ready(function ($) {
         $M.text($('#Message').val());
       } else if ($reset.attr('type') === 'reset') {
         $M.text('');
+        $('#Message').text('');
         // return true;
       }
       //check if the element is wider or higher than the panel on the screen
@@ -144,6 +145,7 @@ J$(document).ready(function ($) {
       if($M.width < $drawingTarget.width && $M.height < $drawingTarget.height){
         $M.css('font-size', '90px');
       }
+      return true;
     });
 
     $drawButton.on('click', () => {
@@ -517,7 +519,7 @@ J$(document).ready(function ($) {
     });
 
     $('#PageHelp > .pageHelp__button').on('click', function () {
-      alert(`
+      let help =`
       ✍🏻 : Toggle Draw menu.
       🧽 : wipe drawing or text
       📉 : toggle grid assist for drawing
@@ -538,7 +540,10 @@ J$(document).ready(function ($) {
       - double-click => toggle drawing
       - click+drag => drag emoji
       - click+drag => draw on canvas when visible
-      `);
+      v1.0
+      `;
+      $('#Message').text( help ).keyup();
+
     });
 
     $('.messageSource__changeW').click(); //skinny by default
