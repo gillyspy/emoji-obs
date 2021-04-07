@@ -397,7 +397,7 @@ J$(document).ready(function ($) {
       // let direction = 0;
       // let Halign = 0;
       //handle ESC key to toggle drawing drawing
-      if( $('.emoji-picker__wrapper') && ev.which === 27) {
+      if( $('.emoji-picker__wrapper').is(':hidden') && ev.which === 27) {
         $drawButton.click();
       }
 
