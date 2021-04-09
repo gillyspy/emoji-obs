@@ -147,6 +147,8 @@
     .target__aniLetter--emoji {
         vertical-align: bottom;
         font-size: 3em;
+        color: red;
+        font-weight: bold;
     }
 
     .target__aniLetter--pin {
@@ -191,23 +193,28 @@
         outline: none;
 
     }
+
     #history {
-        top : 800px;
+        top: 800px;
         left: 0;
-         z-index: 8000; /**/
+        z-index: 8000; /**/
         position: absolute
     }
 
+    .history--hidden {
+        display: none !important;
+    }
 
     .history, .aniLetter {
         color: red;
         font-weight: bold;
     }
+
     .history--draggable {
-        position:absolute;
-        z-index:20000;
-        opacity : 1 !important;
-        background-color: rgba(0,0,0,0,0) !important;
+        position: absolute;
+        z-index: 20000;
+        opacity: 1 !important;
+        background-color: rgba(0, 0, 0, 0, 0) !important;
     }
     .dragTemp__x {
         color : gray;

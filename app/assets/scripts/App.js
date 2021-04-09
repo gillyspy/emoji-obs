@@ -194,8 +194,8 @@ J$(document).ready(function ($) {
       $('#afkImages').find('div:visible').each(function () {
         doShow = false;
         $this = $(this);
-        $this.hide();
         $('#' + $this.data('beforeAfk')).click();
+        $this.hide();
         //$('#' + '✌🏻').click();
         $('button.AFK').removeClass('pressed');
       });
@@ -206,8 +206,8 @@ J$(document).ready(function ($) {
 
         //store the previous element on the afk button object
         $this.data('beforeAfk', myFavs.recallFave().emoji);
-        $this.show();
         $('#' + '💤').click();
+        $this.show();
         // stickyButton.click();
         $('button.AFK').addClass('pressed');
       }
@@ -221,7 +221,12 @@ J$(document).ready(function ($) {
       var fav = myFavs.recallFave($target.text());
       myAnimation.toggleHide(fav.sticky);
       $hideButton.toggleClass('pressed');
-    })
+      if($hideButton.hasClass('pressed')){
+        $('.history--draggable').addClass('history--hidden');
+      } else {
+           $('.history--draggable').removeClass('history--hidden');
+      }
+    });
 
     stickyButton.on('click', function (ev) {
       //make the current emoji sticky
