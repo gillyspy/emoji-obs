@@ -194,7 +194,7 @@ J$(document).ready(function ($) {
       $('#afkImages').find('div:visible').each(function () {
         doShow = false;
         $this = $(this);
-        $('#' + $this.data('beforeAfk')).click();
+        $('#' + $afk.data('beforeAfk')).click();
         $this.hide();
         //$('#' + '✌🏻').click();
         $('button.AFK').removeClass('pressed');
@@ -203,9 +203,8 @@ J$(document).ready(function ($) {
       if (doShow) {
         randomId = '#afk' + (Math.floor(Math.random() * 1000) % 3 + 1);
         let $this = $(randomId);
-
         //store the previous element on the afk button object
-        $this.data('beforeAfk', myFavs.recallFave().emoji);
+        $afk.data('beforeAfk', myFavs.recallFave().emoji);
         $('#' + '💤').click();
         $this.show();
         // stickyButton.click();
@@ -555,6 +554,11 @@ J$(document).ready(function ($) {
     //$('.history').hide();
    // if ($history.parent('#col1a').length > 0) {
 
+    //send all the floating big history back home
+    $('.history--draggable')
+      .removeClass('history--hidden')
+      .trigger('dblclick');
+
      // $history.appendTo($('#letters'));
       myAnimation.anime.timeline({loop: 1})
         .add({
@@ -572,7 +576,7 @@ J$(document).ready(function ($) {
         opacity : [0.5, 1],
         easing  : "easeOutExpo",
         duration: 700,
-        offset  : '-=875',
+        offset  : '-=700',
         delay   : (el, i, l) => 80 * (l - i)
       }).add({
         targets : '.text-wrapper .line',
