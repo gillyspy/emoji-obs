@@ -274,9 +274,9 @@ J$(document).ready(function ($) {
       }
       //update size of icons
       var histCt = $('.history').length;
-      var size = (675 / 50) + 5;
+      var size = (675 / 25) + 5;
       if (histCt < 14) {
-        size = Math.max(size, 50);
+        size = Math.max(size, 80);
       }
       $('.history').css('font-size', size + 'px');
     } //archiveFave
@@ -395,7 +395,7 @@ J$(document).ready(function ($) {
                   left: $this[0].getBoundingClientRect().left
                 },
                 randomClass: randomClass,  //cache its source location
-                Draggable  : (new FollowMouse($, $temp, $temp)).makeDraggable({top:80,left:80})
+                Draggable  : (new FollowMouse($, $temp, $temp)).makeDraggable({top:50,left:50})
               }
             )
             .prependTo('body')
