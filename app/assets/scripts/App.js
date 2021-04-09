@@ -629,10 +629,11 @@ J$(document).ready(function ($) {
       - Arrows => move the emoji around
       
       Mouse: 
-      - double-click => toggle drawing
-      - click+drag => drag emoji
+      - double-click on history emoji => toggle BIG mode
+      - double-click => or toggle drawing
+      - click+drag => drag ANY BIG emoji
       - click+drag => draw on canvas when visible
-      v1.0
+      v1.1
       `;
       let $this = $(this);
       if (!$this.hasClass('pressed')) {
