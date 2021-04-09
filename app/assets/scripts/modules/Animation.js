@@ -85,7 +85,7 @@ class Animation {
         translateZ: 0,
         easing    : "easeOutExpo",
         duration  : 950,
-        delay     : (el, i) => 70 * i
+        delay     : 200
       }); /* from: https://tobiasahlin.com/moving-letters/#2 */
     return this;
   };

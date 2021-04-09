@@ -191,11 +191,31 @@
         outline: none;
 
     }
+    #history {
+        top : 800px;
+        left: 0;
+         z-index: 8000; /**/
+        position: absolute
+    }
 
 
     .history, .aniLetter {
         color: red;
         font-weight: bold;
+    }
+    .history--draggable {
+        position:absolute;
+        z-index:20000;
+        opacity : 1 !important;
+        background-color: rgba(0,0,0,0,0) !important;
+    }
+    .dragTemp__x {
+        color : gray;
+        font-size : .5em;
+        vertical-align : sub;
+        margin-top : 30px;
+        position:absolute;
+
     }
 
     .highlight {
@@ -222,6 +242,10 @@
         padding-left: 4px;
     }
 
+    #picker {
+        z-index : 8050;
+        position : absolute;
+    }
     .emoji-picker__wrapper {
         z-index: 10000;
     }
@@ -377,7 +401,6 @@
     <tr>
         <td id="td0">
             <div id="col1a" class="column">
-                <div id="history"></div>
             </div>
         </td>
         <td>
@@ -430,13 +453,7 @@
 
         </td>
     </tr><tr><td colspan="2">
-     <h1 class="ml1">
-    <span class="text-wrapper">
-    <span class="line line1"></span>
-    <span id="letters" class="letters"></span>
-    <span class="line line2"></span>
-  </span>
-                </h1>
+
 
 </td></tr>
 </table>
@@ -473,6 +490,15 @@
         <div class="cell"></div>
         <div class="cell"></div>
     </div>
+</div>
+<div id="history">
+     <h1 class="ml1">
+    <span class="text-wrapper">
+    <span class="line line1"></span>
+    <span id="letters" class="letters"></span>
+    <span class="line line2"></span>
+  </span>
+                </h1>
 </div>
 
 <p>&nbsp;</p>

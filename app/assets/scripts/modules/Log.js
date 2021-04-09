@@ -1,6 +1,6 @@
 class Log{
   constructor(isEnabled){
-    this.debug;
+    this.debug = isEnabled;
   }
 
   browser(...opts){
