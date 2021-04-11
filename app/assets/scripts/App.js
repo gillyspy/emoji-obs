@@ -476,10 +476,7 @@ J$(document).ready(function ($) {
                 {
                   targets : '.' + randomClass,
                   scale   : 1,
-                  opacity : //myAnimation.anime.stagger(.5),
-                    (el, i) => {
-                      return (i === 1 ? 1 : .5);
-                    },
+                  opacity : 1,
                   duration: 1000,
                   delay   : 0,
                   easing  : 'linear',
@@ -629,14 +626,14 @@ J$(document).ready(function ($) {
 
     $('#scrollUp').on('click', (ev) => {
       //  var direction = ev.shiftKey ? 1 : -1;
-      switchEmoji(1);
+      switchEmoji(-1);
       ev.preventDefault();
       return false;
       // $target.show().fadeIn(1000);
     });
     $('#scrollDown').on('click', (ev) => {
       //  var direction = ev.shiftKey ? 1 : -1;
-      switchEmoji(-1);
+      switchEmoji(1);
       ev.preventDefault();
       return false;
       // $target.show().fadeIn(1000);
