@@ -35,19 +35,21 @@ class Favorites {
   }
 
   doStorage(fave) {
-    if (!fave) {
-      fave = this.recallFave();
+    if (fave) {
+       this.stash.push([fave]);
     }
     //let history = JSON.parse(localStorage.getItem('emojiPicker.recent')) || [];
     // add the item to the END of storage.
     //slice off the beginning when it gets too big
-    let myA = this.stash.concat([fave]).unique('emoji', false);
-    if(myA.length > this.historyMax){
-      myA.shift();
+    this.stash.unique('emoji', false);
+    this.nameIndex.unique(false,true);
+    if(this.stash.length > this.historyMax){
+      this.stash.shift();
+      this.nameIndex.shift();
     }
     localStorage.setItem(
       "emojiPicker.recent",
-      JSON.stringify( myA )
+      JSON.stringify( this.stash )
     );
   } //doStorage
   /*
@@ -94,7 +96,7 @@ class Favorites {
         delete this.stash(this.nameIndex[0]);
         this.nameIndex.shift();
       }
-      //add it differently if it is an string v object
+      //add it differently if it is an string v. object
       if (name === emoji) { //string
         fave = {
           emoji   : emoji,
@@ -109,12 +111,12 @@ class Favorites {
       }
       //update stash and index
       this.stash.push(fave);
-      this.nameIndex.push(fave.name)
+      this.nameIndex.push(fave.emoji)
     }
     //always add it to History because this also updates the history
     if (addHistory) {
       try {
-        this.doStorage(fave);
+        this.doStorage();
       } catch (e) {
         log.browser('failure in stashIt', e)
       }
@@ -132,6 +134,19 @@ class Favorites {
     }
     return this.stash[this.position]; //will be undefined if cannot find it
   } //recallFave
+
+  /*
+  slice it from the nameIndex and the stash and then doHistory
+   */
+  promoteFave(fave){
+    //find it in the nameIndex
+    fave = this.recallFave(fave);
+    let from = this.nameIndex.indexOf(fave.emoji);
+    let to = 0;
+    this.stash.move(from,to);
+    this.nameIndex.move(from,to);
+    this.doStorage();
+  }
 
   recallIt(direction = 'backwards') {
     //log.browser(this.stash, this.index, this.position);

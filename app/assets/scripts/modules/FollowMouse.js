@@ -23,17 +23,28 @@ class FollowMouse {
     let $el = this.$el;
     Object.assign( { left : 0, top : 0}, adjustments);
     let isDragging = false;
+    let $that = this.$(this.outerSelector);
+
     this.$(this.outerSelector).on('mousedown', function (ev) {
-      console.log('begin drag')
+      if( ev.detail===2){
+        $that.trigger('dblclick');
+        return false;
+      }
+      console.log('begin drag', ev)
       isDragging = true;
-      return false;
+
+      if(adjustments.mousedown){
+        adjustments.mousedown()
+      }
+     // return false;
     });
+
     this.$(this.outerSelector).on('mousemove', function (ev) {
       if (isDragging) {
         console.log(' draggin!')
         $el.css({
-          left: ev.pageX -($el.width()/2) - adjustments.left,
-          top : ev.pageY - ($el.height()/2) - adjustments.top
+          left: ev.pageX - adjustments.left,// -($el.width()/2) - adjustments.left,
+          top : ev.pageY - adjustments.top // - ($el.height()/2) - adjustments.top
         });
       }
     });
@@ -41,7 +52,7 @@ class FollowMouse {
     this.$(this.outerSelector).on('mouseup', function (ev) {
       console.log('stop drag')
       isDragging = false;
-      return false;
+      //return false;
     });
 
     this.$(this.outerSelector).on('mouseout', function (ev) {
@@ -49,7 +60,7 @@ class FollowMouse {
       return false;
     });
     console.log('draggable now!')
-    return this;
+   // return this;
   }
 
 }

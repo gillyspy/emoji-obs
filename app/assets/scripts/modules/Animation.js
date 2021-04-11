@@ -10,12 +10,14 @@ class Animation {
     this.anime = anime;
     this.bothClass = 'animate' + Math.floor(Math.random() * 1000);
     this.$el.addClass(this.bothClass);
-    if(pin){
+    if (pin) {
       this.pin = pin;
       this.pin.addClass(this.bothClass);
     }
     this.$ = this.$el.constructor;
     this.both = this.$el.closest('div');
+    this.animation = {};
+    this.animationCache = {};
     //el must be jQuery object
   }
 
@@ -77,7 +79,8 @@ class Animation {
       log.browser('addAnimation');
     }
     this.restartAnimation();
-    anime.timeline({loop: 1})
+    delete this.animation;
+    this.animation = anime.timeline({loop: 1})
       .add({
         targets   : '.' + this.randomClass,
         scale     : [4, 1],
@@ -89,8 +92,79 @@ class Animation {
       }); /* from: https://tobiasahlin.com/moving-letters/#2 */
     return this;
   };
-};
 
+  timeline(name, params, addDestroy = false) {
+    //get a timeline with no params
+    if (this.animationCache[name]) {
+      return this;
+    } else
+      //new or updated timeline
+    if (typeof params === 'object') {
+      let c = this.animationCache;
+      if (addDestroy) {
+        let d = this.destroyTimeline.bind(this);
+        let cb = params.complete;
+        params.complete = function () {
+          d(name);
+          if (cb) {
+            cb();
+          }
+        }
+      }
+      this.animationCache[name] = this.anime.timeline(params);
+      return this;
+    }
+    return false;
+  } //timeline
+
+  destroyTimeline(name) {
+    return delete this.animationCache[name];
+  }
+
+  addToTimeline(name, params, addDestroy = false) {
+    let tl = this.timeline(name);
+    if (tl) {
+      if (addDestroy) {
+        let d = this.destroyTimeline.bind(this);
+        let cb = params.complete;
+        params.complete = function () {
+          d(name);
+          if (cb) {
+            cb();
+          }
+        }
+      }
+      tl.animationCache[name].add(params);
+      return this;
+    }
+    return;
+  }
+
+  doTimeline(name, event) {
+    if(!this.animationCache[name]){
+      return;
+    } else //
+    if (event === 'play') {
+      this.animationCache[name].play();
+    } else //pause
+    if (event === 'pause') {
+      this.animationCache[name].pause();
+    } else //stop
+    if (event === 'stop') {
+      this.animationCache[name].pause();
+      this.destroyTimeline(name);
+    } else //reverse
+    if (event === 'reverse') {
+      this.animationCache[name].pause();
+      this.animationCache[name].reverse();
+      this.animationCache[name].play();
+    } else //restart
+      if (event === 'restart') {
+        this.animationCache[name].restart();
+      }
+    return this;
+  }
+}
 export default Animation
 
 /*

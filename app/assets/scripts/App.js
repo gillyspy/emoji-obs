@@ -9,9 +9,9 @@ import FollowMouse from './modules/FollowMouse.js';
 
 const log = new Log(true);
 
-Array.prototype.unique = function (property, firstWins = true) {
+Array.prototype.unique = function (property = false, firstWins = true) {
   var a = this.concat();
-  if (typeof property !== 'undefined') {
+  if (!!property) {
     if (firstWins) {
 
 
@@ -32,15 +32,28 @@ Array.prototype.unique = function (property, firstWins = true) {
       }
     }
   } else {
-    for (var i = 0; i < a.length; ++i) {
-      for (var j = i + 1; j < a.length; ++j) {
-        if (a[i] === a[j])
-          a.splice(j--, 1);
+    if (firstWins) {
+      for (var i = 0; i < a.length; ++i) {
+        for (var j = i + 1; j < a.length; ++j) {
+          if (a[i] === a[j])
+            a.splice(j--, 1);
+        }
+      }
+    } else {
+      for (var i = a.length - 1; i >= 0; --i) {
+        for (var j = i - 1; j >= 0; --j) {
+          if (a[i] === a[j])
+            a.splice(j--, 1);
+        }
       }
     }
   }
   return a;
 } // unique
+
+Array.prototype.move = function (from, to) {
+  this.splice(to, 0, this.splice(from, 1)[0]);
+};
 
 const followMouse = new FollowMouse(J$, '#fakeMouse>button');
 const myFavs = new Favorites();
@@ -85,7 +98,10 @@ J$(document).ready(function ($) {
     const myAnimation = new Animation($target, $pin);
     const emojiWrapperAnimation = new Animation($('.targetWrapper__emoji'));
     const dragEmoji = new FollowMouse($, '.targetWrapper__emoji', '#MessageWrapper');
-    dragEmoji.makeDraggable();
+    dragEmoji.makeDraggable({
+      left: emojiWrapperAnimation.$el.width() / 2,
+      top : emojiWrapperAnimation.$el.width() / 2
+    });
 
 //$target.fadeOut(40000);//default
     //const $outer = $('.outer');
@@ -219,11 +235,12 @@ J$(document).ready(function ($) {
       //archiveFave();
       var fav = myFavs.recallFave($target.text());
       myAnimation.toggleHide(fav.sticky);
-      $hideButton.toggleClass('pressed');
-      if($hideButton.hasClass('pressed')){
+      if ($target.is(':hidden')) {
+        $hideButton.addClass('pressed');
         $('.history--draggable').addClass('history--hidden');
       } else {
-           $('.history--draggable').removeClass('history--hidden');
+        $hideButton.removeClass('pressed');
+        $('.history--draggable').removeClass('history--hidden');
       }
     });
 
@@ -262,7 +279,7 @@ J$(document).ready(function ($) {
 
     //put the emoji in the "dock"
     const archiveFave = function (sticky = false, emoji) {
-      var firstClass = sticky ? 'history pressed' : 'history';
+      var firstClass = sticky ? 'history pressed history__btn' : 'history history__btn';
       $('.highlight').removeClass('highlight');
       $highlight = [];
       emoji = emoji || $target.text();
@@ -374,18 +391,107 @@ J$(document).ready(function ($) {
     } //switchEmoji
     switchEmoji.bump = 1; //we start at the top already
 
+    $('.dragTemp').on('click', function () {
+      //always put the last clicked last in gallery
+      //$(this).appendTo('#gallery');
+    });
+
+    /* *
+    * clicking on a history emoji makes it:
+    * - come to the top z-index
+    * - get reprioritized to the front of the history
+     */
     $history.on('dblclick', 'button', function (ev) {
         let $this = $(this);
         $this.data('dblclick', true);
 
+        /*
+        * draggable is the method to determine if it has been elevated to the gallery
+         */
         if (!$this.data('draggable')) {
-          var top = $this[0].getBoundingClientRect().top
-          var left = $this[0].getBoundingClientRect().left
+          let top = $this[0].getBoundingClientRect().top
+          let left = $this[0].getBoundingClientRect().left
           let randomClass = 'draggable' + Math.floor(Math.random() * 1000);
+          while (myAnimation.animationCache[randomClass]) {
+            randomClass = 'draggable' + Math.floor(Math.random() * 1000);
+          }
           let $temp = $('<span class="randomClass dragTemp"></span>');
+          /*
+          if it is sticky then give it a pin
+           */
+          let fave = myFavs.recallFave($this.text());
+          let pin = $('<span class="dragTemp__pin history--draggable">📌</span>')
+          pin.hide()
+          $temp.append(pin);
+          if (fave && fave.sticky) {
+            pin.show();
+          }
+          myFavs.promoteFave(fave);
+
           //$temp.append('<span class="dragTemp__closer">x</span>');
           let $origin = $this
-            .closest('span').addClass(randomClass)
+            .closest('span').addClass(randomClass);
+
+          /* reprioritize */
+          //change the origin location to be the first entry in the dock
+          $origin.prependTo('#letters');
+
+          let adjustment = $this.width() * 3; //same as animation scale
+
+          //return it back to history via doubleclick on new draggable
+          $temp.one('dblclick', function (ev) {
+            //return back to history
+            let emoji = $this.text();
+            $temp.find('.dragTemp__pin').hide();
+            //let randomClass = $temp.data('draggable').randomClass;
+            //  let location = $temp.data('draggable').location;
+            top = top - $temp[0].getBoundingClientRect().top;
+            //   left = $temp[0].getBoundingClientRect().left - left;
+
+            myAnimation.doTimeline(randomClass + 'To', 'stop');
+            // myAnimation.doTimeline(randomClass + 'To', 'stop');
+            myAnimation
+              .timeline(randomClass + 'From', {loop: 1})
+              .addToTimeline(randomClass + 'From', {
+                  targets : $this[0],//$this[0],
+                  scale   : [1, .1],
+                  opacity : [1, 0],
+                  duration: 2000,
+                  delay   : 0,
+                  easing  : "easeOutExpo",
+                  complete: function () {
+                    $this
+                      //    .css(location)
+                      //.remove();
+                      //put it back in history in same spot
+                      .appendTo($origin)
+                      .removeClass('history--draggable')
+                      .addClass('history__btn');
+                    $temp.removeData('draggable').remove();
+                    //    myAnimation
+                  }
+                }
+              )
+              .addToTimeline(randomClass + 'From',
+                {
+                  targets : '.' + randomClass,
+                  scale   : 1,
+                  opacity : //myAnimation.anime.stagger(.5),
+                    (el, i) => {
+                      return (i === 1 ? 1 : .5);
+                    },
+                  duration: 1000,
+                  delay   : 0,
+                  easing  : 'linear',
+                }, true
+              );
+
+
+            /* from: https://tobiasahlin.com/moving-letters/#2 */
+
+            //injectSelection(emoji);
+            return false;
+          });
 
           //temporary variable to enclose it
           $temp
@@ -395,10 +501,18 @@ J$(document).ready(function ($) {
                   left: $this[0].getBoundingClientRect().left
                 },
                 randomClass: randomClass,  //cache its source location
-                Draggable  : (new FollowMouse($, $temp, $temp)).makeDraggable({top:50,left:50})
+                Draggable  : (new FollowMouse($, $temp, $temp))
+                  .makeDraggable({
+                    top      : adjustment,
+                    left     : adjustment,
+                    mousedown: function () {
+                      $temp.appendTo('#gallery');
+                    }
+                  })
               }
             )
-            .prependTo('body')
+            //           .appendTo('body')
+            .appendTo('#gallery')
             .css({
                 left: left,
                 top : top
@@ -407,54 +521,54 @@ J$(document).ready(function ($) {
             .addClass('history--draggable')
             .addClass(randomClass);
 
-          //return it back to history via doubleclick on new draggable
-          $temp.one('dblclick', function (ev) {
-            //return back to history
-            let emoji = $this.text();
-            let $temp = $this.closest('span');
-            let randomClass = $temp.data('draggable').randomClass;
-          //  let location = $temp.data('draggable').location;
-            top = $this[0].getBoundingClientRect().top - top ;
-            left = $this[0].getBoundingClientRect().left - left;
 
-            myAnimation.anime.timeline({loop: 1}).add({
-              targets   : '#' + emoji,
-              scale     : [20, 1],
-              opacity   : [1, .5],
-            /*   translateY: top,
-              translateX: left, */
-              easing    : "easeOutExpo",
-              duration  : 1950,
-              delay     : 0 //(el, i) => 70 * i
-            }); /* from: https://tobiasahlin.com/moving-letters/#2 */
-            //remove it from the page
-            $this
-          //    .css(location)
-              //.remove();
-              //put it back in history in same spot
-              .appendTo($origin)
-              .removeClass('history--draggable');
-
-            $temp.removeData('draggable').remove();
-            //injectSelection(emoji);
-            return false;
-          });
           $this.addClass(randomClass)
+            .removeClass('history__btn')
             .prependTo($temp)
             .addClass('history--draggable');
+          let randomY = Math.floor(400 * Math.random()) - 100;
+          let randomX = Math.floor(1000 * Math.random());
 
-          myAnimation
-            .anime.timeline({loop: 1}).add({
-            targets   : 'span.' + randomClass,
-            scale     : [1, 5],
-            opacity   : 1,
-            translateZ: 0,
-            translateY: -10,
-            easing    : "easeOutExpo",
-            duration  : 950,
-            delay     : 200 //(el, i) => 70 * i
-          }); /* from: https://tobiasahlin.com/moving-letters/#2 */
+          console.log(randomX, randomY);
+          myAnimation.timeline(randomClass + 'To', {loop: 1})
+            .addToTimeline(randomClass + 'To', {
+              targets   : $temp[0],
+              scale     : [1, 5],
+              opacity   : [.5, 1],
+              translateZ: 0,
+//            translateY: randomY,//random distance
+              //  translateX : randomX,
+              left      : randomX,
+              top       : randomY,
+              begin     : function () {
+                console.log('begin dock animation');
+              },
+              easing    : "easeOutExpo",
+              duration  : 950,
+              //    autoplay : false,
+              delay     : 200 //(el, i) => 70 * i
+            });
+          myAnimation.timeline(randomClass + 'Fade', {}) //loop?
+            .addToTimeline(randomClass + 'Fade', {
+              targets : $temp[0],// 'span.' + randomClass,
+              opacity : [1, 0],
+              duration: 40000,
+              delay   : 1000,
+              easing  : 'linear',
+              complete: function () {
+                if ($temp.hasClass('history--draggable')) {
+                  if (!$temp.css('opacity')) {
+                    $temp.trigger('dblclick')
+                  }
+                }
+              }
+            });
+          if (fave.sticky) {          //fade it
+            myAnimation.doTimeline(randomClass + 'Fade', 'pause');
+          }
+          //.doTimeline(randomClass,'play'); /* from: https://tobiasahlin.com/moving-letters/#2 */
 
+          //    $temp.appendTo('#gallery')
           ev.preventDefault();
           return false;
         }
@@ -482,12 +596,13 @@ J$(document).ready(function ($) {
             stickyButton.removeClass('pressed');
           }
           return;
+        } else //is draggable
+        {
+          //bring to the front of gallery by putting as he last element of the gallery
+          $this.closest('span').appendTo('#gallery');
         }
       }, 500);
     });
-
-
-
 
     $('body').on('keydown', function (ev) {
       // let direction = 0;
@@ -539,8 +654,35 @@ J$(document).ready(function ($) {
 
       return false;
     });
-//
+
+    /*
+    *  whatever most recent emoji from the dock is in the gallery is what the emojipreview works on
+    *
+     */
     $emojipreview.on('click', 'button', function () {
+
+      //last item in the gallery is the most recent [because of implied z-index]
+      $('#gallery').find('.dragTemp:last').each(function () {
+        let $temp = $(this);
+        let fave = myFavs.recallFave($temp.find('button').text());
+        let randomClass = $temp.data('draggable').randomClass;
+        if (fave && fave.sticky) //if they are sticky then remove that and start the fade
+        {
+          $temp.find('.dragTemp__pin').hide();
+
+          fave.sticky = false;
+          myAnimation.doTimeline(randomClass + 'Fade', 'reverse');
+
+        } else //else //reverse the fade
+        {
+          myAnimation.doTimeline(randomClass + 'Fade', 'reverse');
+          //make them sticky
+          fave.sticky = true;
+          $temp.find('.dragTemp__pin').show();
+        }
+
+      });
+      return;
 
       injectSelection({
         emoji: $emojipreview.find('.emoji_preview-emoji').text()
@@ -550,59 +692,77 @@ J$(document).ready(function ($) {
       }
     });
 
-  $moveHistory.on('click', function(){
-    //$('.history').hide();
-    // if ($history.parent('#col1a').length > 0) {
+    $moveHistory.on('click', function () {
+      //$('.history').hide();
+      // if ($history.parent('#col1a').length > 0) {
 
-    //send all the floating big history back home
-    $('.history--draggable')
-      .removeClass('history--hidden')
-    $('span.history--draggable').trigger('dblclick');
+      //send all the floating big history back home
+      $('.history--draggable')
+        .removeClass('history--hidden')
+      $('span.history--draggable').trigger('dblclick');
 
-    // $history.appendTo($('#letters'));
-    myAnimation.anime.timeline({loop: 1})
-      .add({
-        targets   : '#history .history',
-        scale     : [0.3, 1],
-        opacity   : [0, 1],
-        translateZ: 0,
-        easing    : "easeOutExpo",
-        duration  : 600,
-        delay     : (el, i) => 70 * (i + 1)
-      })
-      .add({
-        targets : '.text-wrapper .line',
-        scaleX  : [0, 1],
-        opacity : [0.5, 1],
-        easing  : "easeOutExpo",
-        duration: 700,
-        offset  : '-=700',
-        delay   : (el, i, l) => 80 * (l - i)
-      }).add({
-      targets : '.text-wrapper .line',
-      opacity : 0,
-      duration: 1000,
-      easing  : "easeOutExpo",
-      delay   : 1000
-    });
-  /*  }else{
-        $history.appendTo($('#col1a'));
-      myAnimation.anime.timeline({loop : 1})
-        .add({
-          targets   : '#history .history',
-          scale     : [0.3, 1],
-          opacity   : [0, 1],
-          translateZ: 0,
-          easing    : "easeOutExpo",
-          duration  : 600,
-          delay     : (el, i) => 70 * (i + 1)
-        })
-    }*/
-  }); //moveHistory
+      // $history.appendTo($('#letters'));
+      /* if all the emojis are docked then splash them on the screen */
+      if ($('#gallery').find('span').length === 0) {
+
+        //create an async task
+        let i = 0
+        $history.find('button').each(function () {
+          let $this = $(this)
+          setTimeout(function () {
+            $this.dblclick();
+            i = i + (Math.random()*600)
+          }, i);
+          return true;
+        });
+      } else if (myAnimation.timeline('history')) {
+        myAnimation.doTimeline('history', 'restart')
+      } else {
+        myAnimation.timeline('history', {loop: 1})
+          .addToTimeline('history', {
+            targets   : '#history .history',
+            scale     : [0.3, 1],
+            opacity   : [0, 1],
+            translateZ: 0,
+            easing    : "easeOutExpo",
+            duration  : 600,
+            delay     : (el, i) => 70 * (i + 1)
+          })
+          .addToTimeline('history', {
+            targets : '.text-wrapper .line',
+            scaleX  : [0, 1],
+            opacity : [0.5, 1],
+            easing  : "easeOutExpo",
+            duration: 700,
+            offset  : '-=700',
+            delay   : (el, i, l) => 80 * (l - i)
+          })
+          .addToTimeline('history', {
+            targets : '.text-wrapper .line',
+            opacity : 0,
+            duration: 1000,
+            easing  : "easeOutExpo",
+            delay   : 1000
+          });
+      }
+      /*  }else{
+            $history.appendTo($('#col1a'));
+          myAnimation.anime.timeline({loop : 1})
+            .add({
+              targets   : '#history .history',
+              scale     : [0.3, 1],
+              opacity   : [0, 1],
+              translateZ: 0,
+              easing    : "easeOutExpo",
+              duration  : 600,
+              delay     : (el, i) => 70 * (i + 1)
+            })
+        }*/
+    }); //moveHistory
 
     $('.messageSource__changeW').on('click', function () {
       let $ms = $('.messageTarget__pre');
-      if($ms.css('margin-left')[0] === '0'){
+      if ($ms.css('margin-left')[0] === '0') {
         $ms.css('margin-left', '20%');
         $ms.css('width', '60%');
         $('.messageSource__changeW').addClass('pressed');
