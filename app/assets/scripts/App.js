@@ -153,9 +153,10 @@ J$(document).ready(function ($) {
       let $reset = $(this);
       if (ev.type === 'keyup') {
         $M.text($('#Message').val());
-      } else if ($reset.attr('type') === 'reset') {
+      } else if ($reset.attr('type') === 'reset' || $M.val() ==='') {
         $M.text('');
         $('#Message').text('');
+        $M.css('font-size', ''); //celar font size
         // return true;
       }
       //check if the element is wider or higher than the panel on the screen
@@ -348,19 +349,8 @@ J$(document).ready(function ($) {
     });
 
     var switchEmoji = function (direction, wrap = true) {
-      if (typeof switchEmoji.bump === 'undefined') {
-        switchEmoji.bump = 0;
-      }
       var lastFave = myFavs.recallIt(direction);
-
       //get last history emoji and compare
-      if (lastFave.position === 0) {
-        switchEmoji.bump++;
-      } else if (lastFave.position === myFavs.nameIndex.length - 1) {
-        switchEmoji.bump++;
-      } else {
-        switchEmoji.bump = 0;
-      }
       log.browser(direction, myFavs.stash);
       log.browser(myFavs, lastFave, switchEmoji.bump);
       //archive the current one
@@ -375,18 +365,7 @@ J$(document).ready(function ($) {
         stickyButton.addClass('pressed');
       } else {
         stickyButton.removeClass('pressed');
-        if (switchEmoji.bump < 2) {
           myAnimation.restartAnimation();
-        }
-      }
-      if (switchEmoji.bump > 1 && direction > 0 && wrap) {
-        direction = myFavs.nameIndex.length - 1;
-        switchEmoji.bump = 0;
-        switchEmoji(direction, false);
-      } else if (switchEmoji.bump > 1 && direction < 0 && wrap) {
-        direction = 0;
-        switchEmoji.bump = 0;
-        switchEmoji(direction, false);
       }
     } //switchEmoji
     switchEmoji.bump = 1; //we start at the top already
@@ -778,23 +757,26 @@ J$(document).ready(function ($) {
       📉 : toggle grid assist for drawing
       🟥 : change color of pen
       📌 : toggle sticky of the current emoji (and remember this setting)
+      📌*:toggle sticky of current undocked emoji
       ↩ : change width of text area (cuz teams cutting the screen)
       ◀️▶️ : scroll recents in order of their use
       ⛔ : toggle hide of the emoji
       💤 : bring up AFK screen
       🔎 : search for a new emoji
+      📜 : splash screen if all secondary emojis are docked| else dock all emojis
       
       Keys:
       - Esc => toggle drawing   (when emoji picker is not visible)
       - Esc => close emoji picker (when emoji picker is visible)
-      - Arrows => move the emoji around
+      - Arrows => move the primary emoji around
       
       Mouse: 
-      - double-click on history emoji => toggle BIG mode
+      - double-click on any history emoji => toggle BIG|dock mode
       - double-click => or toggle drawing
+      - click => any alt emoji becomes the focused secondary
       - click+drag => drag ANY BIG emoji
       - click+drag => draw on canvas when visible
-      v1.1
+      v1.2
       `;
       let $this = $(this);
       if (!$this.hasClass('pressed')) {

@@ -153,10 +153,10 @@ class Favorites {
     //if we're going backwards then return the previous one to the index
     if (direction === 'forwards' || direction === -1) { //forwards || -1
       this.position--;
-      this.position = Math.max(this.position, 0);
+      this.position = this.position < 0 ? this.nameIndex.length-1 : this.position;
     } else if (direction === 'backwards' || direction === 1) {
       this.position++;
-      this.position = Math.min(this.nameIndex.length - 1, this.position);
+      this.position = this.position > this.nameIndex.length-1 ? 0 : this.position;
     } else {
       this.position = direction;
     }
