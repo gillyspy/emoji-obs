@@ -506,7 +506,7 @@ J$(document).ready(function ($) {
             .prependTo($temp)
             .addClass('history--draggable');
           let randomY = Math.floor(400 * Math.random()) - 100;
-          let randomX = Math.floor(1000 * Math.random());
+          let randomX = Math.floor(800 * Math.random());
 
           console.log(randomX, randomY);
           myAnimation.timeline(randomClass + 'To', {loop: 1})
