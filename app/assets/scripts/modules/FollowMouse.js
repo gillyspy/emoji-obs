@@ -63,7 +63,7 @@ class FollowMouse {
       }
     }
     let start = this.config.impatientAnimation;
-
+    log.browser(target,svg, path('y'));
     // deal with actions
     if (action === 'play') {
       this.impatientAnimation.play();
@@ -91,7 +91,7 @@ class FollowMouse {
               range.push(start.opacity);
               return range;
             },
-            duration  : (Math.random() * 20000 + 10000),
+            duration  : (Math.random() * 20000 + 2000),
             complete  : function () {
               //restart this animation with new random values
               _this.genImpatientAnimation(svg,target);
