@@ -530,15 +530,13 @@ J$(document).ready(function ($) {
           myAnimation.timeline(randomClass + 'Fade', {}) //loop?
             .addToTimeline(randomClass + 'Fade', {
               targets : $temp[0],// 'span.' + randomClass,
-              opacity : [1, 0],
+              opacity : [1, .1],
               duration: 40000,
               delay   : 1000,
               easing  : 'linear',
               complete: function () {
                 if ($temp.hasClass('history--draggable')) {
-                  if (!$temp.css('opacity')) {
-                    $temp.trigger('dblclick')
-                  }
+                    $temp.trigger('dblclick');
                 }
               }
             });
@@ -580,7 +578,10 @@ J$(document).ready(function ($) {
           //bring to the front of gallery by putting as he last element of the gallery
           $this.closest('span').appendTo('#gallery');
         }
-      }, 500);
+      },
+        //if the user double clicks within this time period then it is ok
+        // if they single click then it will wait
+        800);
     });
 
     $('body').on('keydown', function (ev) {
