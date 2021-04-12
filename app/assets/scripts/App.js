@@ -55,13 +55,14 @@ Array.prototype.move = function (from, to) {
   this.splice(to, 0, this.splice(from, 1)[0]);
 };
 
-const followMouse = new FollowMouse(J$, '#fakeMouse>button');
+
 const myFavs = new Favorites();
 
 
 J$(document).ready(function ($) {
     console.log('ready');
-    followMouse.startTracking();
+
+
     const stickyButton = $('#stickybutton');
     const $picker = $('#picker');
     const picker = new EmojiButton({
@@ -96,6 +97,8 @@ J$(document).ready(function ($) {
     const $target = $('#emoji');
     const $pin = $('#pin');
     const myAnimation = new Animation($target, $pin);
+
+
     const emojiWrapperAnimation = new Animation($('.targetWrapper__emoji'));
     const dragEmoji = new FollowMouse($, '.targetWrapper__emoji', '#MessageWrapper');
     dragEmoji.makeDraggable({
@@ -805,6 +808,14 @@ J$(document).ready(function ($) {
     $history.find('.highlight').click();
 
 
+    //mouse animation when idle
+    try {
+      const followMouse = new FollowMouse(J$, '#fakeMouse>button');
+      followMouse.initImpatientAction(myAnimation.anime, '#mousePath', '#fakeMouse');
+      followMouse.startTracking();
+    } catch (e) {
+      console.log(e);
+    }
   }
 )
 ;
