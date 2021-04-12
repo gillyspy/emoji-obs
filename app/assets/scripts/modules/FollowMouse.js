@@ -9,7 +9,7 @@ class FollowMouse {
     this.outerSelector = outerSelector;
     this.$el = this.$(selector);
     this.timeout;
-    this.impatientMax = 20000;
+    this.impatientMax = 40000;
     this.impatientCtDown = 5000;
     this.impatientAnimation;
     //should be a jquery object
