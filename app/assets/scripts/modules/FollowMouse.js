@@ -1,6 +1,7 @@
 import Log from './Log.js'
 
-const log = new Log(('disabled' == 'on'));
+//const log = new Log(('disabled' == 'on'));
+const log = new Log(('enabled' === 'enabled'));
 
 class FollowMouse {
   constructor($, selector, outerSelector = document, event = 'mousemove') {
@@ -12,6 +13,8 @@ class FollowMouse {
     this.impatientMax = 40000;
     this.impatientCtDown = 5000;
     this.impatientAnimation;
+    this.config = {};
+    this.anime;
     //should be a jquery object
   }
 
@@ -39,14 +42,10 @@ class FollowMouse {
   } //startTracking
 
   //TOOD: turn this into a function instead
-  impatientAnimation(){
-
-
-  };
-
-  initImpatientAction(anime, svgPathSelector, animateSelector) {
+  genImpatientAnimation(svg,target,action = 'restart') {
+    let _this = this;
     let path = function (parm) {
-      let P = anime.path(svgPathSelector);
+      let P = _this.anime.path(svg);
       switch (parm) {
         case 'x' :
         case 'angle':
@@ -54,12 +53,74 @@ class FollowMouse {
         case 'y':
           console.log(P(parm));
           return P(parm);
-
       }
     }
+    if (!this.config.impatientAnimation) {
+      //generate defaults
+      this.config.impatientAnimation = {
+        scale  : 1,
+        opacity: 1
+      }
+    }
+    let start = this.config.impatientAnimation;
+
+    // deal with actions
+    if (action === 'play') {
+      this.impatientAnimation.play();
+    } else //else
+    if (action === 'restart') {
+//      delete this.impatientAnimation;
+
+      this.impatientAnimation =
+        _this.anime({
+            targets   : target,
+            translateX: path('x'),
+            translateY: path('y'),
+            scale     : function () {
+              let range = [start.scale];
+              start.scale = (Math.random() * 8 + 1.5);
+              range.push(start.scale);
+              return range;
+            },
+            rotate    : path('angle'),
+            //rotateX : 90,
+            easing    : 'linear',
+            opacity   : function () {
+              let range = [start.opacity];
+              start.opacity = (Math.max(Math.random(), .5))
+              range.push(start.opacity);
+              return range;
+            },
+            duration  : (Math.random() * 20000 + 10000),
+            complete  : function () {
+              //restart this animation with new random values
+              _this.genImpatientAnimation(svg,target);
+            }
+            //loop      : true
+          });
+      /*.add({
+          targets   : animateSelector,
+          translateX: path('x'),
+          translateY: path('y'),
+          scale     : [old.scale, 1],
+          rotate    : path('angle'),
+          //rotateX : 90,
+          easing    : 'linear',
+          opacity   : [old.opacity, 1],
+          duration  : (Math.random() * 20000 + 10000),
+          loop      : true
+        });*/
+    }
+
+    return this.impatientAnimation;
+  };
+
+  initImpatientAction(anime, svgPathSelector, animateSelector) {
+    this.anime = anime;
 
     let _this = this;
     let $el = this.$el;
+    _this.genImpatientAnimation(svgPathSelector, animateSelector,'restart');
     setInterval(function () {
 
       log.browser('ctdown', _this.impatientCtDown);
@@ -69,7 +130,7 @@ class FollowMouse {
           top : 0
         });
         $el.addClass('fakeMouse__button--flight');
-        _this.impatientAnimation.play();
+
 
       } else {
         _this.impatientCtDown -= 100;
@@ -80,40 +141,7 @@ class FollowMouse {
       opacity: 1,
       scale  : 1
     }
-    this.impatientAnimation = anime.timeline({loop: true})
-      .add({
-        targets   : animateSelector,
-        translateX: path('x'),
-        translateY: path('y'),
-        scale     : function () {
-          let range = [old.scale];
-          old.scale = (Math.random() * 8 + 1.5);
-          range.push(old.scale);
-          return range;
-        },
-        rotate    : path('angle'),
-        //rotateX : 90,
-        easing    : 'linear',
-        opacity   : function () {
-          let range = [old.opacity];
-          old.opacity = (Math.max(Math.random(), .5))
-          range.push(old.opacity);
-          return range;
-        },
-        duration  : (Math.random() * 20000 + 10000),
-        //loop      : true
-      }).add({
-        targets   : animateSelector,
-        translateX: path('x'),
-        translateY: path('y'),
-        scale     : [old.scale,1],
-        rotate    : path('angle'),
-        //rotateX : 90,
-        easing    : 'linear',
-        opacity   : [old.opacity,1],
-        duration  : (Math.random() * 20000 + 10000),
-        loop      : true
-      });
+
 
     /*add({
       targets  : '#fakeMouse button',
