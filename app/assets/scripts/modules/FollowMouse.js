@@ -1,7 +1,7 @@
 import Log from './Log.js'
 
-//const log = new Log(('disabled' == 'on'));
-const log = new Log(('enabled' === 'enabled'));
+const log = new Log(('disabled' == 'on'));
+//const log = new Log(('enabled' === 'enabled'));
 
 class FollowMouse {
   constructor($, selector, outerSelector = document, event = 'mousemove') {
@@ -27,12 +27,17 @@ class FollowMouse {
     this.$(this.outerSelector).on('mousemove', function (ev) {
       _this.impatientCtDown = _this.impatientMax;
       if (_this.impatientAnimation) {
-        _this.impatientAnimation.pause();
+     ///   _this.impatientAnimation.pause();
       }
-      $div.css('transform', '');
 
-      $el.removeClass('fakeMouse__button--flight');
-
+      //if necessary stop the flight animation
+      if(_this.impatientAnimation && $el.hasClass('fakeMouse__button--flight')) {
+        _this.genImpatientAnimation('pause');
+        $el.removeClass('fakeMouse__button--flight');
+        //unrotate the "ship"
+        $div.css('transform', '');
+      }
+      //force the mouse to follow
       $el.css({
         left: ev.pageX - 20,
         top : ev.pageY
@@ -42,62 +47,63 @@ class FollowMouse {
   } //startTracking
 
   //TOOD: turn this into a function instead
-  genImpatientAnimation(svg,target,action = 'restart') {
+  genImpatientAnimation(action = 'restart',svg,target) {
     let _this = this;
-    let path = function (parm) {
-      let P = _this.anime.path(svg);
-      switch (parm) {
-        case 'x' :
-        case 'angle':
-          return P(parm);
-        case 'y':
-          console.log(P(parm));
-          return P(parm);
-      }
-    }
-    if (!this.config.impatientAnimation) {
+    let start = this.config.impatientAnimation || false;
+    if (!start) {
       //generate defaults
       this.config.impatientAnimation = {
         scale  : 1,
-        opacity: 1
+        opacity: 1,
+        svg    : svg,
+        target : target
       }
+      start = this.config.impatientAnimation;
     }
-    let start = this.config.impatientAnimation;
-    log.browser(target,svg, path('y'));
+    if (svg)
+      start.svg = svg;
+    if (target)
+      start.target = target;
+    let path = _this.anime.path(start.svg);
+
+    log.browser(start, target, svg, path('y'));
     // deal with actions
     if (action === 'play') {
       this.impatientAnimation.play();
+    } else  //pause
+    if (action === 'pause') {
+        this.impatientAnimation.pause();
     } else //else
     if (action === 'restart') {
 //      delete this.impatientAnimation;
 
       this.impatientAnimation =
         _this.anime({
-            targets   : target,
-            translateX: path('x'),
-            translateY: path('y'),
-            scale     : function () {
-              let range = [start.scale];
-              start.scale = (Math.random() * 8 + 1.5);
-              range.push(start.scale);
-              return range;
-            },
-            rotate    : path('angle'),
-            //rotateX : 90,
-            easing    : 'linear',
-            opacity   : function () {
-              let range = [start.opacity];
-              start.opacity = (Math.max(Math.random(), .5))
-              range.push(start.opacity);
-              return range;
-            },
-            duration  : (Math.random() * 20000 + 2000),
-            complete  : function () {
-              //restart this animation with new random values
-              _this.genImpatientAnimation(svg,target);
-            }
-            //loop      : true
-          });
+          targets   : start.target,
+          translateX: path('x'),
+          translateY: path('y'),
+          scale     : function () {
+            let range = [start.scale];
+            start.scale = (Math.random() * 8 + 1.5);
+            range.push(start.scale);
+            return range;
+          },
+          rotate    : path('angle'),
+          //rotateX : 90,
+          easing    : 'linear',
+          opacity   : function () {
+            let range = [start.opacity];
+            start.opacity = (Math.max(Math.random(), .5))
+            range.push(start.opacity);
+            return range;
+          },
+          duration  : (Math.random() * 20000 + 2000),
+          complete  : function () {
+            //restart this animation with new random values
+            _this.genImpatientAnimation();
+          }
+          //loop      : true
+        });
       /*.add({
           targets   : animateSelector,
           translateX: path('x'),
@@ -120,42 +126,34 @@ class FollowMouse {
 
     let _this = this;
     let $el = this.$el;
-    _this.genImpatientAnimation(svgPathSelector, animateSelector,'restart');
-    setInterval(function () {
+    _this.genImpatientAnimation('restart',svgPathSelector, animateSelector);
 
+    /*
+    * begin a clock...
+    * update the countdown with the clock
+    *
+    *
+    * if the countdown expires then the mouse animation is launched
+     */
+    setInterval(function () {
       log.browser('ctdown', _this.impatientCtDown);
+
+      //if the countdown expires
       if (_this.impatientCtDown <= 0) {
         $el.css({
           left: 0,
           top : 0
         });
         $el.addClass('fakeMouse__button--flight');
-
-
+        //resume
+        _this.genImpatientAnimation('play');
       } else {
         _this.impatientCtDown -= 100;
       }
-    }, 100);
-
-    let old = {
-      opacity: 1,
-      scale  : 1
-    }
-
-
-    /*add({
-      targets  : '#fakeMouse button',
-      keyframes: [{
-        'font-size': '40px'
-      }, {
-        'font-size': '10px'
-      },
-      ],
-      //  duration : 2000,
-      easing   : 'linear',
-      loop : true
-    });*/
-  }//
+    }, //tick the clock
+       100
+    );
+  }//initImpatientAction
 
   makeDraggable(adjustments = {
     left: 0,
