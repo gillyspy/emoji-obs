@@ -143,6 +143,7 @@
         left: 650px; /* 80%; */
         top: 120px; /* 5rem; */
         position: absolute;
+        opacity : 0; /* TODO */
     }
 
     .target__aniLetter--emoji {
@@ -217,14 +218,11 @@
         font-weight: bold;
     }
 
-    .history--draggable {
-        position: absolute;
-        z-index: 20000;
-        /*       // opacity: 1 !important; */
-        background-color: rgba(0, 0, 0, 0, 0) !important;
-        border: none;
-        cursor: pointer;
+    .history--sticky{
+        /* */
     }
+
+
 
     .dragTemp__x {
         color: gray;
@@ -247,6 +245,14 @@
         opacity: 1.0 !important;
         font-size: 1.2em !important;
         border: 1px dashed white;
+    }
+.history--draggable {
+        position: absolute;
+        z-index: 20000;
+        /*       // opacity: 1 !important; */
+        background-color: rgba(0, 0, 0, 0, 0) !important;
+        border: none;
+        cursor: pointer;
     }
 
     #col1b {
@@ -345,9 +351,10 @@
         vertical-align: top;
     }
     #buttons {
-        margin-top : 0px;
-        z-index : 8001;
-         position: fixed; /*relative;*/
+        margin-top: 0px;
+        top: 535px;
+        z-index: 8001;
+        position: fixed; /*relative;*/
     }
 
     .ml1 {
@@ -358,41 +365,44 @@
         /*  text-align: center */
     }
 
-.ml1 .letter {
-  display: inline-block;
-  line-height: 1em;
-}
+    .ml1 .letter {
+        display: inline-block;
+        line-height: 1em;
+    }
 
-.ml1 .text-wrapper {
-  position: relative;
-  display: inline-block;
-  padding-top: 0.1em;
-  padding-right: 0.05em;
-  padding-bottom: 0.15em;
-}
+    .ml1 .text-wrapper {
+        position: relative;
+        display: inline-block;
+        padding-top: 0.1em;
+        padding-right: 0.05em;
+        padding-bottom: 0.15em;
+    }
 
-.ml1 .line {
-  opacity: 0;
-  position: absolute;
-  left: 0;
-  height: 3px;
-  width: 100%;
-  background-color: #fff;
-  transform-origin: 0 0;
-}
+    .ml1 .line {
+        opacity: 0;
+        position: absolute;
+        left: 0;
+        height: 3px;
+        width: 100%;
+        background-color: #fff;
+        transform-origin: 0 0;
+    }
 
-.ml1 .line1 {
-    top: 0px; }
-.ml1 .line2 { bottom: 0; }
+    .ml1 .line1 {
+        top: 0;
+    }
 
-#afkImages > div {
-    display : none;
-}
+    .ml1 .line2 {
+        bottom: 0;
+    }
+
+    #afkImages > div {
+        display: none;
+    }
 
     #fakeMouse {
-        /* opacity : 0; */
+        opacity : 0;
         position: absolute;
-
     }
 
     .fakeMouse__button {
@@ -401,11 +411,24 @@
         size: 10px;
         border: 0;
         position: absolute;
+        left: 0;
+        top: 0;
     }
 
-    .fakeMouse__button--flight{
-        background-color: rgba(0,0,0,0);
-        transform : rotate(45deg);
+    .followMouse {
+        size : 10px;
+        border : 0;
+        position : absolute;
+
+    }
+
+    .followMouse--idle{
+        display: none
+    }
+
+    .followMouse--active{
+        background-color: rgba(255,255,255,.1);
+        border-radius: 5px;
     }
 
     .pageHelp {
@@ -415,6 +438,18 @@
     .gallery {
         height: 100%;
         width: 100%;
+    }
+
+    #idleAnimation {
+        height: 10px;
+        position: absolute;
+       /* display : none; */
+    }
+
+    .idleAnimation__button {
+        background-color: rgba(0, 0, 0, 0);
+        border : 0;
+        transform: rotate(45deg);
     }
 
     .motion-path {
@@ -439,10 +474,13 @@
         <span id="pin" class="target__aniLetter target__aniLetter--pin">📌</span>
     </div>
 </div>
+<div id="fakeMouse" class="fakeMouse">
+    <button class="fakeMouse__button"><span class="fakeMouse__span">🚀</span></button>
+</div>
 <div id="chromaKey">
     <div class="motion-path">
-        <div id="fakeMouse" class="fakeMouse">
-            <button class="fakeMouse__button"><span class="fakeMouse__span">🚀</span></button>
+        <div id="idleAnimation" class="idleAnimation">
+            <button class="idleAnimation__button"><span class="idleAnimation__span">🚀</span></button>
         </div>
         <svg width="800" height="1200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1200">
             <path id="mousePath" stroke-width="1" fill="none"
@@ -512,8 +550,11 @@
         </td>
         <td class="together__col2">
             <div id="emojipreview" class="together">
-                <button class="emoji_preview-emoji big" title="Preview of on-deck emoji">😎</button>
-                <button class="sticky big" title="Activate on-deck with a pin">📌*</button><br/>
+                <button class="emoji_preview__emoji big" title="Preview of on-deck emoji">😎</button>
+                <button class="sticky big emojipreview__pin" title="Activate on-deck with a pin">📌*</button>
+                <br/>
+                <button class="sticky big emojipreview__follow" title="Use as mouse follower">🚀</button>
+                <br/>
             </div>
 
 

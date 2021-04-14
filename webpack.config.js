@@ -71,7 +71,7 @@ if (currentTask == 'dev') {
         },
         contentBase     : path.join(__dirname, 'app'),
         hot             : true,
-        host            : '10.0.0.6',
+        host            : '10.0.0.2',
         disableHostCheck: true,
         // host :  '0.0.0.0',
         port            : 3000

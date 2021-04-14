@@ -1,13 +1,16 @@
 const J$ = require("jquery").noConflict();
 import {EmojiButton} from '@joeattardi/emoji-button';
 import Favorites from "./modules/Favorites";
-import Animation from './modules/Animation';
+import A from './modules/Animation';
 import Init from './modules/Init.js';
 import Draw from 'draw-on-canvas';
 import Log from './modules/Log.js';
-import FollowMouse from './modules/FollowMouse.js';
+import MouseActions from './modules/FollowMouse.js';
 
+const Animation = A.Animation;
+const IdlePath = A.RocketPath;
 const log = new Log(true);
+var myMouseActions;
 
 Array.prototype.unique = function (property = false, firstWins = true) {
   var a = this.concat();
@@ -60,96 +63,102 @@ const myFavs = new Favorites();
 
 
 J$(document).ready(function ($) {
-    console.log('ready');
+
+  const RP = new IdlePath(
+    document.querySelector('#idleAnimation'),
+    document.querySelector('#mousePath')
+  );
 
 
-    const stickyButton = $('#stickybutton');
-    const $picker = $('#picker');
-    const picker = new EmojiButton({
-      rootElement    : $picker[0],
-      theme          : 'dark',
-      rows           : 2,
-      emojisPerRow   : 11,
-      showRecents    : true,
-      initialCategory: 'recents',
-      showVariants   : true,
-      /* position: {
-         top: '100',
-         left: '0'
-       },*/
-      position       : 'bottom-start',
-      emojiSize      : '60px',
-      showPreview    : false,
-      recentsCount   : Init.historySize,
-      zIndex         : 10000,
-      plugins        : [Init.stickyHandler, Init.closeHandler], //
-      stickyHandler  : {
-        element: stickyButton,
-        event  : 'click'
-      }, //
-      kwijibo        : 'did my property get set?'
-
-    });
+  Window.RP = RP;
+  console.log('ready');
 
 
-    const trigger = document.querySelector('.trigger');
-    var $highlight = [];
-    const $target = $('#emoji');
-    const $pin = $('#pin');
-    const myAnimation = new Animation($target, $pin);
+  const stickyButton = $('#stickybutton');
+  const $picker = $('#picker');
+  const picker = new EmojiButton({
+    rootElement    : $picker[0],
+    theme          : 'dark',
+    rows           : 2,
+    emojisPerRow   : 11,
+    showRecents    : true,
+    initialCategory: 'recents',
+    showVariants   : true,
+    /* position: {
+       top: '100',
+       left: '0'
+     },*/
+    position       : 'bottom-start',
+    emojiSize      : '60px',
+    showPreview    : false,
+    recentsCount   : Init.historySize,
+    zIndex         : 10000,
+    plugins        : [Init.stickyHandler, Init.closeHandler], //
+    stickyHandler  : {
+      element: stickyButton,
+      event  : 'click'
+    }, //
+    kwijibo        : 'did my property get set?'
 
+  });
 
-    const emojiWrapperAnimation = new Animation($('.targetWrapper__emoji'));
-    const dragEmoji = new FollowMouse($, '.targetWrapper__emoji', '#MessageWrapper');
+  const trigger = document.querySelector('.trigger');
+  var $highlight = [];
+  const $target = $('#emoji');
+  const $pin = $('#pin');
+  const myAnimation = new Animation($target, $pin);
+
+  const emojiWrapperAnimation = new Animation($('.targetWrapper__emoji'));
+  /*  const dragEmoji = new FollowMouse($, '.targetWrapper__emoji', '#MessageWrapper');
     dragEmoji.makeDraggable({
       left: emojiWrapperAnimation.$el.width() / 2,
       top : emojiWrapperAnimation.$el.width() / 2
-    });
+    }); */
 
 //$target.fadeOut(40000);//default
-    //const $outer = $('.outer');
-    const $afk = $('.AFK');
-    const $emojipreview = $('#emojipreview');
+  //const $outer = $('.outer');
+  const $afk = $('.AFK');
+  const $emojipreview = $('#emojipreview');
 
-    const $history = $('#history');
-    const $moveHistory = $('#moveHistory');
-    const $hideButton = $('#hideEmoji');
-    const $drawing = $('#drawing').hide();
-    const $drawingTarget = $('#drawingPane');
-    const $drawButton = $('button.draw');
-    const $drawButton2 = $('button.nogrid');
-    const $Grid = $('#Grid');
-    $Grid.find('.grid').css('min-height', Init.visibleHeight + 'px');
-    const Drawing = new Draw($drawingTarget[0], window.innerWidth, Init.visibleHeight, Init.canvas);
+  const $history = $('#history');
+  const $moveHistory = $('#moveHistory');
+  const $hideButton = $('#hideEmoji');
+  const $drawing = $('#drawing').hide();
+  const $drawingTarget = $('#drawingPane');
+  const $drawButton = $('button.draw');
+  const $drawButton2 = $('button.nogrid');
+  const $Grid = $('#Grid');
+  $Grid.find('.grid').css('min-height', Init.visibleHeight + 'px');
+  const Drawing = new Draw($drawingTarget[0], window.innerWidth, Init.visibleHeight, Init.canvas);
 
-    $drawing.on('click', 'button', function () {
-      let $this = $(this);
+  $drawing.on('click', 'button', function () {
+    let $this = $(this);
 
-      if ($this.hasClass('reset')) {
-        return Drawing.reset();
-      } else if ($this.hasClass('stop')) {
-        $drawButton.click();
-        return;
-      } else if ($this.hasClass('nogrid')) {
-        $('#Grid').toggle();
-        $this.toggleClass('pressed');
-        return;
-      }
-      //change color
-      $drawing.find('.pens').removeClass('pressed');
-      $this.addClass('pressed');
-      if ($this.hasClass('redDraw')) {
-        Drawing.strokeColor = 'red';
-      } else if ($this.hasClass('orangeDraw')) {
-        Drawing.strokeColor = 'orange';
-      } else if ($this.hasClass('blueDraw')) {
-        Drawing.strokeColor = 'blue';
-      } else if ($this.hasClass('greenDraw')) {
-        Drawing.strokeColor = 'green';
-      } else if ($this.hasClass('purpleDraw')) {
-        Drawing.strokeColor = 'purple';
-      }
-    });
+    if ($this.hasClass('reset')) {
+      return Drawing.reset();
+    } else if ($this.hasClass('stop')) {
+      $drawButton.click();
+      return;
+    } else if ($this.hasClass('nogrid')) {
+      $('#Grid').toggle();
+      $this.toggleClass('pressed');
+      return;
+    }
+    //change color
+    $drawing.find('.pens').removeClass('pressed');
+    $this.addClass('pressed');
+    if ($this.hasClass('redDraw')) {
+      Drawing.strokeColor = 'red';
+    } else if ($this.hasClass('orangeDraw')) {
+      Drawing.strokeColor = 'orange';
+    } else if ($this.hasClass('blueDraw')) {
+      Drawing.strokeColor = 'blue';
+    } else if ($this.hasClass('greenDraw')) {
+      Drawing.strokeColor = 'green';
+    } else if ($this.hasClass('purpleDraw')) {
+      Drawing.strokeColor = 'purple';
+    }
+  });
 
     $('#MessageSource').on('keyup click change', 'textarea, button', function (ev) {
       let $M = $('#MessageTarget');
@@ -348,7 +357,9 @@ J$(document).ready(function ($) {
     /*******************/
     picker.on('emoji', selection => {
       // reset animation on every new emoji
-      return injectSelection(selection);
+       injectSelection(selection);
+      $('#'+selection.emoji).dblclick();
+
     });
 
     var switchEmoji = function (direction, wrap = true) {
@@ -417,8 +428,8 @@ J$(document).ready(function ($) {
           /* reprioritize */
           //change the origin location to be the first entry in the dock
           $origin.prependTo('#letters');
-
-          let adjustment = $this.width() * 3; //same as animation scale
+          let adjustment = $this.width() * 2; //same as animation scale
+        //  let adjustment = $this.width() * 3; //same as animation scale
 
           //return it back to history via doubleclick on new draggable
           $temp.one('dblclick', function (ev) {
@@ -480,11 +491,14 @@ J$(document).ready(function ($) {
                   left: $this[0].getBoundingClientRect().left
                 },
                 randomClass: randomClass,  //cache its source location
-                Draggable  : (new FollowMouse($, $temp, $temp))
+                Draggable  : (new MouseActions($temp[0]))
                   .makeDraggable({
                     top      : adjustment,
                     left     : adjustment,
                     mousedown: function () {
+                      /* move it to the end of the gallery so that it
+                      has highest z-index
+                      */
                       $temp.appendTo('#gallery');
                     }
                   })
@@ -535,6 +549,9 @@ J$(document).ready(function ($) {
               delay   : 1000,
               easing  : 'linear',
               complete: function () {
+                if( $temp.hasClass('history--sticky')){
+                  return;
+                }
                 if ($temp.hasClass('history--draggable')) {
                     $temp.trigger('dblclick');
                 }
@@ -635,96 +652,137 @@ J$(document).ready(function ($) {
       return false;
     });
 
-    /*
-    *  whatever most recent emoji from the dock is in the gallery is what the emojipreview works on
-    *
-     */
-    $emojipreview.on('click', 'button', function () {
+  /*
+  *  whatever most recent emoji from the dock is in the gallery is what the emojipreview works on
+  *
+   */
+  $('.emojipreview__pin').on('click', function () {
+    //last item in the gallery is the most recent [because of implied z-index]
+    $('#gallery').find('.dragTemp:last').each(function () {
+      let $temp = $(this);
+      let fave = myFavs.recallFave($temp.find('button').text());
+      let randomClass = $temp.data('draggable').randomClass;
 
-      //last item in the gallery is the most recent [because of implied z-index]
-      $('#gallery').find('.dragTemp:last').each(function () {
-        let $temp = $(this);
-        let fave = myFavs.recallFave($temp.find('button').text());
-        let randomClass = $temp.data('draggable').randomClass;
-        if (fave && fave.sticky) //if they are sticky then remove that and start the fade
-        {
-          $temp.find('.dragTemp__pin').hide();
+      if (fave && fave.sticky)
+        //if they are already sticky then remove that and start the fade
+      {
+        //hide the pin
+        $temp.find('.dragTemp__pin').hide();
 
-          fave.sticky = false;
-          myAnimation.doTimeline(randomClass + 'Fade', 'reverse');
+        //remove sticky
+        fave.sticky = false;
+        //the fade
+        myAnimation.doTimeline(randomClass + 'Fade', 'reverse');
 
-        } else //else //reverse the fade
-        {
-          myAnimation.doTimeline(randomClass + 'Fade', 'reverse');
-          //make them sticky
-          fave.sticky = true;
-          $temp.find('.dragTemp__pin').show();
-        }
-
-      });
-      return;
-
-      injectSelection({
-        emoji: $emojipreview.find('.emoji_preview-emoji').text()
-      })
-      if ($(this).hasClass('sticky')) {
-        stickyButton.click();
+        $temp.removeClass('history--sticky');
+        myAnimation.doTimeline(randomClass + 'Fade', 'restart');
+      } else
+        //else they should now become sticky
+      {
+        //start the fade
+        $temp.addClass('history--sticky');
+        myAnimation.doTimeline(randomClass + 'Fade', 'reverse');
+        //make them sticky
+        fave.sticky = true;
+        //show the pin
+        $temp.find('.dragTemp__pin').show();
       }
+
     });
+    return;
 
-    $moveHistory.on('click', function () {
-      //$('.history').hide();
-      // if ($history.parent('#col1a').length > 0) {
+  }); //preview pin
 
-      //send all the floating big history back home
-      $('.history--draggable')
-        .removeClass('history--hidden')
-      $('span.history--draggable').trigger('dblclick');
+  $('.emoji_preview__emoji').on('click', function () {
+    injectSelection({
+      emoji: $emojipreview.find('.emoji_preview-emoji').text()
+    })
+    if ($(this).hasClass('sticky')) {
+      stickyButton.click();
+    }
+  });
 
-      // $history.appendTo($('#letters'));
-      /* if all the emojis are docked then splash them on the screen */
-      if ($('#gallery').find('span').length === 0) {
 
-        //create an async task
-        let i = 0
-        $history.find('button').each(function () {
-          let $this = $(this)
-          setTimeout(function () {
-            $this.dblclick();
-            i = i + (Math.random()*600)
-          }, i);
-          return true;
-        });
-      } else if (myAnimation.timeline('history')) {
-        myAnimation.doTimeline('history', 'restart')
-      } else {
-        myAnimation.timeline('history', {loop: 1})
-          .addToTimeline('history', {
-            targets   : '#history .history',
-            scale     : [0.3, 1],
-            opacity   : [0, 1],
-            translateZ: 0,
-            easing    : "easeOutExpo",
-            duration  : 600,
-            delay     : (el, i) => 70 * (i + 1)
-          })
-          .addToTimeline('history', {
-            targets : '.text-wrapper .line',
-            scaleX  : [0, 1],
-            opacity : [0.5, 1],
-            easing  : "easeOutExpo",
-            duration: 700,
-            offset  : '-=700',
-            delay   : (el, i, l) => 80 * (l - i)
-          })
-          .addToTimeline('history', {
-            targets : '.text-wrapper .line',
-            opacity : 0,
-            duration: 1000,
-            easing  : "easeOutExpo",
-            delay   : 1000
-          });
+  $('.emojipreview__follow').on('click', function (e) {
+    let emojisource = $('#gallery').find('.dragTemp:last');
+    if (emojisource.length === 0) {
+      emojisource = $('.highlight')[0];
+    } else {
+      emojisource = emojisource.find('button')[0];
+    }
+
+    //make the idle animation use a new emoji text content
+    document.querySelector('.idleAnimation__span').textContent = emojisource.textContent;
+
+    myMouseActions = new MouseActions(emojisource, {}, function (e) {
+        RP.resume();
+        RP.getTarget().style.display = '';
+      },
+      function (mouse) {
+        RP.getTarget().style.display = 'none';
+        RP.animation.pause();
+        let el = myMouseActions.container();
+        el.style.left = mouse.offsetX - 20 + 'px';
+        el.style.top = mouse.offsetY + 'px';
       }
+    );
+    myMouseActions.makeFollow();
+
+  });
+
+  $moveHistory.on('click', function () {
+    //$('.history').hide();
+    // if ($history.parent('#col1a').length > 0) {
+
+    //send all the floating big history back home
+    $('.history--draggable')
+      .removeClass('history--hidden')
+    $('span.history--draggable').trigger('dblclick');
+
+    // $history.appendTo($('#letters'));
+    /* if all the emojis are docked then splash them on the screen */
+    if ($('#gallery').find('span').length === 0) {
+
+      //create an async task
+      let i = 0
+      $history.find('button').each(function () {
+        let $this = $(this)
+        setTimeout(function () {
+          $this.dblclick();
+          i = i + (Math.random() * 600)
+        }, i);
+        return true;
+      });
+    } else if (myAnimation.timeline('history')) {
+      myAnimation.doTimeline('history', 'restart')
+    } else {
+      myAnimation.timeline('history', {loop: 1})
+        .addToTimeline('history', {
+          targets   : '#history .history',
+          scale     : [0.3, 1],
+          opacity   : [0, 1],
+          translateZ: 0,
+          easing    : "easeOutExpo",
+          duration  : 600,
+          delay     : (el, i) => 70 * (i + 1)
+        })
+        .addToTimeline('history', {
+          targets : '.text-wrapper .line',
+          scaleX  : [0, 1],
+          opacity : [0.5, 1],
+          easing  : "easeOutExpo",
+          duration: 700,
+          offset  : '-=700',
+          delay   : (el, i, l) => 80 * (l - i)
+        })
+        .addToTimeline('history', {
+          targets : '.text-wrapper .line',
+          opacity : 0,
+          duration: 1000,
+          easing  : "easeOutExpo",
+          delay  : 1000
+        });
+    }
       /*  }else{
             $history.appendTo($('#col1a'));
           myAnimation.anime.timeline({loop : 1})
@@ -803,22 +861,58 @@ J$(document).ready(function ($) {
       return false;
     });
 
-    $('.messageSource__changeW').click(); //skinny by default
-    $drawButton.click(); // default
-    //  $moveHistory.click();
-    $history.find('.highlight').click();
+  $('.messageSource__changeW').click(); //skinny by default
+  $drawButton.click(); // default
+//  $moveHistory.click();
+  $history.find('.highlight').click();
 
 
-    //mouse animation when idle
-    try {
-      const followMouse = new FollowMouse(J$, '#fakeMouse>button');
-      followMouse.initImpatientAction(myAnimation.anime, '#mousePath', '#fakeMouse');
-      followMouse.startTracking();
-    } catch (e) {
-      console.log(e);
-    }
+//mouse animation when idle
+  try {
+    //   const followMouse = new FollowMouse($('.fakeMouse__button'));
+    //  followMouse.initImpatientAction(myAnimation.anime, '#mousePath', '#fakeMouse');
+    //  followMouse.startTracking();
+    Window.MA = MouseActions;
+    Window.anime = myAnimation.anime;
+
+    RP.resume();
+    let MM = {};
+    myMouseActions = new MouseActions(
+      document.querySelector('.emojipreview__follow'), {}, function (e) {
+        //idlemouse
+        RP.resume();
+        RP.getTarget().style.display = '';
+      },
+      function (mouse) {
+        //moving mouse
+        RP.animation.pause();
+        RP.getTarget().style.display = 'none';
+        myMouseActions.container().style.top = mouse.pageY + 'px';
+        myMouseActions.container().style.left = (mouse.pageX - 20) + 'px';
+
+        /*  mouse.myActiveAnimation = function () {
+            return myAnimation.anime({
+              targets : myMouseActions.container(),
+              left    : mouse.offsetX-20,
+              top     : mouse.offsetY,
+              delay : 100
+            })
+          } */
+      }
+    );
+    myMouseActions.makeFollow();
+  } catch (e) {
+    console.log(e);
   }
-)
+
+//  try{
+//   const mouseFollower = new FollowMouse(
+//    document.querySelector('.fakeMouse__button')
+
+//   );
+//  }
+
+})
 ;
 
 if (module.hot) {

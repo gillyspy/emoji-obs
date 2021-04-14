@@ -159,13 +159,87 @@ class Animation {
       this.animationCache[name].reverse();
       this.animationCache[name].play();
     } else //restart
-      if (event === 'restart') {
-        this.animationCache[name].restart();
-      }
+    if (event === 'restart') {
+      this.animationCache[name].restart();
+    }
     return this;
   }
 }
-export default Animation
+
+const _ = {
+  scale  : 1,
+  opacity: 1,
+  began  : false
+};
+var RP; //singleton
+
+class RocketPath {
+  constructor(target, pathNode) {
+    this.path = anime.path(pathNode);
+    this.target = target;
+    if (!RP) {
+      RP = this;
+      this.initAnimation();
+    } else {
+      this.animation = RP.animation;
+    }
+
+  }
+
+  getTarget() {
+    return RP.target;
+  }
+
+  resume() {
+    //RP.initAnimation();
+    RP.animation.play();
+  }
+
+  initAnimation(forceNew) {
+    if (RP.animation) {
+    //  delete RP.animation;
+    }
+    RP.animation = anime({
+      targets   : RP.target, //'#idleAnimation',
+      translateX: RP.path('x'),
+      translateY: RP.path('y'),
+      scale     : function () {
+        let range = [_.scale];
+        _.scale = (Math.random() * 8 + 1.5);
+        range.push(_.scale);
+        return range;
+      },
+      rotate    : RP.path('angle'),
+      //rotateX : 90,
+      easing    : 'linear',
+      opacity   : function () {
+        let range = [_.opacity];
+        _.opacity = (Math.max(Math.random(), .5));
+        range.push(_.opacity);
+        return range;
+      },
+      duration  : (Math.random() * 20000 + 2000),
+    //  autoplay  : false,
+      begin     : function () {
+        _.began = true;
+        _.completed = false;
+      },
+      complete  : function () {
+        _.completed = true;
+        _.began = false;
+        //restart this animation with new random values
+        RP.initAnimation(true);
+     //   RP.animation.play();
+      }
+    })
+  } // initAnimation
+}
+
+
+export default {
+  Animation : Animation,
+  RocketPath: RocketPath
+}
 
 /*
 
