@@ -165,7 +165,7 @@ J$(document).ready(function ($) {
       let $reset = $(this);
       if (ev.type === 'keyup') {
         $M.text($('#Message').val());
-      } else if ($reset.attr('type') === 'reset' || $M.val() ==='') {
+      } else if ($reset.attr('type') === 'reset' || $M.text() ==='') {
         $M.text('');
         $('#Message').text('');
         $M.css('font-size', ''); //celar font size
@@ -800,6 +800,7 @@ J$(document).ready(function ($) {
   //button to change width of the message
     $('.messageSource__changeW').on('click', function () {
       let $ms = $('.messageTarget__pre');
+      console.log('hi');
       let classModifiers = [
         'messageTarget__pre--narrow',
         'messageTarget__pre--full',
