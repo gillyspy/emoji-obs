@@ -214,7 +214,6 @@ J$(document).ready(function ($) {
           myAnimation.restartAnimation();
         }
       }
-
     });
 
     $afk.on('click', function (ev) {
@@ -798,17 +797,41 @@ J$(document).ready(function ($) {
         }*/
     }); //moveHistory
 
+  //button to change width of the message
     $('.messageSource__changeW').on('click', function () {
       let $ms = $('.messageTarget__pre');
+      let classModifiers = [
+        'messageTarget__pre--narrow',
+        'messageTarget__pre--full',
+        'messageTarget__pre--left',
+        'messageTarget__pre--right'
+      ];
+      //determine which index currently have.
+      for(var i =0; i<classModifiers.length; i++){
+        let j=i;
+        if($ms.hasClass( classModifiers[i] ) ){
+          //remove the class
+          $ms.removeClass( classModifiers[i] );
+          j=i+1;
+          if(j === classModifiers.length){
+            j=0;
+          }
+          //go to the next class
+          $ms.addClass(classModifiers[j]);
+          break;
+        }
+        continue;
+      }
+      /*
       if ($ms.css('margin-left')[0] === '0') {
         $ms.css('margin-left', '20%');
         $ms.css('width', '60%');
         $('.messageSource__changeW').addClass('pressed');
-      } else {
+      } else if ($ms.css('margin-left')) {
         $ms.css('margin-left', 0);
         $ms.css('width', '100%');
         $('.messageSource__changeW').removeClass('pressed');
-      }
+      } */
       return false;
     });
 
@@ -860,6 +883,7 @@ J$(document).ready(function ($) {
       }
       return false;
     });
+
 
   $('.messageSource__changeW').click(); //skinny by default
   $drawButton.click(); // default
