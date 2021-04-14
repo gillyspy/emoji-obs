@@ -474,14 +474,18 @@
 
     .motion-path {
         /* margin: 20% 20%;*/
-        width: 1000px;
+         width: 100%;
+        /*margin-left:-100px;*/
         height: 600px;
         text-align: center;
     }
 
     .motion-path svg {
-        opacity: 0;
+        opacity: 1;
         z-index: 0;
+    }
+    #mousePath {
+        fill : rgba( 0,0,0,0)
     }
 </style>
 
@@ -502,11 +506,10 @@
         <div id="idleAnimation" class="idleAnimation">
             <button class="idleAnimation__button"><span class="idleAnimation__span">🚀</span></button>
         </div>
-        <svg width="800" height="1200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1200">
-            <path id="mousePath" stroke-width="1" fill="none"
-                  d="M 104 249 C 104 138.5 157.7 49 224 49 C 290.3 49 344 138.5 344 249 C 344 359.5 397.7 429 464 429 C 530.3 429 560 329 560 249 C 560 169 524 89 464 89 C 404 89 368 169 368 249 C 368 329 397.7 429 464 429 C 542 434 584 359 584 249 C 584 138.5 637.7 49 704 49 C 770.3 49 824 138.5 824 249 C 824 359.5 770.3 449 704 449 L 224 449 C 157.7 449 104 359.5 104 249 Z">
-            </path>
-        </svg>
+        <svg width="1000px" height="600px" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <path id="mousePath" d="M 9 299 C 9 138.2 81.6 8 171.3 8 C 261 8 333.7 138.2 333.7 299 C 333.7 459.8 406.3 560.9 496 560.9 C 585.7 560.9 625.9 415.4 625.9 299 C 625.9 182.6 577.2 66.2 496 66.2 C 414.8 66.2 366.1 182.6 366.1 299 C 366.1 415.4 406.3 560.9 496 560.9 C 601.5 568.2 658.3 459 658.3 299 C 658.3 138.2 731 8 820.7 8 C 910.4 8 983 138.2 983 299 C 983 459.8 910.4 590 820.7 590 L 171.3 590 C 81.6 590 9 459.8 9 299 Z" />
+</svg>
+
     </div>
 </div>
 <div id="afkImages">
