@@ -6,7 +6,7 @@ class ConfigViaCSS {
   }
 
   /*
-  {RocketPath: 20000
+  {RocketPath: 20000}
    */
   getSheet() {
     return document.styleSheets[this.sheetNum];
