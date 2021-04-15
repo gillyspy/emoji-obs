@@ -1,23 +1,27 @@
 const Init = {
-    init         : ['💩', '🔇', '🏳️', '👍🏻', '🔥', '❌', '👂🏻', '🧠', '🦈', '☁️', '⛈️', '🌮', '🛠️',
-      '🧲', '📅', '💤', '⁉️', '‍️⚠️', '🔫',
-      '👋🏻', '💡', '✌🏻'],
-    stickyInit   : {
-      "🔇" : true,
-      '💤' : true,
-      '✌🏻': true
-    },
-    historySize : 50,
-    canvas       : {
-      backgroundColor: "rgba(85,0,255,0)", //"#5500ff",
-      strokeColor    : "orange",
-      strokeWeight   : 10
-    },
-    visibleHeight: 575,
-    closeHandler : {
-      render: function (picker) {
-        const button = document.createElement('button');
-        button.setAttribute('style', "border: 1px solid black; border-radius: 0px; width:100%; align:right");
+  init             : ['💩', '🔇', '🏳️', '👍🏻', '🔥', '❌', '👂🏻', '🧠', '🦈', '☁️', '⛈️', '🌮', '🛠️',
+    '🧲', '📅', '💤', '⁉️', '‍️⚠️', '🔫',
+    '👋🏻', '💡', '✌🏻'],
+  stickyInit       : {
+    "🔇" : true,
+    '💤' : true,
+    '✌🏻': true
+  },
+  historySize      : 50,
+  rocketpathspeedoffset: 2000,
+  defaultidleemoji : '🚀',
+  idletimeout : 3000,
+  neverRotate : false,
+  canvas           : {
+    backgroundColor: "rgba(85,0,255,0)", //"#5500ff",
+    strokeColor    : "orange",
+    strokeWeight   : 10
+  },
+  visibleHeight    : 575,
+  closeHandler     : {
+    render: function (picker) {
+      const button = document.createElement('button');
+      button.setAttribute('style', "border: 1px solid black; border-radius: 0px; width:100%; align:right");
         button.innerHTML = '✖';
 
         button.addEventListener('click', () => {

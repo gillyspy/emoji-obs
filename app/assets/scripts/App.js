@@ -6,67 +6,29 @@ import Init from './modules/Init.js';
 import Draw from 'draw-on-canvas';
 import Log from './modules/Log.js';
 import MouseActions from './modules/FollowMouse.js';
-
+import ConfigViaCSS from './modules/ConfigViaCSS.js';
+require("./modules/ArrayUpdates.js");
+const cssConfig = new ConfigViaCSS(1); //1 for OBS
 const Animation = A.Animation;
 const IdlePath = A.RocketPath;
 const log = new Log(true);
 var myMouseActions;
 
-Array.prototype.unique = function (property = false, firstWins = true) {
-  var a = this.concat();
-  if (!!property) {
-    if (firstWins) {
 
-
-      for (var i = 0; i < a.length; ++i) {
-        a[i].position = i;
-        for (var j = i + 1; j < a.length; ++j) {
-          if (a[i][property] === a[j][property])
-            a.splice(j--, 1) //: a.splice(--j, 1))
-        }
-      }
-    } else {
-      for (var i = a.length - 1; i >= 0; --i) {
-        a[i].position = i;
-        for (var j = i - 1; j >= 0; --j) {
-          if (a[i][property] === a[j][property])
-            a.splice(j--, 1);
-        }
-      }
-    }
-  } else {
-    if (firstWins) {
-      for (var i = 0; i < a.length; ++i) {
-        for (var j = i + 1; j < a.length; ++j) {
-          if (a[i] === a[j])
-            a.splice(j--, 1);
-        }
-      }
-    } else {
-      for (var i = a.length - 1; i >= 0; --i) {
-        for (var j = i - 1; j >= 0; --j) {
-          if (a[i] === a[j])
-            a.splice(j--, 1);
-        }
-      }
-    }
-  }
-  return a;
-} // unique
-
-Array.prototype.move = function (from, to) {
-  this.splice(to, 0, this.splice(from, 1)[0]);
-};
 
 
 const myFavs = new Favorites();
 
-
 J$(document).ready(function ($) {
+  const Config = Object.assign({},Init, cssConfig.getConfig());
 
   const RP = new IdlePath(
     document.querySelector('#idleAnimation'),
-    document.querySelector('#mousePath')
+    document.querySelector('#mousePath'),
+    {
+      doRotate : Config.idlerotation,
+      adjustment :+(Config.rocketpathspeedoffset)
+    }
   );
 
 
@@ -702,32 +664,63 @@ J$(document).ready(function ($) {
   });
 
 
-  $('.emojipreview__follow').on('click', function (e) {
+//when this button is toggled then the idle path animation can happen
+  const $mouseFollowButton = $('.emojipreview__follow');
+  $mouseFollowButton.data('pressed', $mouseFollowButton.hasClass('pressed') );
+  $mouseFollowButton.on('click', function (e) {
+    let becomePressed = !$mouseFollowButton.data('pressed')
     let emojisource = $('#gallery').find('.dragTemp:last');
-    if (emojisource.length === 0) {
-      emojisource = $('.highlight')[0];
-    } else {
-      emojisource = emojisource.find('button')[0];
+    try {
+      if (emojisource.length === 0) {
+        emojisource = $('.highlight')[0];
+      } else {
+        emojisource = emojisource.find('button')[0];
+      }
+      //make the idle animation use a new emoji text content
+      document.querySelector('.idleAnimation__span').textContent = emojisource.textContent;
+
+      //button appears pressed
+      if (becomePressed) {
+        $mouseFollowButton.addClass('pressed');
+        myMouseActions.forceIdle();
+        //update mouse follow to match ?
+        //myMouseActions.setContent(emojisource);
+
+      } else {
+        $mouseFollowButton.removeClass('pressed');
+      }
+
+      //update data after successes above
+      $mouseFollowButton.data('pressed', becomePressed);
+    } catch (e) {
+      console.log('error in mouse animation toggle')
     }
-
-    //make the idle animation use a new emoji text content
-    document.querySelector('.idleAnimation__span').textContent = emojisource.textContent;
-
-    myMouseActions = new MouseActions(emojisource, {}, function (e) {
+  });
+  myMouseActions = new MouseActions(
+    Config.defaultidleemoji, //default
+    {
+      startIdle : true,
+      idleMax : +(Config.idletimeout)
+    },
+    //idle animation
+    function (e) {
+      if // if the user desires animation
+      ($mouseFollowButton.data('pressed')) {
         RP.resume();
         RP.getTarget().style.display = '';
-      },
-      function (mouse) {
-        RP.getTarget().style.display = 'none';
-        RP.animation.pause();
-        let el = myMouseActions.container();
-        el.style.left = mouse.offsetX - 20 + 'px';
-        el.style.top = mouse.offsetY + 'px';
       }
-    );
-    myMouseActions.makeFollow();
+    },
+    //action when user is moving mouse
+    function (mouse) {
+      RP.getTarget().style.display = 'none';
+      RP.animation.pause();
+      let el = myMouseActions.container();
+      el.style.left = (mouse.pageX - 20) + 'px';
+      el.style.top = mouse.pageY + 'px';
+    }
+  );
+  myMouseActions.makeFollow();
 
-  });
 
   $moveHistory.on('click', function () {
     //$('.history').hide();
@@ -805,7 +798,8 @@ J$(document).ready(function ($) {
         'messageTarget__pre--narrow',
         'messageTarget__pre--full',
         'messageTarget__pre--left',
-        'messageTarget__pre--right'
+        'messageTarget__pre--right',
+        'messageTarget__pre--off'
       ];
       //determine which index currently have.
       for(var i =0; i<classModifiers.length; i++){
@@ -884,51 +878,21 @@ J$(document).ready(function ($) {
       }
       return false;
     });
+/**************** CUSTOM PATH ***************/
 
 
-  $('.messageSource__changeW').click(); //skinny by default
+
+/**************** END CUSTOM PATH ***************/
+
+
+
   $drawButton.click(); // default
 //  $moveHistory.click();
   $history.find('.highlight').click();
 
-
-//mouse animation when idle
-  try {
-    //   const followMouse = new FollowMouse($('.fakeMouse__button'));
-    //  followMouse.initImpatientAction(myAnimation.anime, '#mousePath', '#fakeMouse');
-    //  followMouse.startTracking();
-    Window.MA = MouseActions;
-    Window.anime = myAnimation.anime;
-
-    RP.resume();
-    let MM = {};
-    myMouseActions = new MouseActions(
-      document.querySelector('.emojipreview__follow'), {}, function (e) {
-        //idlemouse
-        RP.resume();
-        RP.getTarget().style.display = '';
-      },
-      function (mouse) {
-        //moving mouse
-        RP.animation.pause();
-        RP.getTarget().style.display = 'none';
-        myMouseActions.container().style.top = mouse.pageY + 'px';
-        myMouseActions.container().style.left = (mouse.pageX - 20) + 'px';
-
-        /*  mouse.myActiveAnimation = function () {
-            return myAnimation.anime({
-              targets : myMouseActions.container(),
-              left    : mouse.offsetX-20,
-              top     : mouse.offsetY,
-              delay : 100
-            })
-          } */
-      }
-    );
-    myMouseActions.makeFollow();
-  } catch (e) {
-    console.log(e);
-  }
+//initiate idle animation
+  //$mouseFollowButton.click();
+  //RP.resume();
 
 //  try{
 //   const mouseFollower = new FollowMouse(

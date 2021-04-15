@@ -17,50 +17,11 @@ const m = {
     * - whenActiveCB
     *
      */
-    _.context.addEventListener('mousemove', (ev) => {
-      let wasIdle = _.isIdle;
-      _.isIdle = false;
-      _.countDown = this.idleMax;
-      //if transitioning to non-idle do the callback
-      if (wasIdle && !_.isIdle) {
-        //remove any artifacts of being idle
-        _.container.classList.remove(_.options.idleClass);
 
-        //make it active
-        _.container.classList.add(_.options.activeClass);
+    _.context.addEventListener('mousemove', _.mousemoveCB);
 
-
-      }
-      m.whenActiveCB(ev);
-      //keep the moust updated
-      _.mouse = ev;
-    });
-
-    setInterval(function () {
-        let wasIdle = _.isIdle;
-        //when the current countdown had already run out earlier
-        if (_.countDown <= 0 && _.isIdle) {
-          //do nothing but keep checking
-          return;
-        } else //when the countdown has just run out
-        if (_.countDown <= 0 && !_.isIdle) {
-          //stop counting
-          _.isIdle = true;
-
-          //do something
-          if (!wasIdle && _.isIdle) {
-            _.container.classList.remove(_.options.activeClass);
-            _.container.classList.add(_.options.idleClass);
-            m.whenIdleCB(_.node);
-          }
-
-        } else //not Idle yet
-        {
-          //keep counting down
-          _.countDown -= _.tick;
-        }
-        //  console.log('tick')
-      }, //tick the clock
+    setInterval(
+      _.intervalCB, //tick the clock
       _.tick); //interval
   } //init()
 };
@@ -70,15 +31,62 @@ const _ = {
   followDefaults: {
     context     : document.body,
     event       : 'mousemove',
-    idleMax     : 90000,
+    idleMax     : 10000, //5minutes is default
     idleClass   : 'followMouse--idle',
     activeClass : 'followMouse--active',
     neutralClass: 'followMouse',
+    startIdle   : false,
     idleTodo    : function () {
       return;
     }
   },
-  container     : m.createContainer()
+  container     : m.createContainer(),
+  mousemoveCB   : (ev) => {
+    let wasIdle = _.isIdle;
+    _.isIdle = false;
+    _.countDown = FM.idleMax;
+
+
+    //if transitioning to non-idle do the callback
+    if (wasIdle && !_.isIdle) {
+      //remove any artifacts of being idle
+      _.container.classList.remove(_.options.idleClass);
+
+      //make it active
+      _.container.classList.add(_.options.activeClass);
+
+
+    }
+    m.whenActiveCB(ev);
+    //keep the moust updated
+    _.mouse = ev;
+  },
+  intervalCB    : function () {
+    let wasIdle = _.isIdle;
+    //when the current countdown had already run out earlier
+    if (_.countDown <= 0 && _.isIdle) {
+      //do nothing but keep checking
+      return;
+    } else //when the countdown has just run out
+    if (_.countDown <= 0 && !_.isIdle) {
+      //stop counting
+      _.isIdle = true;
+
+      //do something
+      if (!wasIdle && _.isIdle) {
+        _.container.classList.remove(_.options.activeClass);
+        _.container.classList.add(_.options.idleClass);
+        m.whenIdleCB(_.node);
+      }
+
+    } else //not Idle yet
+    {
+      //keep counting down
+      _.countDown -= _.tick;
+    }
+    //  console.log('tick')
+  }
+
 };
 
 /*
@@ -96,10 +104,33 @@ class MouseActions {
     FM = this;
     _.node = node;
 
-
-    m.whenIdleCB = whenIdleCB && whenIdleCB.bind(this);
-    m.whenActiveCB = whenActiveCB && whenActiveCB.bind(this);
+    this.whenIdle(whenIdleCB);
+    this.whenActive(whenActiveCB);
     this.followMouse(opts);
+  }
+
+  //allows changing the idle callback
+  whenIdle(cb) {
+    m.whenIdleCB = cb.bind(this);
+  }
+
+  //allows changing the idle callback
+  whenActive(cb) {
+    m.whenActiveCB = cb.bind(this);
+  }
+
+  setContent(node) {
+    if (node instanceof HTMLElement) {
+      _.node = node;
+      _.container.textContent = _.node.textContent;
+    } else if (typeof node === 'string') {
+      _.node = {
+        textContent: node,
+        type       : 'unknown'
+      };
+      _.container.textContent = node;
+    }
+    return true;
   }
 
   //make the current follower unfollow
@@ -116,9 +147,16 @@ class MouseActions {
     return _.node;
   }
 
+  forceIdle(){
+    _.countDown = 0;
+  }
+
   makeFollow() {
     //make a new follower
     m.makeFollow.apply(this);
+    if(  _.options.startIdle ) {
+      this.forceIdle();
+    }
   }
 
   container() {
@@ -151,7 +189,9 @@ class MouseActions {
     this.abandonMouse()
 
     //set contents of the container based on source node
-    _.container.textContent = _.node.textContent;
+    this.setContent(_.node);
+
+    //neutral to start
     _.container.classList.add(this.neutralClass);
 
     //insert it into the dom (in context)
@@ -220,7 +260,7 @@ class FollowMouse {
     this.outerSelector = outerSelector;
     this.$el = this.$(selector);
     this.timeout;
-    this.impatientMax = 40000;
+    this.impatientMax = 10000; //5 minutes
     this.impatientCtDown = 5000;
     this.impatientAnimation;
     this.config = {};

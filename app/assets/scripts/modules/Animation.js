@@ -167,16 +167,21 @@ class Animation {
 }
 
 const _ = {
-  scale  : 1,
-  opacity: 1,
-  began  : false
+  scale     : 1,
+  opacity   : 1,
+  began     : false,
+  adjustment: 2000,
+  doRotate  : true
 };
 var RP; //singleton
 
 class RocketPath {
-  constructor(target, pathNode) {
+  constructor(target, pathNode,opts) {
     this.path = anime.path(pathNode);
     this.target = target;
+    if(opts) {
+      Object.assign(_, opts);
+    }
     if (!RP) {
       RP = this;
       this.initAnimation();
@@ -184,6 +189,18 @@ class RocketPath {
       this.animation = RP.animation;
     }
 
+
+  }
+
+  adjustRotation(doRotate) {
+    _.doRotate = !!doRotate;
+  }
+
+  adjustSpeed(adjustment) {
+    _.adjustment = Math.max(
+      Math.min(adjustment, 2000),
+      300000
+    );
   }
 
   getTarget() {
@@ -209,7 +226,9 @@ class RocketPath {
         range.push(_.scale);
         return range;
       },
-      rotate    : RP.path('angle'),
+      rotate    : function () {
+        return _.doRotate ? RP.path('angle') : 0;
+      },
       //rotateX : 90,
       easing    : 'linear',
       opacity   : function () {
@@ -218,8 +237,8 @@ class RocketPath {
         range.push(_.opacity);
         return range;
       },
-      duration  : (Math.random() * 20000 + 2000),
-    //  autoplay  : false,
+      duration  : (Math.random() * 20000 + _.adjustment),
+      //  autoplay  : false,
       begin     : function () {
         _.began = true;
         _.completed = false;

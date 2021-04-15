@@ -3,13 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <title>home</title>
-<style>
+<style title="appRules">
+
+    rocketpathspeedoffset--20000 {}
+    defaultidleemoji--🧲 {}
+    idletimeout--300000 {}
+    neverrotate--true{}
+    idlerotation--false{}
+
     body {
         background-color: rgba(0, 0, 0, 1);
         margin: 0px auto;
         overflow: hidden;
         cursor: pointer;
     }
+
     #chromaKey {
         background-color: rgba(0, 0, 0, 0);
         /*    background-color: rgba(255,255,0,0); */
@@ -84,7 +92,7 @@
         background-color: rgba(129, 129, 129, .6);
         font-size: 90px;
         z-index: 8000;
-        margin-top : -20px;
+        margin-top: -20px;
         word-wrap: break-word;
         white-space: pre-wrap;
         /* padding: 20px; */
@@ -93,6 +101,10 @@
     .messageTarget__pre--narrow {
         margin-left: 20%;
         width: 60%;
+    }
+
+    .messageTarget__pre--off {
+        display : none
     }
 
     .messageTarget__pre--full {
@@ -574,7 +586,7 @@
                 <button class="emoji_preview__emoji big" title="Preview of on-deck emoji">😎</button>
                 <button class="sticky big emojipreview__pin" title="Activate on-deck with a pin">📌*</button>
                 <br/>
-                <button class="sticky big emojipreview__follow" title="Use as mouse follower">🚀</button>
+                <button class="sticky big emojipreview__follow pressed" title="Use as mouse follower">🐁</button>
                 <br/>
             </div>
 
@@ -604,7 +616,7 @@
 </div>
 </div>
 <div id="MessageWrapper" class="messageTarget">
-    <pre id="MessageTarget" class="messageTarget__pre messageTarget__pre--full"></pre>
+    <pre id="MessageTarget" class="messageTarget__pre messageTarget__pre--narrow"></pre>
 </div>
 <div id="Grid">
     <div class="grid">
