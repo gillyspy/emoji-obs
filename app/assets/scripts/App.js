@@ -14,26 +14,28 @@ const IdlePath = A.RocketPath;
 const log = new Log(true);
 var myMouseActions;
 
-
-
-
 const myFavs = new Favorites();
 
 J$(document).ready(function ($) {
-  const Config = Object.assign({},Init, cssConfig.getConfig());
+  try {
+    var Config = Object.assign({}, Init, cssConfig.getConfig() );
+    //$('textarea').val( JSON.stringify(Config));
+    $('textarea').val(JSON.stringify(cssConfig.getConfig()));
+  } catch (e) {
+    var Config = Object.assign({}, Init );
+  }
+
 
   const RP = new IdlePath(
     document.querySelector('#idleAnimation'),
     document.querySelector('#mousePath'),
     {
-      doRotate : Config.idlerotation,
-      adjustment :+(Config.rocketpathspeedoffset)
+      doRotate  : Config.idlerotation,
+      adjustment: +(Config.rocketpathspeedoffset)
     }
   );
   RP.setTarget(Config.defaultidleemoji)
 
-
-  Window.RP = RP;
   console.log('ready');
 
 

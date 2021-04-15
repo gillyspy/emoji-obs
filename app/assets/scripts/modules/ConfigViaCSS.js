@@ -4,7 +4,6 @@ class ConfigViaCSS {
   constructor(sheetNum) {
     this.sheetNum = sheetNum; //obs default is 3
   }
-
   /*
   {RocketPath: 20000}
    */
@@ -17,23 +16,24 @@ class ConfigViaCSS {
     let goodRules;
     for (var s in document.styleSheets) {
       var S = document.styleSheets[s];
-      if (!S.cssRules) {
+      let rulesORCSSRules = S.cssRules || S.rules;
+      if (!rulesORCSSRules) {
         continue;
       }
-      for (var t in S.cssRules) {
-        let T = S.cssRules[t];
-        console.log(T);
+
+      for (var t in rulesORCSSRules) {
+        let T = rulesORCSSRules[t];
+       // console.log(T);
         if (!T || !T.selectorText) {
           continue;
         } else {
           let U = T.selectorText
           if (/^rocketpathspeedoffset.*/.test(U)) {
+            goodRules = rulesORCSSRules;
             stopCondition = true;
           }
         }
-
-        if (stopCondition) {
-          goodRules = S.cssRules;
+        if( stopCondition ){
           break;
         }
       }
@@ -69,6 +69,7 @@ class ConfigViaCSS {
       }
     ];
     let rules = this.findOBSRules();
+
     if (rules) {
       selectorPatterns.forEach((pattern, idx, patterns) => {
         //if a match is found
