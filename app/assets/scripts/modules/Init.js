@@ -9,9 +9,10 @@ const Init = {
   },
   historySize      : 50,
   rocketpathspeedoffset: 2000,
+   defaultpointeremoji: '✌🏻',
   defaultidleemoji : '🚀',
   idletimeout : 3000,
-  neverRotate : false,
+  idlerotation : true,
   canvas           : {
     backgroundColor: "rgba(85,0,255,0)", //"#5500ff",
     strokeColor    : "orange",

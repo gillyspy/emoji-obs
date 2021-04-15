@@ -62,6 +62,10 @@ class ConfigViaCSS {
       {
         rgx: /^(idlerotation).*-([^-]+)$/i,
         fn : (x) => /^(true|T|yes|Y)$/i.test(x)
+      },
+      {
+        rgx: /^(defaultpointeremoji).*-([^-]+)$/i,
+       fn : (x) => x
       }
     ];
     let rules = this.findOBSRules();

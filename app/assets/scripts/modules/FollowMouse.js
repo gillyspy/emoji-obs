@@ -18,10 +18,10 @@ const m = {
     *
      */
 
-    _.context.addEventListener('mousemove', _.mousemoveCB);
+    _.context.addEventListener('mousemove', _.mousemoveCB.bind(this));
 
     setInterval(
-      _.intervalCB, //tick the clock
+      _.intervalCB.bind(this), //tick the clock
       _.tick); //interval
   } //init()
 };
@@ -41,7 +41,7 @@ const _ = {
     }
   },
   container     : m.createContainer(),
-  mousemoveCB   : (ev) => {
+  mousemoveCB: function (ev) {
     let wasIdle = _.isIdle;
     _.isIdle = false;
     _.countDown = FM.idleMax;
@@ -57,11 +57,11 @@ const _ = {
 
 
     }
-    m.whenActiveCB(ev);
+    this.whenActiveCB(ev);
     //keep the moust updated
     _.mouse = ev;
   },
-  intervalCB    : function () {
+  intervalCB : function () {
     let wasIdle = _.isIdle;
     //when the current countdown had already run out earlier
     if (_.countDown <= 0 && _.isIdle) {
@@ -76,7 +76,7 @@ const _ = {
       if (!wasIdle && _.isIdle) {
         _.container.classList.remove(_.options.activeClass);
         _.container.classList.add(_.options.idleClass);
-        m.whenIdleCB(_.node);
+        this.whenIdleCB(_.node);
       }
 
     } else //not Idle yet
@@ -98,9 +98,7 @@ class FollowMouseX{
 */
 
 class MouseActions {
-  constructor(node, opts, whenIdleCB = function () {
-  }, whenActiveCB = function () {
-  }) {
+  constructor(node, opts, whenIdleCB, whenActiveCB) {
     FM = this;
     _.node = node;
 
@@ -109,14 +107,25 @@ class MouseActions {
     this.followMouse(opts);
   }
 
-  //allows changing the idle callback
+//allows changing the idle callback
   whenIdle(cb) {
-    m.whenIdleCB = cb.bind(this);
+    if (typeof cb === 'undefined') {
+      this.whenIdleCB = function () {
+      }.bind(this);
+    } else {
+      this.whenIdleCB = cb.bind(this);
+    }
   }
 
   //allows changing the idle callback
   whenActive(cb) {
-    m.whenActiveCB = cb.bind(this);
+    if (typeof cb === 'undefined') {
+      this.whenActiveCB = function () {
+
+      }.bind(this);
+    } else {
+      this.whenActiveCB = cb.bind(this);
+    }
   }
 
   setContent(node) {
@@ -147,8 +156,9 @@ class MouseActions {
     return _.node;
   }
 
-  forceIdle(){
+  forceIdle() {
     _.countDown = 0;
+    this.whenIdleCB(_.node);
   }
 
   makeFollow() {
@@ -199,12 +209,11 @@ class MouseActions {
 
   } //followMouse()
 
-  makeDraggable(
-    adjustments = {
-      left: 0,
-      top : 0
-    }) {
-    let target = _.node;
+} //class MouseActions
+
+MouseActions.makeDraggable =
+  function (node, adjustments = {}) {
+    let target = node;
     Object.assign({
       left: 0,
       top : 0
@@ -214,7 +223,7 @@ class MouseActions {
     target.addEventListener('mousedown', function (ev) {
       // this.$(this.outerSelector).on('mousedown', function (ev) {
       if (ev.detail === 2) {
-     //   target.dblclick();
+        //   target.dblclick();
         let ev2 = document.createEvent('MouseEvents')
         ev2.initEvent('dblclick', true, true);
         target.dispatchEvent(ev2);
@@ -250,8 +259,6 @@ class MouseActions {
     log.browser('draggable now!')
     // return this;
   } //makeDraggable
-
-} //class MouseActions
 
 class FollowMouse {
   constructor($el, outerSelector = document, event = 'mousemove') {

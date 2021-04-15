@@ -30,6 +30,7 @@ J$(document).ready(function ($) {
       adjustment :+(Config.rocketpathspeedoffset)
     }
   );
+  RP.setTarget(Config.defaultidleemoji)
 
 
   Window.RP = RP;
@@ -447,24 +448,23 @@ J$(document).ready(function ($) {
           //temporary variable to enclose it
           $temp
             .data('draggable', {
-                location   : {
-                  top : $this[0].getBoundingClientRect().top,
-                  left: $this[0].getBoundingClientRect().left
-                },
-                randomClass: randomClass,  //cache its source location
-                Draggable  : (new MouseActions($temp[0]))
-                  .makeDraggable({
-                    top      : adjustment,
-                    left     : adjustment,
-                    mousedown: function () {
-                      /* move it to the end of the gallery so that it
-                      has highest z-index
-                      */
-                      $temp.appendTo('#gallery');
-                    }
-                  })
-              }
-            )
+              location   : {
+                top : $this[0].getBoundingClientRect().top,
+                left: $this[0].getBoundingClientRect().left
+              },
+              randomClass: randomClass,  //cache its source location
+              Draggable  : MouseActions.makeDraggable(
+                $temp[0], {
+                  top      : adjustment,
+                  left     : adjustment,
+                  mousedown: function () {
+                    /* move it to the end of the gallery so that it
+                    has highest z-index
+                    */
+                    $temp.appendTo('#gallery');
+                  }
+                })
+            })
             //           .appendTo('body')
             .appendTo('#gallery')
             .css({
@@ -579,7 +579,7 @@ J$(document).ready(function ($) {
       //lastly, move most recent emoji with arrow key controls
       if (ev.which >= 37 && ev.which <= 40)
         $('#gallery').find('.dragTemp:last').each( function(){
-          myAnimation.moveTarget(ev.which, 10, $(this));
+          myAnimation.moveTarget(ev.which, 20, $(this));
         })
 
       //emojiWrapperAnimation.moveTarget(ev.which); //
@@ -674,22 +674,23 @@ J$(document).ready(function ($) {
   $mouseFollowButton.data('pressed', $mouseFollowButton.hasClass('pressed') );
   $mouseFollowButton.on('click', function (e) {
     let becomePressed = !$mouseFollowButton.data('pressed')
-    let emojisource = $('#gallery').find('.dragTemp:last');
     try {
-      if (emojisource.length === 0) {
-        emojisource = $('.highlight')[0];
-      } else {
-        emojisource = emojisource.find('button')[0];
-      }
-      //make the idle animation use a new emoji text content
-      document.querySelector('.idleAnimation__span').textContent = emojisource.textContent;
-
       //button appears pressed
       if (becomePressed) {
         $mouseFollowButton.addClass('pressed');
-        myMouseActions.forceIdle();
+
         //update mouse follow to match ?
         //myMouseActions.setContent(emojisource);
+        let emojisource = $('#gallery').find('.dragTemp:last').find('button');
+        if (emojisource.length === 0) {
+          emojisource = $('.highlight')
+        }
+        emojisource = emojisource[0]
+        //make the idle animation use a new emoji text content
+        if (emojisource) {
+          document.querySelector('.idleAnimation__span').textContent = emojisource.textContent;
+        }
+        myMouseActions.forceIdle();
 
       } else {
         $mouseFollowButton.removeClass('pressed');
@@ -698,14 +699,14 @@ J$(document).ready(function ($) {
       //update data after successes above
       $mouseFollowButton.data('pressed', becomePressed);
     } catch (e) {
-      console.log('error in mouse animation toggle')
+      console.log('error in mouse animation toggle', e)
     }
   });
   myMouseActions = new MouseActions(
-    Config.defaultidleemoji, //default
+    Config.defaultpointeremoji, //default
     {
-      startIdle : true,
-      idleMax : +(Config.idletimeout)
+      startIdle: true,
+      idleMax  : +(Config.idletimeout)
     },
     //idle animation
     function (e) {
@@ -857,11 +858,7 @@ J$(document).ready(function ($) {
       }
       return false;
     });
-/**************** CUSTOM PATH ***************/
 
-$('body').prepend(document.styleSheets.length);
-
-/**************** END CUSTOM PATH ***************/
 
 
 

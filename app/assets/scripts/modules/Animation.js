@@ -147,7 +147,7 @@ const _ = {
   opacity   : 1,
   began     : false,
   adjustment: 2000,
-  doRotate  : true
+  idlerotation: true
 };
 var RP; //singleton
 
@@ -169,7 +169,7 @@ class RocketPath {
   }
 
   adjustRotation(doRotate) {
-    _.doRotate = !!doRotate;
+    _.idlerotation = !!idlerotation;
   }
 
   adjustSpeed(adjustment) {
@@ -177,6 +177,17 @@ class RocketPath {
       Math.min(adjustment, 2000),
       300000
     );
+  }
+
+  setTarget(newTargetEmojiOrElement) {
+    if (typeof newTargetEmojiOrElement === 'string') {
+      RP.target
+        .getElementsByClassName('idleAnimation__span')[0].textContent
+        = newTargetEmojiOrElement;
+    } else if( emoji instanceof HTMLElement ){
+      RP.target = newTargetEmojiOrElement;
+    }
+    return RP.target
   }
 
   getTarget() {
@@ -203,7 +214,7 @@ class RocketPath {
         return range;
       },
       rotate    : function () {
-        return _.doRotate ? RP.path('angle') : 0;
+        return _.idlerotation ? RP.path('angle') : 0;
       },
       //rotateX : 90,
       easing    : 'linear',
