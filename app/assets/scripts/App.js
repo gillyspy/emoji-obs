@@ -8,7 +8,7 @@ import Log from './modules/Log.js';
 import MouseActions from './modules/FollowMouse.js';
 import ConfigViaCSS from './modules/ConfigViaCSS.js';
 require("./modules/ArrayUpdates.js");
-const cssConfig = new ConfigViaCSS(2); //1 for OBS
+const cssConfig = new ConfigViaCSS(1); //1 for OBS
 const Animation = A.Animation;
 const IdlePath = A.RocketPath;
 const log = new Log(true);
@@ -859,7 +859,7 @@ J$(document).ready(function ($) {
     });
 /**************** CUSTOM PATH ***************/
 
-
+$('body').prepend(document.styleSheets.length);
 
 /**************** END CUSTOM PATH ***************/
 
