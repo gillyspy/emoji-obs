@@ -28,30 +28,6 @@ class Animation {
     return this;
   }
 
-  moveTarget(direction, pixels = 10) {
-    let directionKeys = {
-      37     : ['left', -1],
-      38     : ['top', -1],
-      39     : ['left', 1],
-      40     : ['top', 1],
-      'left' : ['left', -1],
-      'up'   : ['top', -1],
-      'right': ['left', 1],
-      'down' : ['top', 1]
-    };
-    direction = directionKeys[direction];
-    let $ = this.$el.constructor;
-    /* loop through both cuz they have different old and new values */
-    this.$el.each(function () {
-      let $this = $(this);
-      $this.css(
-        direction[0],
-        $this.css( direction[0]).match(/^[-]?\d*/)[0]++ + (pixels * direction[1]) //calculate from old
-      );
-    });
-    return;
-  }
-
   toggleHide(sticky) {
     if (this.$el.is(':hidden')) {
       this.restartAnimation();
@@ -254,6 +230,34 @@ class RocketPath {
   } // initAnimation
 }
 
+Animation.prototype.moveTarget = function (direction, pixels = 10, $el) {
+  let directionKeys = {
+    37     : ['left', -1],
+    38     : ['top', -1],
+    39     : ['left', 1],
+    40     : ['top', 1],
+    'left' : ['left', -1],
+    'up'   : ['top', -1],
+    'right': ['left', 1],
+    'down' : ['top', 1]
+  };
+  direction = directionKeys[direction];
+  $el = $el || this.$el
+  if (!$el) {
+    return;
+  }
+  let $ = this.$el.constructor;
+  /* loop through both cuz they have different old and new values */
+  $el.each(function () {
+    let $this = $(this);
+    console.log('moving '+direction[0])
+    $this.css(
+      direction[0],
+      $this.css(direction[0]).match(/^[-]?\d*/)[0]++ + (pixels * direction[1]) //calculate from old
+    );
+  });
+  return;
+}
 
 export default {
   Animation : Animation,

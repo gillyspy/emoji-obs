@@ -138,7 +138,7 @@ J$(document).ready(function ($) {
 
       var fontSize = $M.css('font-size').match(/\d*/)[0]++;
       while (($M.width() > $('#chromKey').width() || $M.height() > $('#chromaKey').height()) &&
-      fontSize > 20  ){
+      fontSize > 12) {
         fontSize--;
         $M.css('font-size', fontSize);
       }
@@ -576,9 +576,14 @@ J$(document).ready(function ($) {
         return;
       }
 
-      //lastly, move emoji with arrow key controls
+      //lastly, move most recent emoji with arrow key controls
       if (ev.which >= 37 && ev.which <= 40)
-        emojiWrapperAnimation.moveTarget(ev.which); //
+        $('#gallery').find('.dragTemp:last').each( function(){
+          myAnimation.moveTarget(ev.which, 10, $(this));
+        })
+
+      //emojiWrapperAnimation.moveTarget(ev.which); //
+
     });//body on click
 
     $('#drawingPane').on('dblclick', function () {
@@ -825,39 +830,13 @@ J$(document).ready(function ($) {
       } else if ($ms.css('margin-left')) {
         $ms.css('margin-left', 0);
         $ms.css('width', '100%');
-        $('.messageSource__changeW').removeClass('pressed');
+     $('.messageSource__changeW').removeClass('pressed');
       } */
       return false;
     });
 
     $('#PageHelp > .pageHelp__button').on('click', function (ev) {
-      let help = `
-      ✍🏻 : Toggle Draw menu.
-      🧽 : wipe drawing or text
-      📉 : toggle grid assist for drawing
-      🟥 : change color of pen
-      📌 : toggle sticky of the current emoji (and remember this setting)
-      📌*:toggle sticky of current undocked emoji
-      ↩ : change width of text area (cuz teams cutting the screen)
-      ◀️▶️ : scroll recents in order of their use
-      ⛔ : toggle hide of the emoji
-      💤 : bring up AFK screen
-      🔎 : search for a new emoji
-      📜 : splash screen if all secondary emojis are docked| else dock all emojis
-      
-      Keys:
-      - Esc => toggle drawing   (when emoji picker is not visible)
-      - Esc => close emoji picker (when emoji picker is visible)
-      - Arrows => move the primary emoji around
-      
-      Mouse: 
-      - double-click on any history emoji => toggle BIG|dock mode
-      - double-click => or toggle drawing
-      - click => any alt emoji becomes the focused secondary
-      - click+drag => drag ANY BIG emoji
-      - click+drag => draw on canvas when visible
-      v1.2
-      `;
+      let help = Init.help;
       let $this = $(this);
       if (!$this.hasClass('pressed')) {
         $this.addClass('pressed');

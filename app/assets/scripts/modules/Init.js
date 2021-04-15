@@ -104,7 +104,38 @@ const Init = {
         return button;
 
       } //setDefaults emoji plugin
-    }
+    },
+  help:  `
+      ✍🏻 : Toggle Draw menu.
+      🧽 : wipe drawing or text
+      📉 : toggle grid assist for drawing
+      🟥 : change color of pen
+      📌 : toggle sticky of the current emoji (and remember this setting)
+      📌*:toggle sticky of current undocked emoji
+      ↩ : toggle width / display of text area (cuz teams cuts the screen)
+      ◀️▶️ : scroll recents in order of their use
+      ⛔ : toggle hide of the emoji
+      💤 : bring up AFK screen
+      🔎 : search for a new emoji
+      📜 : splash screen if all secondary emojis are docked| else dock all emojis
+      🐁 : toggle idle animation & set the emoji for it
+      
+      Keys:
+      - Esc => toggle drawing   (when emoji picker is not visible)
+      - Esc => close emoji picker (when emoji picker is visible)
+      - Arrows => move the top emoji around
+      
+      Mouse: 
+      - double-click on any history emoji => toggle BIG|dock mode
+      - double-click toggle drawing mode off
+      - click+drag => drag ANY BIG emoji
+      - click+drag => draw on canvas when visible
+      - click|drag any emoji to make it the top emoji
+      
+      Config:
+      can use the css settings in OBS as some config (example, idle duration,etc) 
+      v20210415.01
+      `
 
   }
 ;
