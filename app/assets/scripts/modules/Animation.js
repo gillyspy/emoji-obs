@@ -55,6 +55,7 @@ class Animation {
       log.browser('addAnimation');
     }
     this.restartAnimation();
+    anime.remove('.' + this.randomClass );
     delete this.animation;
     this.animation = anime.timeline({loop: 1})
       .add({
@@ -81,6 +82,7 @@ class Animation {
         let d = this.destroyTimeline.bind(this);
         let cb = params.complete;
         params.complete = function () {
+          c.animationCache[name].remove('*');
           d(name);
           if (cb) {
             cb();
@@ -94,6 +96,7 @@ class Animation {
   } //timeline
 
   destroyTimeline(name) {
+    this.animationCache[name].remove('*');
     return delete this.animationCache[name];
   }
 
@@ -104,6 +107,7 @@ class Animation {
         let d = this.destroyTimeline.bind(this);
         let cb = params.complete;
         params.complete = function () {
+          tl.animationCache[name].remove('*');
           d(name);
           if (cb) {
             cb();
@@ -163,7 +167,7 @@ class TimerCountDown {
   #offCB;
   #_;
   #timeStarted;
-
+  #isRunning=false;
 
   constructor(triggerNode, valueNode, targetNode, opts, onCB, offCB) {
     this.triggerNode = triggerNode;
@@ -221,13 +225,22 @@ class TimerCountDown {
       now,
       sPassed;
     timeout = this.durationJS.bind(this);
+    const that =this;
+    this.#isRunning=true;
 
     (function p() {
       now = new Date().getTime();
       sPassed = (now - startTime());
+      let keepGoing = fn(sPassed);
       //  canPoll = sPassed <= timeout();
-      if (fn(sPassed) && canPoll) { // ensures the function executes
+      if( !that.#isRunning ){
+        //nothing
+      } else
+      if (keepGoing && canPoll) { // ensures the function executes
         setTimeout(p, tick);
+
+      } else {
+        TimerCountDown.grandFinale()
       }
     })();
   }
@@ -266,8 +279,8 @@ class TimerCountDown {
     //reset the slider
     this.sliderNode.style.transform = `translateY(0px)`;
 
-    //reset any anime-based animations
-    anime.remove(this.targetNode.childNodes);
+    //reset anything a cancel would anime-based animations
+    this.cancel('doCallback' === 'no');
 
     //remove old steps
     [...this.targetNode.querySelectorAll('div')].forEach((e) => {
@@ -345,6 +358,21 @@ class TimerCountDown {
     return duration;
   }
 
+  cancel(doCallback) {
+
+    anime({
+      targets           : '#meetingOver',
+      'background-color': 'rgba(0,0,0,.8)',
+      opacity           : 0,
+      duration          : 100
+    });
+    anime.remove(this.targetNode.childNodes);
+    anime.remove(document.getElementById('meetingOver').childNodes);
+
+    if (doCallback)
+      this.#offCB();
+  }
+
   init() {
     this.sliderNode = document.querySelector('.' + this.#_.sliderClass);
 
@@ -353,9 +381,13 @@ class TimerCountDown {
       let turnOff = this.triggerNode.classList.contains('pressed')
 
       if (turnOff) {
+        this.#isRunning= false;
         this.triggerNode.classList.remove('pressed');
         document.querySelector('.' + this.#_.showClass)
           .classList.add(this.#_.hideClass)
+
+        this.cancel('doCallback');
+
       } else //turn on
       {
         this.triggerNode.classList.add('pressed');
@@ -371,8 +403,9 @@ class TimerCountDown {
         })
 
         this.#timeStarted = new Date().getTime();
-        this.start();
         this.#onCB();
+        this.start();
+
       }
     }.bind(this));
   }
@@ -440,13 +473,10 @@ class TimerCountDown {
         keepGoing = false;
       }
 
-      if(!that.#_.sunsetTriggered && minsLeft < 5 ){
-        that.#_.sunsetTriggered = true;
-        anime({ targets : '#chromaKey',
-          'background-color' : 'rgba(0,0,0,1)',
-          duration :5*60000
-        });
+      if (!that.#_.sunsetTriggered && minsLeft < 5) {
       }
+
+
 
       sliderNode.style.transform = `translateY(${curY}px)`;
       return keepGoing;
@@ -508,6 +538,44 @@ class TimerCountDown {
 
   }
 
+  static grandFinale() {
+    return anime.timeline({loop: 1})
+      .add({
+        targets           : '#meetingOver',
+        'background-color': 'rgba(0,0,0,.8)',
+        opacity           : 1,
+        duration          : 100
+      })
+      .add({
+        targets   : '#meetingOver .goodBye__letter',
+        scale     : [0.3, 1],
+        opacity   : [0, 1],
+        translateZ: 0,
+        easing    : "easeOutExpo",
+        duration  : 600,
+        delay     : (el, i) => 70 * (i + 1)
+      })
+      .add({
+        targets : '#meetingOver .line',
+        scaleX  : [0, 1],
+        opacity : [0.5, 1],
+        easing  : "easeOutExpo",
+        duration: 700,
+        offset  : '-=700',
+        complete: function () {
+          let ev2 = document.createEvent('MouseEvents')
+          ev2.initEvent('dblclick', true, true);
+          document.getElementById('✌🏻').dispatchEvent(ev2);
+        },
+        delay   : (el, i, l) => 80 * (l - i)
+      })
+      .add({
+        targets: document.querySelector('#gallery .dragTemp'),
+        top    : 200,
+        left   : 800
+      });
+  }
+
   show() {
 
   }
@@ -532,7 +600,7 @@ class RocketPath {
   }
 
   adjustRotation(doRotate) {
-    _.idlerotation = !!idlerotation;
+    _.idlerotation = !!doRotate;
   }
 
   adjustSpeed(adjustment) {
@@ -564,7 +632,8 @@ class RocketPath {
 
   initAnimation(forceNew) {
     if (RP.animation) {
-    //  delete RP.animation;
+      //  delete RP.animation;
+      anime.remove(RP.target)
     }
     RP.animation = anime({
       targets   : RP.target, //'#idleAnimation',

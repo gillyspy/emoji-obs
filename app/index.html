@@ -584,14 +584,52 @@
    /* z-index:0; */
 }
 
-.flexClock__slider__button{
-        text-align: right;
+.flexClock__slider__button {
+    text-align: right;
     align-self: flex-end;
-    border-radius : 0;
+    border-radius: 0;
     border-top-right-radius: 20px;
-    border-width: 4px 4px 0 0 ;
+    border-width: 4px 4px 0 0;
     padding-left: 70px;
-    margin-top : auto;
+    margin-top: auto;
+}
+
+#meetingOver {
+    position: fixed;
+    background-color: rgba(0, 0, 0, 0);
+    width: 100%;
+    height: 540px;
+    padding-top: 150px;
+    font-size: 3em;
+    display: flex;
+    justify-content: center;
+    opacity : 0;
+}
+.goodBye__wrapper {
+    display:block;
+    background-color : rgba(150,150,150,0);
+    padding : 10px
+}
+
+.goodBye__letter {
+    color: white;
+}
+
+.goodBye__line {
+    width: 100%;
+    opacity: 1;
+    left: 0;
+    height: 3px;
+    background-color: #fff;
+    transform-origin: 0 0;
+}
+
+.goodBye__line--line1 {
+    top: 0;
+}
+
+.goodBye__line--line2 {
+    bottom: 0;
 }
 
 /*
@@ -637,6 +675,28 @@ border : 0,
 </div>
 <div id="fakeMouse" class="fakeMouse">
     <button class="fakeMouse__button"><span class="fakeMouse__span">🚀</span></button>
+</div>
+<div id="meetingOver" class="goodBye">
+    <h1 class="goodBye__header">
+    <div class="goodBye__wrapper">
+        <div class="goodBye__line goodBye__line--line1"></div>
+        <div class="goodBye__letters">
+        <span class="goodBye__letter">M</span>
+        <span class="goodBye__letter">e</span>
+        <span class="goodBye__letter">e</span>
+        <span class="goodBye__letter">t</span>
+        <span class="goodBye__letter">i</span>
+        <span class="goodBye__letter">n</span>
+        <span class="goodBye__letter">g</span>
+        <span class="goodBye__letter">&nbsp;</span>
+        <span class="goodBye__letter">O</span>
+        <span class="goodBye__letter">v</span>
+        <span class="goodBye__letter">e</span>
+        <span class="goodBye__letter">r</span>
+            </div>
+    <div class="goodBye__line goodBye__line--line2"></div>
+  </div>
+    </h1>
 </div>
 <div id="chromaKey">
     <div class="motion-path">

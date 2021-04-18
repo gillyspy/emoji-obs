@@ -327,7 +327,8 @@ class FollowMouse {
     log.browser(start, target, svg, path('y'));
     // deal with actions
     if (action === 'stop') {
-      this.impatientAnimation.stop();
+      this.impatientAnimation.remove('*');
+      //this.impatientAnimation.stop();
     } else //play
     if (action === 'play') {
       this.impatientAnimation.play();
@@ -337,6 +338,7 @@ class FollowMouse {
     } else //else
     if (action === 'restart') {
 //      delete this.impatientAnimation;
+      _this.anime.remove(start.target);
 
       this.impatientAnimation =
         _this.anime({

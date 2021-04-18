@@ -9,6 +9,7 @@ import Draw from 'draw-on-canvas';
 import Log from './modules/Log.js';
 import MouseActions from './modules/FollowMouse.js';
 import ConfigViaCSS from './modules/ConfigViaCSS.js';
+
 require("./modules/ArrayUpdates.js");
 const cssConfig = new ConfigViaCSS(1); //1 for OBS
 const Animation = A.Animation;
@@ -19,23 +20,50 @@ var myMouseActions;
 
 const myFavs = new Favorites();
 
+console.log()
+/*
+http://10.0.0.10:3000/?defEmoji=%E2%98%95&defPoint=%E2%9C%8C%F0%9F%8F%BB&rocketSpeed=20000&idleTimeout=300000&rotation=false
+ */
+
+
 J$(document).ready(function ($) {
   var _x = cssConfig.getConfig();
   try {
+    const urlParams = (new URL(window.location.href)).searchParams;
+  /*  const Config = Object.assign((({
+                      rocketspeedoffset,
+                      defaultidleemoji,
+                      defaultpointeremoji,
+                      idletimeout,
+                      idlerotation
+                    }) => ({
+          rocketspeedoffset,
+          defaultidleemoji,
+          defaultpointeremoji,
+          idletimeout,
+          idlerotation
+        })
+      )(Init)
+    ,urlParams)*/
 
-    var Config = Object.assign({}, Init, cssConfig.getConfig() );
+
+    var Config = Object.assign({}, Init, (function(U){
+      let a = ['rocketspeedoffset', 'defaultidleemoji', 'defaultpointeremoji', 'idletimeout', 'idlerotation'];
+      let o = {};
+       U.searchParams.forEach( (v,k) => o[a[a.indexOf(k)]] = v);
+       return o;
+    })(new URL(window.location.href))) ;
     //$('textarea').val( JSON.stringify(Config));
-    $('textarea').val(JSON.stringify(cssConfig.selectorList));
+    //$('textarea').val(JSON.stringify(cssConfig.selectorList));
   } catch (e) {
     var Config = Object.assign({}, Init );
   }
-
 
   const RP = new IdlePath(
     document.querySelector('#idleAnimation'),
     document.querySelector('#mousePath'),
     {
-      doRotate  : Config.idlerotation,
+      idlerotation  : Config.idlerotation ==='true' || false,
       adjustment: +(Config.rocketpathspeedoffset)
     }
   );
@@ -887,7 +915,7 @@ J$(document).ready(function ($) {
     {},
     //on
     function () {
-
+      $('#flexClock').show();
       //reset classes
 
       //restart countdown
@@ -895,29 +923,17 @@ J$(document).ready(function ($) {
     },
     //off
     function () {
-
-    })
+      $('#flexClock').hide();
+    });
 
 
   /**************/
   Window.anime = anime;
   Window.mTimer = A.TimerCountDown;
 
-
   $drawButton.click(); // default
-//  $moveHistory.click();
+
   $history.find('.highlight').click();
-
-//initiate idle animation
-  //$mouseFollowButton.click();
-  //RP.resume();
-
-//  try{
-//   const mouseFollower = new FollowMouse(
-//    document.querySelector('.fakeMouse__button')
-
-//   );
-//  }
 
 })
 ;
