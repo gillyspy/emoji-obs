@@ -1,6 +1,7 @@
-import Log from './Log.js'
+import Log from './Log.js';
+import anime from "animejs";
 
-//onst log = new Log(('disabled' == 'on'));
+//const log = new Log(('disabled' == 'on'));
 const log = new Log(('enabled' === 'enabled'));
 var $;
 var FM;
@@ -209,19 +210,45 @@ class MouseActions {
 
   } //followMouse()
 
+  static linger(el) {
+
+    const {left, top} = el.style;
+    const _linger = function (el, originalX, originalY) {
+      //const {x,y} = el.getBoundingClientRect();
+      const {left, top} = el.style
+      const [x, y] = [left, top];
+      const xAdjust = x > originalX ? -1 : 1;
+      const yAdjust = y > originalY ? -1 : 1;
+      const newX = anime.random(0, 10) * xAdjust;
+      const newY = anime.random(0, 30) * yAdjust;
+
+      anime({
+        targets   : el,
+        translateX: newX,
+        translateY: newY,
+        scale : 5,
+        easing    : 'easeInOutQuad',
+        opacity   : anime.random(.7, 1),
+        duration  : anime.random(10000, 20000),
+        delay     : anime.random(0, 200),
+        complete  : function () {
+          anime.remove(el);
+          _linger(el);
+        }
+      });
+    }
+    _linger(el, left, top);
+
+  }//linger
+
 } //class MouseActions
 
 MouseActions.makeDraggable =
-  function (node, adjustments = {}) {
+  function (node, opts = {}) {
     let target = node;
-    Object.assign({
-      left: 0,
-      top : 0
-    }, adjustments);
     let isDragging = false;
 
     target.addEventListener('mousedown', function (ev) {
-      // this.$(this.outerSelector).on('mousedown', function (ev) {
       if (ev.detail === 2) {
         //   target.dblclick();
         let ev2 = document.createEvent('MouseEvents')
@@ -229,26 +256,52 @@ MouseActions.makeDraggable =
         target.dispatchEvent(ev2);
         return false;
       }
-      log.browser('begin drag', ev)
+
+      //initialize the position of element w.r.t the mouse
+      let {width, height} = (node.querySelector('button').getBoundingClientRect());
+      opts = Object.assign({
+          left: 0,
+          top : 0
+        },
+        opts,
+        {
+          left: width / 2,
+          top : height / 2
+        });
+
       isDragging = true;
 
-      if (adjustments.mousedown) {
-        adjustments.mousedown()
+      //removeAny anime animations which might impact its position, especially transformations
+      anime.remove(target)
+      //remove any XY translations that might interfere
+      if (target.style.transform) {
+        let oldTransform = target.style.transform;
+        target.style.transform = oldTransform.replaceAll(/(translate[XY][(][^()]*[)][ ]?)/g, '');
       }
+
+      //perform client callback
+      opts.mousedownCB && opts.mousedownCB();
+
+      target.style.left = (ev.pageX - opts.left) + 'px';
+      target.style.top = (ev.pageY - opts.top) + 'px';
       // return false;
     });
 
     target.addEventListener('mousemove', function (ev) {
       if (isDragging) {
-        log.browser(' draggin!')
-        target.style.left = (ev.pageX - adjustments.left) + 'px';
-        target.style.top = (ev.pageY - adjustments.top) + 'px';
+        log.browser(' draggin!', opts, ev.pageX, ev.pageY)
+        target.style.left = (ev.pageX - opts.left) + 'px';
+        target.style.top = (ev.pageY - opts.top) + 'px';
       }
     });
 
     target.addEventListener('mouseup', function (ev) {
       log.browser('stop drag')
       isDragging = false;
+
+      //resume the "linger" animation
+      MouseActions.linger(target);
+
       //return false;
     });
 
@@ -258,6 +311,7 @@ MouseActions.makeDraggable =
     });
     log.browser('draggable now!')
     // return this;
+
   } //makeDraggable
 
 class FollowMouse {
@@ -294,6 +348,7 @@ class FollowMouse {
         _this.config.impatientAnimation.style = $div.attr('style');
         //   $div.attr('style', '');
       }
+
       //force the mouse to follow
       $el.css({
         left: ev.pageX - 20,
@@ -431,7 +486,7 @@ class FollowMouse {
     );
   }//initImpatientAction
 
-  makeDraggable(adjustments = {
+  makeDraggableOLD(adjustments = {
     left: 0,
     top : 0
   }) {
@@ -460,10 +515,12 @@ class FollowMouse {
 
     this.$(this.outerSelector).on('mousemove', function (ev) {
       if (isDragging) {
-        log.browser(' draggin!')
+        log.browser(' draggin!');
+
         $el.css({
-          left: ev.pageX - adjustments.left,// -($el.width()/2) - adjustments.left,
-          top : ev.pageY - adjustments.top // - ($el.height()/2) - adjustments.top
+          transform: oldTransform.replaceAll(/(translate[XY][(][^()]*[)][ ]?)/g, ''),
+          left     : ev.pageX - adjustments.left,// -($el.width()/2) - adjustments.left,
+          top      : ev.pageY - adjustments.top // - ($el.height()/2) - adjustments.top
         });
       }
     });

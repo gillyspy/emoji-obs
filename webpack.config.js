@@ -122,20 +122,16 @@ if (currentTask == 'dev') {
             chunks: 'all'
         }
     }
-  /*  config.plugins.push(
+   config.plugins.push(
       new CleanWebpackPlugin(),
       new MiniCssExtractPlugin({
           filename: 'styles.[chunkhash].css'
       }),
       new RunAfterCompile()
     )
-    config.module = {
-        rules: [cssConfig]
-    }
-
     cssConfig.use.unshift(MiniCssExtractPlugin.loader)
     postcssplugins.push(require('cssnano'))
-*/
+
 }
 
 module.exports = config;

@@ -107,14 +107,6 @@ J$(document).ready(function ($) {
   const myAnimation = new Animation($target, $pin);
 
   const emojiWrapperAnimation = new Animation($('.targetWrapper__emoji'));
-  /*  const dragEmoji = new FollowMouse($, '.targetWrapper__emoji', '#MessageWrapper');
-    dragEmoji.makeDraggable({
-      left: emojiWrapperAnimation.$el.width() / 2,
-      top : emojiWrapperAnimation.$el.width() / 2
-    }); */
-
-//$target.fadeOut(40000);//default
-  //const $outer = $('.outer');
   const $afk = $('.AFK');
   const $emojipreview = $('#emojipreview');
 
@@ -394,9 +386,9 @@ J$(document).ready(function ($) {
   $history.on('dblclick', 'button', function (ev) {
       let $this = $(this);
       $this.data('dblclick', true);
-
       /*
       * draggable is the method to determine if it has been elevated to the gallery
+      * draggble data => means it is in the gallery already
        */
       if (!$this.data('draggable')) {
         let top = $this[0].getBoundingClientRect().top
@@ -425,7 +417,11 @@ J$(document).ready(function ($) {
         /* reprioritize */
         //change the origin location to be the first entry in the dock
         $origin.prependTo('#letters');
-        let adjustment = $this.width() * 2; //same as animation scale
+        let adjustment = {
+            left: $this.width() / 2,
+            top : $this.height() / 2
+          }
+        ; //same as animation scale
         //  let adjustment = $this.width() * 3; //same as animation scale
 
         //return it back to history via doubleclick on new draggable
@@ -450,15 +446,12 @@ J$(document).ready(function ($) {
                 delay   : 0,
                 easing  : "easeOutExpo",
                 complete: function () {
+                  //put it back in history at "front"
                   $this
-                    //    .css(location)
-                    //.remove();
-                    //put it back in history in same spot
                     .appendTo($origin)
                     .removeClass('history--draggable')
                     .addClass('history__btn');
                   $temp.removeData('draggable').remove();
-                  //    myAnimation
                 }
               }
             )
@@ -470,7 +463,8 @@ J$(document).ready(function ($) {
                 duration: 1000,
                 delay   : 0,
                 easing  : 'linear',
-              }, true
+              },
+              'destroyIt'
             );
 
 
@@ -490,9 +484,9 @@ J$(document).ready(function ($) {
             randomClass: randomClass,  //cache its source location
             Draggable  : MouseActions.makeDraggable(
               $temp[0], {
-                top      : adjustment,
-                left     : adjustment,
-                mousedown: function () {
+                //   top      : adjustment, //TODO: keep this?
+                //    left     : adjustment,
+                mousedownCB: function () {
                   /* move it to the end of the gallery so that it
                   has highest z-index
                   */
@@ -518,25 +512,29 @@ J$(document).ready(function ($) {
         let randomY = Math.floor(400 * Math.random()) - 100;
         let randomX = Math.floor(800 * Math.random());
 
-        console.log(randomX, randomY);
+        //console.log(randomX, randomY);
+
+
         myAnimation.timeline(randomClass + 'To', {loop: 1})
           .addToTimeline(randomClass + 'To', {
-            targets   : $temp[0],
-            scale     : [1, 5],
-            opacity   : [.5, 1],
-            translateZ: 0,
+              targets   : $temp[0],
+              scale     : [1, 5],
+              opacity   : [.5, 1],
+              translateZ: 0,
 //            translateY: randomY,//random distance
-            //  translateX : randomX,
-            left      : randomX,
-            top       : randomY,
-            begin     : function () {
-              console.log('begin dock animation');
+              //  translateX : randomX,
+              left      : randomX,
+              top       : randomY,
+              begin     : function () {
+                console.log('begin dock animation');
+              },
+              easing    : "easeOutExpo",
+              duration  : 950,
+              //    autoplay : false,
+              delay     : 200
             },
-            easing    : "easeOutExpo",
-            duration  : 950,
-            //    autoplay : false,
-            delay     : 200 //(el, i) => 70 * i
-          });
+            'destroyIt'
+          );
         myAnimation.timeline(randomClass + 'Fade', {}) //loop?
           .addToTimeline(randomClass + 'Fade', {
             targets : $temp[0],// 'span.' + randomClass,
@@ -555,6 +553,9 @@ J$(document).ready(function ($) {
           });
         if (fave.sticky) {          //fade it
           myAnimation.doTimeline(randomClass + 'Fade', 'pause');
+
+          //only linger sticky items
+          MouseActions.linger($temp[0]);
         }
         //.doTimeline(randomClass,'play'); /* from: https://tobiasahlin.com/moving-letters/#2 */
 
@@ -615,6 +616,7 @@ J$(document).ready(function ($) {
     if (ev.which >= 37 && ev.which <= 40)
       $('#gallery').find('.dragTemp:last').each(function () {
         myAnimation.moveTarget(ev.which, 20, $(this));
+        MouseActions.linger(this);
       })
 
     //emojiWrapperAnimation.moveTarget(ev.which); //
@@ -677,6 +679,7 @@ J$(document).ready(function ($) {
 
         $temp.removeClass('history--sticky');
         myAnimation.doTimeline(randomClass + 'Fade', 'restart');
+        MouseActions.linger(this);
       } else
         //else they should now become sticky
       {

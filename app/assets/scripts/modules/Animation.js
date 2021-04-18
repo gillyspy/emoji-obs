@@ -78,11 +78,11 @@ class Animation {
       //new or updated timeline
     if (typeof params === 'object') {
       let c = this.animationCache;
-      if (addDestroy) {
+      if (!!addDestroy) {
         let d = this.destroyTimeline.bind(this);
         let cb = params.complete;
         params.complete = function () {
-          c.animationCache[name].remove('*');
+          //c.animationCache[name].remove('*');
           d(name);
           if (cb) {
             cb();
@@ -96,18 +96,21 @@ class Animation {
   } //timeline
 
   destroyTimeline(name) {
-    this.animationCache[name].remove('*');
-    return delete this.animationCache[name];
+    try {
+      this.animationCache[name].remove('*');
+       delete this.animationCache[name];
+    }catch(e){}
+    return
   }
 
   addToTimeline(name, params, addDestroy = false) {
     let tl = this.timeline(name);
     if (tl) {
-      if (addDestroy) {
+      if (!!addDestroy) {
         let d = this.destroyTimeline.bind(this);
         let cb = params.complete;
         params.complete = function () {
-          tl.animationCache[name].remove('*');
+          //tl.animationCache[name].remove('*');
           d(name);
           if (cb) {
             cb();
