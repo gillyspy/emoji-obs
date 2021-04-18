@@ -143,19 +143,382 @@ class Animation {
 }
 
 const _ = {
-  scale     : 1,
-  opacity   : 1,
-  began     : false,
-  adjustment: 2000,
+  scale       : 1,
+  opacity     : 1,
+  began       : false,
+  adjustment  : 2000,
   idlerotation: true
 };
 var RP; //singleton
 
+
+/**************
+ * 2 phases:
+ * countdown
+ * reset & restart
+ */
+
+class TimerCountDown {
+  #onCB;
+  #offCB;
+  #_;
+  #timeStarted;
+
+
+  constructor(triggerNode, valueNode, targetNode, opts, onCB, offCB) {
+    this.triggerNode = triggerNode;
+    this.targetNode = targetNode;
+    this.valueNode = valueNode;
+    this.#onCB = onCB;
+    this.#offCB = offCB;
+    this.#timeStarted = 0;
+    this.#_ = {
+      timeLeft        : 3600000, // time remaining
+      minutesRemaining: (3600000 / 60 / 1000),
+      duration        : 3600000, // initial time (e.g. meeting length)
+      hideClass       : 'flexClock--hide',
+      showClass       : 'flexClock',
+      fillClass       : 'flexClock__progress--fill',
+      drainClass      : 'flexClock__progress--drain',
+      subClass        : 'flexClock__sub',
+      sliderClass     : 'flexClock__slider',
+      steps           : 12,
+      doMins          : true,
+      delayFudge      : 0,
+      stepSize        : 5
+    };
+    this.#_ = Object.assign({}, this.#_, opts);
+    this.init();
+  }
+
+  durationJS(t = this.#_.duration) {
+    return (this.#_.doMins ? t * 60 : t) * 1000;
+  }
+
+  #getStep(height, txt) {
+    let borderFudge = 2; //TODO:
+    let el = document.createElement('div');
+    //add class
+    el.classList.add('flexClock__step');
+    el.style.height = (height - borderFudge) + 'px';
+
+    //add number
+    let subEl = document.createElement('span');
+    subEl.innerText = txt;
+
+    el.append(subEl);
+    return el;
+    /*
+        <div class="flexClock__step"><span style="color:white">40</span></div>
+     */
+  }
+
+  queueFunc(fn, tick = 100, timeout) {
+    let startTime = function () {
+        return this.#timeStarted
+      }.bind(this),
+      canPoll = true,
+      now,
+      sPassed;
+    timeout = this.durationJS.bind(this);
+
+    (function p() {
+      now = new Date().getTime();
+      sPassed = (now - startTime());
+      //  canPoll = sPassed <= timeout();
+      if (fn(sPassed) && canPoll) { // ensures the function executes
+        setTimeout(p, tick);
+      }
+    })();
+  }
+
+  /*
+  ** would like to check how much real time (seconds) has passed.
+  *
+  * Create a queue of things to do (or act on);
+  * start Timer on clock ticks
+  * every X SECONDS (not ticks) do next queue item async
+  *
+  * notes:
+  * - if the previous queue item is not finished that's fine
+  * -
+  *
+   */
+
+
+  #injectStep(step) {
+    const nodes = document.getElementsByClassName(this.#_.subClass);
+    [...nodes].forEach((el, i) => {
+      el.append(step[i]);
+    });
+  }
+
+  refresh() {
+    let steps = [];
+    let step;
+    let stepsNeeded;
+    let stepHeight;
+    let stepText = '';
+    let dur = this.#_.duration;
+    //this.#_.timeOnEach;
+    //given a timeLength
+
+    //reset the slider
+    this.sliderNode.style.transform = `translateY(0px)`;
+
+    //reset any anime-based animations
+    anime.remove(this.targetNode.childNodes);
+
+    //remove old steps
+    [...this.targetNode.querySelectorAll('div')].forEach((e) => {
+      e.innerHTML = '';
+    });
+
+    this.#_.sunsetTriggered = false;
+
+    //break it up into steps. e.g. 60 minutes into 12 5 minute steps
+    this.#_.delayFudge = (dur % this.#_.stepSize);
+    //this.#_.duration = dur - this.#_.delayFudge;
+    let adjustedDuration = dur - this.#_.delayFudge;
+
+    stepsNeeded = Math.floor((this.#_.duration) / this.#_.stepSize);
+
+    this.#_.timeOnEach = (this.durationJS() / stepsNeeded);
+    stepHeight = this.targetNode.getBoundingClientRect().height / stepsNeeded
+
+    //populate those steps
+    for (let i = 0; i < stepsNeeded; i) {
+      stepText = adjustedDuration - (++i * this.#_.stepSize); //
+
+      step = [
+        this.#getStep(stepHeight, stepText),
+        this.#getStep(stepHeight, stepText)
+      ];
+      steps.push(step);
+      this.#injectStep(step);
+    }
+  }
+
+  static durationToTopOfHour() {
+    const {now, next} = {
+      now : (new Date()),
+      next: (new Date())
+    }
+    let hourBump = 0
+    //if within 15minutes of next hour then set for the top of the following hour
+    if (now.getMinutes() > 45) {
+      hourBump = 1;
+    }
+    next.setHours(now.getHours() + hourBump, 59, 59, 0);
+    return (next.getTime() - now.getTime()) / 1000 / 60; //TODO
+  }
+
+  translateInput(i) {
+    /*parse text input such as 1430h into a time */
+    let t, h, m, nothing, duration;
+    if (i) {
+      [nothing, h, m] = i.match(/^(\d{2})(\d*)[^\d]*/);
+      let now = new Date();
+      let nextHour = new Date();
+      nextHour.setHours(h, m, 0, 0);
+      duration = (nextHour.getTime() - now.getTime()) / 1000 / 60;
+    } else {
+      duration = TimerCountDown.durationToTopOfHour();
+    }
+
+    switch (true) {
+      case duration <= 2:
+        // display seconds with larger steps
+        this.#_.stepSize = 10;
+        this.#_.doMins = false;
+        duration *= 60;
+        break;
+      case duration <= 5:
+      case duration <= 10:
+        this.#_.stepSize = 1;
+        break;
+      case duration <= 25:
+        this.#_.stepSize = 2;
+        break;
+    }
+    this.#_.duration = duration;
+    return duration;
+  }
+
+  init() {
+    this.sliderNode = document.querySelector('.' + this.#_.sliderClass);
+
+    //add click handler to the triggerNode that will initiate
+    this.triggerNode.addEventListener('click', function () {
+      let turnOff = this.triggerNode.classList.contains('pressed')
+
+      if (turnOff) {
+        this.triggerNode.classList.remove('pressed');
+        document.querySelector('.' + this.#_.showClass)
+          .classList.add(this.#_.hideClass)
+      } else //turn on
+      {
+        this.triggerNode.classList.add('pressed');
+        document.querySelector('.' + this.#_.showClass)
+          .classList.remove(this.#_.hideClass)
+
+        /* by default calculate the duration to top of next hour */
+        this.#_.duration = this.translateInput(
+          this.valueNode.value
+        );
+        anime({
+          targets: ''
+        })
+
+        this.#timeStarted = new Date().getTime();
+        this.start();
+        this.#onCB();
+      }
+    }.bind(this));
+  }
+
+  start() {
+    this.#_.timeLeft = this.#_.duration;
+    this.refresh();
+    this.#animateDrain();
+    //this.#animateFill().restart();
+  }
+
+  pause() {
+
+  }
+
+  #timePassed() {
+    let now = (new Date()).getTime();
+    let dif = now - this.#timeStarted;
+    return Math.abs(dif / 1000);
+  }
+
+  #animateDrain() {
+    let duration = this.durationJS();
+    let delayFudge = this.durationJS(this.#_.delayFudge);
+    let secondsPast = 0;
+    let stagger = this.#_.timeOnEach * .5;
+    let stepsTime = 'steps(' + (this.#_.duration * .5) + ')';
+    let sliderNode = this.sliderNode;
+    let valueNode = this.valueNode;
+    let updateTimeLeft = function (t) {
+      this.#_.minutesRemaining = t;
+    }.bind(this);
+    let getMinsRemaining = function () {
+      return this.#_.minsRemaining;
+    }.bind(this);
+    let that = this;
+
+    /* this animation will be kicked off with the other */
+    this.queueFunc(function (milliPassed) {
+      /* the Y translation will be based upon how pixel-far it needs to travel
+      ** compared against the real-seconds left
+       */
+      let milliDelay = 0; //(50 / 568 * duration);
+      let secsDuration = duration / 1000;
+      let pxDistance = 525;
+      let keepGoing = true;
+      let translateY = pxDistance / secsDuration;
+      let ratioTimePassed = milliPassed / duration;
+      let curY = 0;
+      let minsLeft = (duration - milliPassed) / 60000;
+      updateTimeLeft(minsLeft);
+
+      try {
+        valueNode.value = (minsLeft + '').match(/^\d+([.]\d)?/)[0];
+      } catch (e) {
+      }
+
+      if (milliPassed < milliDelay) {
+        keepGoing = true;
+      } else if (ratioTimePassed >= 0 && ratioTimePassed <= 1) {
+        curY = ratioTimePassed * pxDistance;
+        keepGoing = true;
+      } else {
+        curY = pxDistance;
+        keepGoing = false;
+      }
+
+      if(!that.#_.sunsetTriggered && minsLeft < 5 ){
+        that.#_.sunsetTriggered = true;
+        anime({ targets : '#chromaKey',
+          'background-color' : 'rgba(0,0,0,1)',
+          duration :5*60000
+        });
+      }
+
+      sliderNode.style.transform = `translateY(${curY}px)`;
+      return keepGoing;
+    });
+
+    /*
+    let slider = anime({
+
+      targets   : '.flexClock__slider',
+      translateY: 525,
+      duration  : duration,
+      easing    : 'linear',
+      delay     : ((50 / 568 * duration)), // this doesn't need a delayFudge
+      update    : function (a) {
+        console.log(secondsPast++, a.progress, this.#timePassed());
+      }.bind(this),
+      loop      : 1,
+      autoplay  : false
+    }); */
+
+    /* anime({
+       targets: '.flexClock__sub--A .flexClock__step',
+       update : function (a) {
+         //update each block to countdown their value
+       }
+     }); */
+
+    anime.timeline({
+      delay: delayFudge
+    }).add({
+      targets          : '.flexClock__sub--B .flexClock__step',  //'.' + this.#_.drainClass,//'#domAttr .demo-content',
+      opacity          : [1, 0],
+      duration         : duration,
+      delay            : anime.stagger(stagger), // steps * 5000
+      easing           : stepsTime,// 'linear',
+      'justify-content': 'start'
+    });
+
+  } //animateDrain
+
+  #animateFill() {
+    return;
+    return anime({
+      targets          : '.' + this.#_.fillClass, //'#domAttr .demo-content',
+      height           : [573, 3],
+      //background : 'rgba( 50,255,50,1)',
+      opacity          : [.8, .2],
+      duration         : this.#_.duration,
+      //transformZ : 5000,
+      easing           : steps(this.durationToMinutes()), //'linear',
+      border           : 0,
+      'margin-top'     : [3, 573],
+      //left : 0,
+      'justify-content': 'start'
+    });
+  } //animateFill
+
+  hide() {
+
+  }
+
+  show() {
+
+  }
+
+} //TimerCountDown
+
 class RocketPath {
-  constructor(target, pathNode,opts) {
+  constructor(target, pathNode, opts) {
     this.path = anime.path(pathNode);
     this.target = target;
-    if(opts) {
+    if (opts) {
       Object.assign(_, opts);
     }
     if (!RP) {
@@ -271,8 +634,9 @@ Animation.prototype.moveTarget = function (direction, pixels = 10, $el) {
 }
 
 export default {
-  Animation : Animation,
-  RocketPath: RocketPath
+  Animation     : Animation,
+  RocketPath    : RocketPath,
+  TimerCountDown: TimerCountDown
 }
 
 /*

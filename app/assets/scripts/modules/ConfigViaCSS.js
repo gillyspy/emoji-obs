@@ -3,12 +3,22 @@
 class ConfigViaCSS {
   constructor(sheetNum) {
     this.sheetNum = sheetNum; //obs default is 3
+    this.rules;
+    this.selectorList=[];
+    this.config={};
   }
   /*
   {RocketPath: 20000}
    */
   getSheet() {
     return document.styleSheets[this.sheetNum];
+  }
+
+  getRules(){
+    return this.rules;
+  }
+  getList(){
+    return this.selectorList;
   }
 
   findOBSRules() {
@@ -28,8 +38,11 @@ class ConfigViaCSS {
           continue;
         } else {
           let U = T.selectorText
+          this.selectorList.push(U);
+
           if (/^rocketpathspeedoffset.*/.test(U)) {
             goodRules = rulesORCSSRules;
+            this.rules = goodRules;
             stopCondition = true;
           }
         }
@@ -45,7 +58,7 @@ class ConfigViaCSS {
   }
 
   getConfig() {
-    let config = {};
+    this.config = {};
     let selectorPatterns = [
       {
         rgx: /^(RocketPathspeedOffset).*-([^-]+)$/i,
@@ -78,7 +91,7 @@ class ConfigViaCSS {
           if (pattern.rgx.test(rule.selectorText)) {
             //set the value in config
             try {
-              config[
+              this.config[
                 rule.selectorText.match(pattern.rgx)[1]
                 ] =
                 pattern.fn(rule.selectorText.match(pattern.rgx)[2]);
@@ -89,7 +102,8 @@ class ConfigViaCSS {
         }
       })
     }
-     return   config;
+    console.log(this.config);
+     return   this.config;
   } //getConfig()
 
 } //class

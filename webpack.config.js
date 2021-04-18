@@ -50,7 +50,18 @@ let config = {
     entry  : './app/assets/scripts/App.js',
     module : {
         rules: [ //
-            cssConfig
+            cssConfig,
+            {
+                test   : /\.(js)$/,
+                exclude: /node_modules/,
+                use    : {
+                    loader : 'babel-loader',
+                    options: {
+                        presets: ['@babel/preset-env'],
+                        plugins: ['@babel/plugin-proposal-private-methods']
+                    }
+                }
+            }
         ]
     },/*,
     optimization : {
@@ -67,11 +78,10 @@ if (currentTask == 'dev') {
     config.devServer = {
         before          : function (app, server) {
             server._watch('./app/**/*.html')
-
         },
         contentBase     : path.join(__dirname, 'app'),
         hot             : true,
-        host            : '10.0.0.2',
+        host            : '10.0.0.10',
         disableHostCheck: true,
         // host :  '0.0.0.0',
         port            : 3000

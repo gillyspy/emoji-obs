@@ -20,7 +20,6 @@
 
     #chromaKey {
         background-color: rgba(0, 0, 0, 0);
-        /*    background-color: rgba(255,255,0,0); */
         position: fixed;
         /*   z-index: 20000;*/
         width: 100%;
@@ -318,6 +317,9 @@
         background: rgba(255, 255, 255, .1);
         /* margin:0px */
     }
+
+
+
     textarea {
         font-weight: bold;
         color : white  ;
@@ -371,6 +373,12 @@
     .emoji_preview-emoji {
         font-size: 5em;
     }
+
+    .emojipreview__clocknum{
+        font-size: 1.5em;
+
+    }
+
     .together__col1{
         width : 40%;
         vertical-align: top;
@@ -482,25 +490,144 @@
         transform: rotate(45deg);
     }
 
-    .motion-path {
-        /* margin: 20% 20%;*/
-         width: 100%;
-        /*margin-left:-100px;*/
-        height: 600px;
-        text-align: center;
-    }
+.motion-path {
+    /* margin: 20% 20%;*/
+    width: 100%;
+    /*margin-left:-100px;*/
+    height: 600px;
+    text-align: center;
+}
 
-    .motion-path svg {
-        opacity: 1;
-        z-index: 0;
-    }
-    #mousePath {
-        fill : rgba( 0,0,0,0)
-    }
+.motion-path svg {
+    opacity: 1;
+    z-index: 0;
+}
+
+#mousePath {
+    fill: rgba(0, 0, 0, 0)
+}
+
+.flexClock {
+    width: 50px;
+    margin-left: 70%;
+    height: 525px; /*568px; */
+    position : absolute;
+    z-index:-1500;
+}
+
+.flexClock__progress {
+    position: absolute
+}
+
+.flexClock__progress--drain {
+  /*  border: 4px red double;*/
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 525px; /* 1%; */
+    background-color: red;
+}
+
+.flexClock__progress--fill {
+    height: 525px;
+    background-color: green;
+    position: absolute;
+    opacity: 0
+}
+
+.flexClock__step {
+    display: flex;
+    justify-content: center;
+
+}
+
+.flexClock__sub--B .flexClock__step  {
+    background-color: green;
+    color : rgba(0,0,0,0);
+    border : rgba(0,0,0,0) dashed;
+    border-width: 1px 0;
+
+}
+
+.flexClock__sub--A .flexClock__step  {
+    border:  rgba(255,255,255,.7) dashed;
+    border-width: 1px 0;
+    display: flex;
+}
+
+.flexClock__sub--A .flexClock__step span {
+    color : white;
+    flex-wrap: wrap;
+    align-self: flex-end;
+     font-size: 1.5em;
+}
+
+.flexClock__steps {
+        width: 100%;
+    top : 2px;
+    margin-left : 0px;
+}
+.flexClock__sub {
+    width : 100%;
+}
+.flexClock__steps,
+.flexClock__sub
+{
+    position: absolute;
+    height: 525px;
+}
+.flexClock__slider{
+    margin-right : -30px;
+    background-color : rgba(0,0,0,0);
+    position:relative;
+    display: flex;
+   /* z-index:0; */
+}
+
+.flexClock__slider__button{
+        text-align: right;
+    align-self: flex-end;
+    border-radius : 0;
+    border-top-right-radius: 20px;
+    border-width: 4px 4px 0 0 ;
+    padding-left: 70px;
+    margin-top : auto;
+}
+
+/*
+Window.anime({
+targets : '.flexClock__progress',//'#domAttr .demo-content',
+height : [3,568],
+background : 'rgba( 255,50,50,1)',
+opacity : [0,.8],
+duration : 10000,
+//transformZ : 5000,
+easing : 'linear',
+border : 0,
+'margin-bottom': [3,-568],
+//left : 0,
+'justify-content': 'start'
+          })
+ */
 </style>
 
 </head>
 <body>
+<div id="flexClock" class="flexClock">
+
+    <div class="flexClock__progress flexClock__progress--drain"></div>
+    <div class="flexClock__progress flexClock__progress--fill"></div>
+    <div class="flexClock__steps">
+        <div class="flexClock__sub flexClock__sub--B">
+&nbsp;
+        </div>
+        <div class="flexClock__sub flexClock__sub--A">
+            &nbsp;
+
+        </div>
+    </div>
+    <div class="flexClock__slider"><button class="big flexClock__slider__button">⏳</button></div>
+</div>
 <div id="gallery" class="gallery"></div>
 <div id="targetWrapper" class="target">
     <div class="targetWrapper__emoji">
@@ -587,6 +714,8 @@
                 <button class="sticky big emojipreview__pin" title="Activate on-deck with a pin">📌*</button>
                 <br/>
                 <button class="sticky big emojipreview__follow pressed" title="Use as mouse follower">🐁</button>
+                <button class="big emojipreview__clock">⏳</button>
+                <input class="emojipreview__clocknum" type="text" size="5" />
                 <br/>
             </div>
 
