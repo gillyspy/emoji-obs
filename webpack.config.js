@@ -57,8 +57,14 @@ let config = {
                 use    : {
                     loader : 'babel-loader',
                     options: {
-                        presets: ['@babel/preset-env'],
-                        plugins: ['@babel/plugin-proposal-private-methods']
+                        presets: ['@babel/preset-env',
+                            {
+                                plugins: [
+                                    '@babel/plugin-proposal-class-properties',
+                                    '@babel/plugin-proposal-private-methods'
+                                ]
+                            }
+                        ]
                     }
                 }
             }
@@ -91,18 +97,20 @@ if (currentTask == 'dev') {
     cssConfig.use.unshift('style-loader')
 
 } else if (currentTask == 'build') {
-  /*  config.module.rules.push({
-        test   : /\.js$/,
-        exclude: /(node_modules)/,
+   /* config.module.rules.push({
+        test   : /\.(js)$/,
+        exclude: /node_modules/,
         use    : {
             loader : 'babel-loader',
             options: {
                 presets: ['@babel/preset-env'],
-                plugins: ['@babel/plugin-proposal-private-methods']
+                plugins: [
+                    ['@babel/plugin-proposal-private-methods'],
+                    ['@babel/plugin-proposal-class-properties', {"loose": true}]
+                ]
             }
-
         }
-    })*/
+    }); */
     config.output = {
         filename     : '[name].[chunkhash].js',
         chunkFilename: '[name].[chunkhash].js',
@@ -114,7 +122,7 @@ if (currentTask == 'dev') {
             chunks: 'all'
         }
     }
-    config.plugins.push(
+  /*  config.plugins.push(
       new CleanWebpackPlugin(),
       new MiniCssExtractPlugin({
           filename: 'styles.[chunkhash].css'
@@ -127,7 +135,7 @@ if (currentTask == 'dev') {
 
     cssConfig.use.unshift(MiniCssExtractPlugin.loader)
     postcssplugins.push(require('cssnano'))
-
+*/
 }
 
 module.exports = config;
