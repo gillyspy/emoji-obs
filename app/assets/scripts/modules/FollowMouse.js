@@ -210,8 +210,23 @@ class MouseActions {
 
   } //followMouse()
 
-  static linger(el) {
+  static fadeIt(el){
 
+
+  } //fadeIt
+
+
+  static startFade(el){
+
+
+  }
+
+  static stopFade(el){
+
+
+  }
+
+  static linger(el) {
     const {left, top} = el.style;
     const _linger = function (el, originalX, originalY) {
       //const {x,y} = el.getBoundingClientRect();
@@ -222,13 +237,20 @@ class MouseActions {
       const newX = anime.random(0, 10) * xAdjust;
       const newY = anime.random(0, 30) * yAdjust;
 
+      //cannot do opacity because of overlapping opacity needs of the fade
       anime({
         targets   : el,
         translateX: newX,
         translateY: newY,
         scale : 5,
         easing    : 'easeInOutQuad',
-        opacity   : anime.random(.7, 1),
+        opacity   : (el)=>{
+          if(el.classList.contains('history--sticky')){
+            anime.random(.8, 1)
+          } else {
+            .1
+          }
+      },
         duration  : anime.random(10000, 20000),
         delay     : anime.random(0, 200),
         complete  : function () {
@@ -238,7 +260,6 @@ class MouseActions {
       });
     }
     _linger(el, left, top);
-
   }//linger
 
 } //class MouseActions

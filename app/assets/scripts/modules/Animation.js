@@ -70,18 +70,18 @@ class Animation {
     return this;
   };
 
-  timeline(name, params, addDestroy = false) {
+  timeline(name, opts, addDestroy = false) {
     //get a timeline with no params
     if (this.animationCache[name]) {
       return this;
     } else
       //new or updated timeline
-    if (typeof params === 'object') {
+    if (typeof opts === 'object') {
       let c = this.animationCache;
       if (!!addDestroy) {
         let d = this.destroyTimeline.bind(this);
-        let cb = params.complete;
-        params.complete = function () {
+        let cb = opts.complete;
+        opts.complete = function () {
           //c.animationCache[name].remove('*');
           d(name);
           if (cb) {
@@ -89,7 +89,7 @@ class Animation {
           }
         }
       }
-      this.animationCache[name] = this.anime.timeline(params);
+      this.animationCache[name] = this.anime.timeline(opts);
       return this;
     }
     return false;
@@ -103,13 +103,13 @@ class Animation {
     return
   }
 
-  addToTimeline(name, params, addDestroy = false) {
+  addToTimeline(name, opts, addDestroy = false) {
     let tl = this.timeline(name);
     if (tl) {
       if (!!addDestroy) {
         let d = this.destroyTimeline.bind(this);
-        let cb = params.complete;
-        params.complete = function () {
+        let cb = opts.complete;
+        opts.complete = function () {
           //tl.animationCache[name].remove('*');
           d(name);
           if (cb) {
@@ -117,7 +117,7 @@ class Animation {
           }
         }
       }
-      tl.animationCache[name].add(params);
+      tl.animationCache[name].add(opts);
       return this;
     }
     return;
@@ -140,7 +140,7 @@ class Animation {
     if (event === 'reverse') {
       this.animationCache[name].pause();
       this.animationCache[name].reverse();
-      this.animationCache[name].play();
+      // this.animationCache[name].play(); //TODO: ??
     } else //restart
     if (event === 'restart') {
       this.animationCache[name].restart();

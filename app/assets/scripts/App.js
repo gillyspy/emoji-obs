@@ -484,17 +484,16 @@ J$(document).ready(function ($) {
             randomClass: randomClass,  //cache its source location
             Draggable  : MouseActions.makeDraggable(
               $temp[0], {
-                //   top      : adjustment, //TODO: keep this?
-                //    left     : adjustment,
                 mousedownCB: function () {
-                  /* move it to the end of the gallery so that it
-                  has highest z-index
-                  */
+
+                  // on each drag... move it to the "end"" of the gallery (so that it has highest z-index)
                   $temp.appendTo('#gallery');
+
+                  //refresh the Fade-out animation when dragged
+                  myAnimation.doTimeline(randomClass + 'Fade', 'restart');
                 }
               })
           })
-          //           .appendTo('body')
           .appendTo('#gallery')
           .css({
               left: left,
@@ -504,7 +503,6 @@ J$(document).ready(function ($) {
           .addClass('history--draggable')
           .addClass(randomClass);
 
-
         $this.addClass(randomClass)
           .removeClass('history__btn')
           .prependTo($temp)
@@ -512,13 +510,10 @@ J$(document).ready(function ($) {
         let randomY = Math.floor(400 * Math.random()) - 100;
         let randomX = Math.floor(800 * Math.random());
 
-        //console.log(randomX, randomY);
-
-
         myAnimation.timeline(randomClass + 'To', {loop: 1})
           .addToTimeline(randomClass + 'To', {
               targets   : $temp[0],
-              scale     : [1, 5],
+              scale     : 5,
               opacity   : [.5, 1],
               translateZ: 0,
 //            translateY: randomY,//random distance
@@ -531,35 +526,46 @@ J$(document).ready(function ($) {
               easing    : "easeOutExpo",
               duration  : 950,
               //    autoplay : false,
-              delay     : 200
+              delay     : 200,
+              complete  : function () {
+                /*
+                * add a fade function after the emoji is animated to the gallery
+                 */
+                myAnimation.timeline(randomClass + 'Fade', {}) //loop?
+                  .addToTimeline(randomClass + 'Fade', {
+                    targets : $temp[0].querySelector('button'),// 'span.' + randomClass,
+                    opacity : [1, .1],
+                    duration: 40000,
+                    delay   : 1000,
+                    easing  : 'linear',
+                    begin   : function (anim) {
+                      /*
+                      ** if the emoji should be sticky then
+                      ** pause the fade and do the linger animation
+                      *
+                      * fade can be resume later
+                       */
+                      if (fave.sticky) {          //fade it
+                        myAnimation.doTimeline(randomClass + 'Fade', 'reverse');
+                        //only linger sticky items
+                        MouseActions.linger($temp[0]);
+                      }
+                    },
+                    complete: function () {
+                      if ($temp.hasClass('history--sticky')) {
+                        return;
+                      }
+                      if ($temp.hasClass('history--draggable')) {
+                        $temp.trigger('dblclick');
+                      }
+                    }
+                  });
+              }
             },
             'destroyIt'
           );
-        myAnimation.timeline(randomClass + 'Fade', {}) //loop?
-          .addToTimeline(randomClass + 'Fade', {
-            targets : $temp[0],// 'span.' + randomClass,
-            opacity : [1, .1],
-            duration: 40000,
-            delay   : 1000,
-            easing  : 'linear',
-            complete: function () {
-              if ($temp.hasClass('history--sticky')) {
-                return;
-              }
-              if ($temp.hasClass('history--draggable')) {
-                $temp.trigger('dblclick');
-              }
-            }
-          });
-        if (fave.sticky) {          //fade it
-          myAnimation.doTimeline(randomClass + 'Fade', 'pause');
+   /* from: https://tobiasahlin.com/moving-letters/#2 */
 
-          //only linger sticky items
-          MouseActions.linger($temp[0]);
-        }
-        //.doTimeline(randomClass,'play'); /* from: https://tobiasahlin.com/moving-letters/#2 */
-
-        //    $temp.appendTo('#gallery')
         ev.preventDefault();
         return false;
       }
@@ -679,18 +685,20 @@ J$(document).ready(function ($) {
 
         $temp.removeClass('history--sticky');
         myAnimation.doTimeline(randomClass + 'Fade', 'restart');
-        MouseActions.linger(this);
       } else
         //else they should now become sticky
       {
-        //start the fade
+        //reverse the fade
         $temp.addClass('history--sticky');
         myAnimation.doTimeline(randomClass + 'Fade', 'reverse');
+        //myAnimation.doTimeline(randomClass + 'Fade', 'pause');
+
         //make them sticky
         fave.sticky = true;
         //show the pin
         $temp.find('.dragTemp__pin').show();
       }
+      MouseActions.linger(this);
 
     });
     return;
