@@ -478,7 +478,23 @@ class TimerCountDown {
         document.querySelector('.' + this.#_.showClass)
           .classList.add(this.#_.hideClass)
 
+        this.#scaleAnimation.forEach(a => {
+          a.restart();
+          a.pause();
+          a.remove('*');
+        });
+
+        const valueNode = this.valueNode;
         this.#cancel('doCallback');
+        var deleteValue = setInterval( function(){
+          if(valueNode.value===''){
+            clearInterval(deleteValue)
+          } else {
+            valueNode.value = '';
+          }
+        },1000)
+
+
 
       } else //turn on
       {

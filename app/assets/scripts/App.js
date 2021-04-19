@@ -943,6 +943,7 @@ J$(document).ready(function ($) {
     //off
     function () {
       $('#flexClock').hide();
+      document.querySelector('.emojipreview__clocknum').value = '';
     });
 
 
