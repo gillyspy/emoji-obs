@@ -604,9 +604,11 @@ class TimerCountDown {
 
       try {
         let h = that.#endTime.getHours();
-        h = h < 10 ? '0' + h : h;
-        let m = that.#endTime.getMinutes() + 1;
+        let m = that.#endTime.getMinutes()+1;
+        [h,m] =  m===60 ? [h+1,0] : [h,m];
+
         m = m < 10 ? '0' + m : m;
+        h = h < 10 ? '0' + h : h;
         let mAlt = (minsLeft + '').match(/^\d+([.]\d)?/)[0]
         valueNode.value = `${h}${m}-${mAlt}`;
       } catch (e) {

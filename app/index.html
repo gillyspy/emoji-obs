@@ -318,20 +318,23 @@
         /* margin:0px */
     }
 
-
-
-    textarea {
+    input, textarea {
         font-weight: bold;
         color : white  ;
         background-color: darkgray;
         border-radius: 14px;
         margin : 5px;
     }
+    input:-internal-autofill-previewed, ::placeholder,
     textarea:-internal-autofill-previewed, ::placeholder {
         color: white;
+    }
+    textarea:-internal-autofill-previewed, ::placeholder {
         font-size: 1.5em;
     }
-
+    input:-internal-autofill-previewed, ::placeholder{
+        font-size : 1em;
+    }
     #history button.pressed,
     #buttons button.pressed,
     .drawing button.pressed
@@ -776,7 +779,7 @@ border : 0,
                 <br/>
                 <button class="sticky big emojipreview__follow pressed" title="Use as mouse follower">🐁</button>
                 <button class="big emojipreview__clock">⏳</button>
-                <input class="emojipreview__clocknum" type="text" size="5" />
+                <input placeholder="XXYYh" class="emojipreview__clocknum" type="text" size="5" />
                 <br/>
             </div>
 
