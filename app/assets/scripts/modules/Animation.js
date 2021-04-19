@@ -97,7 +97,7 @@ class Animation {
 
   destroyTimeline(name) {
     try {
-      this.animationCache[name].remove('*');
+      this.animationCache[name].remove();
        delete this.animationCache[name];
     }catch(e){}
     return
@@ -140,7 +140,7 @@ class Animation {
     if (event === 'reverse') {
       this.animationCache[name].pause();
       this.animationCache[name].reverse();
-      // this.animationCache[name].play(); //TODO: ??
+       this.animationCache[name].play(); //TODO: ??
     } else //restart
     if (event === 'restart') {
       this.animationCache[name].restart();
@@ -441,7 +441,7 @@ class TimerCountDown {
 
   #zoomIn() {
     //keep zoomOn for the 5 minute threshold
-    this.#_.zoomOn = (this.#_.timeLeft <= this.#_.zoomWhen[1])
+    this.#_.zoomOn = (this.#_.timeLeft > this.#_.zoomWhen[1])
     // stop the timer but do NOT trigger the end sequence
     this.#isRunning = false;
     // goal-end time has not changed so re-use that

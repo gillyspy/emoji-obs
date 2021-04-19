@@ -406,6 +406,7 @@ J$(document).ready(function ($) {
         pin.hide()
         $temp.append(pin);
         if (fave && fave.sticky) {
+          $temp.addClass('history--sticky');
           pin.show();
         }
         myFavs.promoteFave(fave);
@@ -485,16 +486,13 @@ J$(document).ready(function ($) {
             Draggable  : MouseActions.makeDraggable(
               $temp[0], {
                 mousedownCB: function () {
-
                   // on each drag... move it to the "end"" of the gallery (so that it has highest z-index)
                   $temp.appendTo('#gallery');
 
                   //refresh the Fade-out animation when dragged
+                  myAnimation.doTimeline(randomClass + 'Fade', 'restart');
                   if ($temp.hasClass('history--sticky')) {
-                    myAnimation.doTimeline(randomClass + 'Fade', 'reverse');
                     myAnimation.doTimeline(randomClass + 'Fade', 'pause');
-                  }else{
-                    myAnimation.doTimeline(randomClass + 'Fade', 'restart');
                   }
                 }
               })
@@ -519,7 +517,7 @@ J$(document).ready(function ($) {
           .addToTimeline(randomClass + 'To', {
               targets   : $temp[0],
               scale     : 5,
-              opacity   : [.5, 1],
+              opacity   : 1,
               translateZ: 0,
 //            translateY: randomY,//random distance
               //  translateX : randomX,
@@ -533,6 +531,11 @@ J$(document).ready(function ($) {
               //    autoplay : false,
               delay     : 200,
               complete  : function () {
+                //if (fave.sticky) {          //fade it
+                  //only linger sticky items
+                  MouseActions.linger($temp[0]);
+                //}
+
                 /*
                 * add a fade function after the emoji is animated to the gallery
                  */
@@ -553,6 +556,8 @@ J$(document).ready(function ($) {
                     },
                     complete: function () {
                       if ($temp.hasClass('history--sticky')) {
+                        myAnimation.doTimeline(randomClass + 'Fade', 'restart');
+                        myAnimation.doTimeline(randomClass + 'Fade', 'pause');
                         return;
                       }
                       if ($temp.hasClass('history--draggable')) {
@@ -565,11 +570,7 @@ J$(document).ready(function ($) {
             'destroyIt'
           );
         /* from: https://tobiasahlin.com/moving-letters/#2 */
-        if (fave.sticky) {          //fade it
-          myAnimation.doTimeline(randomClass + 'Fade', 'reverse');
-          //only linger sticky items
-          MouseActions.linger($temp[0]);
-        }
+
 
         ev.preventDefault();
         return false;
@@ -680,23 +681,22 @@ J$(document).ready(function ($) {
       if (fave && fave.sticky)
         //if they are already sticky then remove that and start the fade
       {
+        //remove sticky
+        fave.sticky = false;
+        $temp.removeClass('history--sticky');
+
         //hide the pin
         $temp.find('.dragTemp__pin').hide();
 
-        //remove sticky
-        fave.sticky = false;
-        //the fade
-        myAnimation.doTimeline(randomClass + 'Fade', 'reverse');
-
-        $temp.removeClass('history--sticky');
+        //reverse any fade by restart
         myAnimation.doTimeline(randomClass + 'Fade', 'restart');
       } else
         //else they should now become sticky
       {
         //reverse the fade
         $temp.addClass('history--sticky');
-        myAnimation.doTimeline(randomClass + 'Fade', 'reverse');
-        //myAnimation.doTimeline(randomClass + 'Fade', 'pause');
+        myAnimation.doTimeline(randomClass + 'Fade', 'restart');
+        myAnimation.doTimeline(randomClass + 'Fade', 'pause');
 
         //make them sticky
         fave.sticky = true;

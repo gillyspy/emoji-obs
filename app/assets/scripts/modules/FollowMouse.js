@@ -228,6 +228,7 @@ class MouseActions {
 
   static linger(el) {
     const {left, top} = el.style;
+    let firstTimeDone=false;
     const _linger = function (el, originalX, originalY) {
       //const {x,y} = el.getBoundingClientRect();
       const {left, top} = el.style
@@ -237,20 +238,26 @@ class MouseActions {
       const newX = anime.random(0, 10) * xAdjust;
       const newY = anime.random(0, 30) * yAdjust;
 
+      if(!firstTimeDone){
+        anime({
+          targets : el,
+          scale : 5,
+          duration : 1000
+        }).remove()  ;
+        firstTimeDone = true;
+      }
+
       //cannot do opacity because of overlapping opacity needs of the fade
       anime({
         targets   : el,
         translateX: newX,
         translateY: newY,
-        scale : 5,
-        easing    : 'easeInOutQuad',
-        opacity   : (el)=>{
-          if(el.classList.contains('history--sticky')){
-            anime.random(.8, 1)
-          } else {
-            .1
+        opacity : ()=>{
+          if( el.classList.contains('history--sticky')){
+            anime.random(.8,1)
           }
       },
+        easing    : 'easeInOutQuad',
         duration  : anime.random(10000, 20000),
         delay     : anime.random(0, 200),
         complete  : function () {
