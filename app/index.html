@@ -364,16 +364,19 @@
     .stickybutton {
     }
 
-
-    #afkImages > div {
+    .afkImages {
         opacity: .9;
         margin-bottom: -1000px;
         background-color: rgba(117, 202, 221, .8);
-        position: fixed;
-        z-index: -1;
+     /*   position: fixed; */
         width: 100%;
+        z-index: -1500;
+        position: absolute;
+    }
+    .afkImages--hide {
         display: none;
     }
+
 
     img {
         box-shadow: 0 0 5px 10px #555;
@@ -451,11 +454,7 @@
         bottom: 0;
     }
 
-    #afkImages > div {
-        display: none;
-        z-index: -1500;
-        position: absolute;
-    }
+
 
     #fakeMouse {
         opacity : 0;
@@ -693,13 +692,13 @@ border : 0,
     </div>
 </div>
 <div id="afkImages">
-    <div id="afk1">
+    <div id="afk1" class="afkImages afkImages--hide">
         <img width="100%" src="assets/img/afk.gif">
     </div>
-    <div id="afk2">
+    <div id="afk2" class="afkImages afkImages--hide">
         <img width="100%" src="assets/img/afk2.gif">
     </div>
-    <div id="afk3">
+    <div id="afk3" class="afkImages afkImages--hide">
         <img width="100%" src="assets/img/afk3.gif">
     </div>
 </div>

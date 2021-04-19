@@ -8,14 +8,14 @@ const Init = {
     '✌🏻': true
   },
   historySize      : 50,
-  rocketpathspeedoffset: 20000,
+  idlespeedoffset: 20000,
    defaultpointeremoji: '✌🏻',
   defaultidleemoji : '☕',
   idletimeout : 100000,
   idlerotation : false,
   linger   : true,
   urlParams :  [
-    'rocketspeedoffset',
+    'idlespeedoffset',
     'defaultidleemoji',
     'defaultpointeremoji',
     'idletimeout',

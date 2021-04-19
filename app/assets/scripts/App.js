@@ -72,7 +72,7 @@ J$(document).ready(function ($) {
     document.querySelector('#mousePath'),
     {
       idlerotation: Config.idlerotation,
-      adjustment  : Config.rocketpathspeedoffset
+      adjustment  : Config.idlespeedoffset
     }
   );
   RP.setTarget(Config.defaultidleemoji)
@@ -221,7 +221,7 @@ J$(document).ready(function ($) {
       doShow = false;
       $this = $(this);
       $('#' + $afk.data('beforeAfk')).click();
-      $this.hide();
+      $this.addClass('afkImages--hide');
       //$('#' + '✌🏻').click();
       $('button.AFK').removeClass('pressed');
     });
@@ -232,7 +232,7 @@ J$(document).ready(function ($) {
       //store the previous element on the afk button object
       $afk.data('beforeAfk', myFavs.recallFave().emoji);
       $('#' + '💤').click();
-      $this.show();
+      $this.removeClass('afkImages--hide');
       // stickyButton.click();
       $('button.AFK').addClass('pressed');
     }
