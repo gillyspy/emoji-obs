@@ -870,6 +870,10 @@ J$(document).ready(function ($) {
       'messageTarget__pre--full',
       'messageTarget__pre--left',
       'messageTarget__pre--right',
+      'messageTarget__pre--fullBottom',
+      'messageTarget__pre--leftBottom',
+      'messageTarget__pre--rightBottom',
+
       'messageTarget__pre--off'
     ];
     //determine which index currently have.

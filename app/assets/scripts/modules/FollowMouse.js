@@ -327,7 +327,6 @@ MouseActions.makeDraggable =
     target.addEventListener('mouseup', function (ev) {
       log.browser('stop drag')
       isDragging = false;
-
       opts.mouseupCB && opts.mouseupCB(target);
 
       //return false;
