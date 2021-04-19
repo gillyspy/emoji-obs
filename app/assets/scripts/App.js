@@ -63,7 +63,7 @@ J$(document).ready(function ($) {
   Object.assign(Config, {
     linger :   (Config.linger === 'true'),
      idlerotation: (Config.idlerotation === 'true'),
-      adjustment  : +(Config.rocketpathspeedoffset)
+      adjustment  : +(Config.idlespeedoffset)
 
   });
 
