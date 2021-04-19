@@ -464,6 +464,9 @@ J$(document).ready(function ($) {
                 duration: 1000,
                 delay   : 0,
                 easing  : 'linear',
+                complete : function(){
+                   anime.remove( '.' + randomClass );
+                }
               },
               'destroyIt'
             );

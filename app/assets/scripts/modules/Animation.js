@@ -326,7 +326,7 @@ class TimerCountDown {
      */
 
     //normal step height
-    stepHeight = remainingPixels / remainingDuration // (stepsNeeded-1)
+    stepHeight = remainingPixels / remainingDuration * this.#_.stepSize;// (stepsNeeded-1)
 
     //populate those steps
     for (let i = 0; i < stepsNeeded; i++) {
@@ -352,7 +352,7 @@ class TimerCountDown {
     }
   }
 
-  static durationToTopOfHour() {
+   durationToTopOfHour() {
     const {now, future} = {
       now   : (new Date()),
       future: (new Date())
@@ -382,7 +382,7 @@ class TimerCountDown {
       duration = (future - now) / 1000 / 60;
       this.#endTime = future;
     } else {
-      duration = TimerCountDown.durationToTopOfHour();
+      duration = this.durationToTopOfHour();
     }
 
     //duration is in minutes here
