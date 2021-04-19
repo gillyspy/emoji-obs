@@ -328,8 +328,7 @@ MouseActions.makeDraggable =
       log.browser('stop drag')
       isDragging = false;
 
-      //resume the "linger" animation
-      MouseActions.linger(target);
+      opts.mouseupCB && opts.mouseupCB(target);
 
       //return false;
     });

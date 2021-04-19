@@ -28,6 +28,7 @@ http://10.0.0.10:3000/?defEmoji=%E2%98%95&defPoint=%E2%9C%8C%F0%9F%8F%BB&rocketS
 
 J$(document).ready(function ($) {
   var _x = cssConfig.getConfig();
+  const Config = {};
   try {
     const urlParams = (new URL(window.location.href)).searchParams;
   /*  const Config = Object.assign((({
@@ -47,24 +48,31 @@ J$(document).ready(function ($) {
     ,urlParams)*/
 
 
-    var Config = Object.assign({}, Init, (function(U){
-      let a = ['rocketspeedoffset', 'defaultidleemoji', 'defaultpointeremoji', 'idletimeout', 'idlerotation'];
+    Object.assign(Config, Init, (function (U) {
+      let a = Init.urlParams;
       let o = {};
-       U.searchParams.forEach( (v,k) => o[a[a.indexOf(k)]] = v);
-       return o;
-    })(new URL(window.location.href))) ;
+      U.searchParams.forEach((v, k) => o[a[a.indexOf(k)]] = v);
+      return o;
+    })(new URL(window.location.href)));
     //$('textarea').val( JSON.stringify(Config));
     //$('textarea').val(JSON.stringify(cssConfig.selectorList));
   } catch (e) {
-    var Config = Object.assign({}, Init );
+     Object.assign(Config, Init);
   }
+  //convert values
+  Object.assign(Config, {
+    linger :   (Config.linger === 'true'),
+     idlerotation: (Config.idlerotation === 'true'),
+      adjustment  : +(Config.rocketpathspeedoffset)
+
+  });
 
   const RP = new IdlePath(
     document.querySelector('#idleAnimation'),
     document.querySelector('#mousePath'),
     {
-      idlerotation  : Config.idlerotation ==='true' || false,
-      adjustment: +(Config.rocketpathspeedoffset)
+      idlerotation: Config.idlerotation,
+      adjustment  : Config.rocketpathspeedoffset
     }
   );
   RP.setTarget(Config.defaultidleemoji)
@@ -488,7 +496,7 @@ J$(document).ready(function ($) {
             randomClass: randomClass,  //cache its source location
             Draggable  : MouseActions.makeDraggable(
               $temp[0], {
-                mousedownCB: function () {
+                mousedownCB: function (el) {
                   // on each drag... move it to the "end"" of the gallery (so that it has highest z-index)
                   $temp.appendTo('#gallery');
 
@@ -497,6 +505,10 @@ J$(document).ready(function ($) {
                   if ($temp.hasClass('history--sticky')) {
                     myAnimation.doTimeline(randomClass + 'Fade', 'pause');
                   }
+                },
+                mouseupCB  : function (el) {
+                  //resume the "linger" animation after mouseup
+                  Config.linger && MouseActions.linger(el);
                 }
               })
           })
@@ -534,9 +546,8 @@ J$(document).ready(function ($) {
               //    autoplay : false,
               delay     : 200,
               complete  : function () {
-                //if (fave.sticky) {          //fade it
-                  //only linger sticky items
-                  MouseActions.linger($temp[0]);
+                //if (fave.sticky) {     //only linger sticky items?
+                Config.linger && MouseActions.linger($temp[0]);
                 //}
 
                 /*
@@ -631,7 +642,7 @@ J$(document).ready(function ($) {
     if (ev.which >= 37 && ev.which <= 40)
       $('#gallery').find('.dragTemp:last').each(function () {
         myAnimation.moveTarget(ev.which, 20, $(this));
-        MouseActions.linger(this);
+        Config.linger && MouseActions.linger(this);
       })
 
     //emojiWrapperAnimation.moveTarget(ev.which); //
@@ -706,7 +717,7 @@ J$(document).ready(function ($) {
         //show the pin
         $temp.find('.dragTemp__pin').show();
       }
-      MouseActions.linger(this);
+      Config.linger && MouseActions.linger(this);
 
     });
     return;

@@ -13,6 +13,15 @@ const Init = {
   defaultidleemoji : '☕',
   idletimeout : 100000,
   idlerotation : false,
+  linger   : true,
+  urlParams :  [
+    'rocketspeedoffset',
+    'defaultidleemoji',
+    'defaultpointeremoji',
+    'idletimeout',
+    'idlerotation',
+    'linger'
+  ],
   canvas           : {
     backgroundColor: "rgba(85,0,255,0)", //"#5500ff",
     strokeColor    : "orange",
