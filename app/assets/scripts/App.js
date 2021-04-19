@@ -490,7 +490,12 @@ J$(document).ready(function ($) {
                   $temp.appendTo('#gallery');
 
                   //refresh the Fade-out animation when dragged
-                  myAnimation.doTimeline(randomClass + 'Fade', 'restart');
+                  if ($temp.hasClass('history--sticky')) {
+                    myAnimation.doTimeline(randomClass + 'Fade', 'reverse');
+                    myAnimation.doTimeline(randomClass + 'Fade', 'pause');
+                  }else{
+                    myAnimation.doTimeline(randomClass + 'Fade', 'restart');
+                  }
                 }
               })
           })
@@ -545,11 +550,6 @@ J$(document).ready(function ($) {
                       *
                       * fade can be resume later
                        */
-                      if (fave.sticky) {          //fade it
-                        myAnimation.doTimeline(randomClass + 'Fade', 'reverse');
-                        //only linger sticky items
-                        MouseActions.linger($temp[0]);
-                      }
                     },
                     complete: function () {
                       if ($temp.hasClass('history--sticky')) {
@@ -564,7 +564,12 @@ J$(document).ready(function ($) {
             },
             'destroyIt'
           );
-   /* from: https://tobiasahlin.com/moving-letters/#2 */
+        /* from: https://tobiasahlin.com/moving-letters/#2 */
+        if (fave.sticky) {          //fade it
+          myAnimation.doTimeline(randomClass + 'Fade', 'reverse');
+          //only linger sticky items
+          MouseActions.linger($temp[0]);
+        }
 
         ev.preventDefault();
         return false;
