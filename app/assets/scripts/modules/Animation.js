@@ -750,6 +750,7 @@ class RocketPath {
     if (opts) {
       Object.assign(_, opts);
     }
+    opts.adjustment = this.adjustSpeed(opts.adjustment);
     if (!RP) {
       RP = this;
       this.initAnimation();
@@ -765,10 +766,8 @@ class RocketPath {
   }
 
   adjustSpeed(adjustment) {
-    _.adjustment = Math.max(
-      Math.min(adjustment, 2000),
-      300000
-    );
+    adjustment = Math.floor(+adjustment); //make sure it's a valid number
+    _.adjustment = Math.max(adjustment, 2000);
   }
 
   setTarget(newTargetEmojiOrElement) {
@@ -792,6 +791,7 @@ class RocketPath {
   }
 
   initAnimation(forceNew) {
+    let duration = (anime.random(1,20000) + _.adjustment);
     if (RP.animation) {
       //  delete RP.animation;
       anime.remove(RP.target)
@@ -817,7 +817,7 @@ class RocketPath {
         range.push(_.opacity);
         return range;
       },
-      duration  : (Math.random() * 20000 + _.adjustment),
+      duration  : duration,
       //  autoplay  : false,
       begin     : function () {
         _.began = true;
