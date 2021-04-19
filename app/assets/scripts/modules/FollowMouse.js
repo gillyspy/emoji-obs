@@ -257,8 +257,8 @@ class MouseActions {
             anime.random(.8,1)
           }
       },
-        easing    : 'easeInOutQuad',
-        duration  : anime.random(10000, 20000),
+        easing    : 'easeInOutSine', //easeInOutQuad
+        duration  : anime.random(20000, 30000),
         delay     : anime.random(0, 200),
         complete  : function () {
           anime.remove(el);
@@ -300,16 +300,17 @@ MouseActions.makeDraggable =
       isDragging = true;
 
       //removeAny anime animations which might impact its position, especially transformations
-      anime.remove(target)
+
+      anime.remove(target);
+
       //remove any XY translations that might interfere
       if (target.style.transform) {
         let oldTransform = target.style.transform;
-        target.style.transform = oldTransform.replaceAll(/(translate[XY][(][^()]*[)][ ]?)/g, '');
+        //positive lookahead https://regex101.com/r/6zRic1/1
+        target.style.transform = oldTransform.replace(/(?<=translate[XY][(])([^()])*/g, '0px');
       }
-
       //perform client callback
       opts.mousedownCB && opts.mousedownCB();
-
       target.style.left = (ev.pageX - opts.left) + 'px';
       target.style.top = (ev.pageY - opts.top) + 'px';
       // return false;
