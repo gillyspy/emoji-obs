@@ -375,7 +375,7 @@ class TimerCountDown {
       future = timeRequest;
       duration = (future - now) / 1000 / 60
     } else if (timeRequest) {
-      [nothing, h, m] = timeRequest.match(/^(\d{2})(\d*)[^\d]*/);
+      [nothing, h, m] = timeRequest.match(/^(\d{2})(\d{2})/);
 
       let future = new Date();
       future.setHours(h, m, 0, 0);
@@ -594,7 +594,12 @@ class TimerCountDown {
       updateTimeLeft(minsLeft);
 
       try {
-        valueNode.value = (minsLeft + '').match(/^\d+([.]\d)?/)[0];
+        let h = that.#endTime.getHours();
+        h = h < 10 ? '0' + h : h;
+        let m = that.#endTime.getMinutes() + 1;
+        m = m < 10 ? '0' + m : m;
+        let mAlt = (minsLeft + '').match(/^\d+([.]\d)?/)[0]
+        valueNode.value = `${h}${m}-${mAlt}`;
       } catch (e) {
       }
 
