@@ -369,17 +369,26 @@ class TimerCountDown {
 
   translateInput(timeRequest) {
     /*parse text input such as 1430h into a time */
-    let t, h, m, nothing, duration, future;
+    let t, h, m, duration, future;
     const now = new Date();
     if (timeRequest instanceof Date) {
       future = timeRequest;
       duration = (future - now) / 1000 / 60
     } else if (timeRequest) {
-      [nothing, h, m] = timeRequest.match(/^(\d{2})(\d{2})/);
+      [ m, h ] = timeRequest.match(/^(\d{2})(\d{2})/).reverse();
+      [m, h] = [+m,+h];
+
+
 
       let future = new Date();
       future.setHours(h, m, 0, 0);
       duration = (future - now) / 1000 / 60;
+
+      if(duration > 240){
+        future = new Date();
+        future.setHours( future.getHours()+5,0,0,0);
+        duration = this.translateInput( future );
+      }
       this.#endTime = future;
     } else {
       duration = this.durationToTopOfHour();
