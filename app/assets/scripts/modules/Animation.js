@@ -200,7 +200,7 @@ class TimerCountDown {
       zoomWhen        : [600000, 300000] // time remaining threshold to zoom in at
     };
     this.#_ = Object.assign({}, this.#_, opts);
-    this.#callbacks = TimerCountDown.#registerCallbacks(this.#_.callbacks);
+    this.#callbacks = this.#registerCallbacks(this.#_.callbacks);
     this.init();
   }
 
@@ -288,10 +288,10 @@ class TimerCountDown {
     TimerCountDown.#resetSlider();
 
     //re-register callbacks (so that they can fire again)
-    TimerCountDown.#registerCallbacks(this.#_.callbacks);
+    this.#registerCallbacks(this.#_.callbacks);
 
     //reset anything a cancel would anime-based animations
-    this.#cancel('doCallback' === 'no');
+    this.#cancel(false);
 
     //remove old steps
     [...this.targetNode.querySelectorAll('div')].forEach((e) => {
@@ -428,17 +428,7 @@ class TimerCountDown {
   } //translateInput
 
   #cancel(doCallback) {
-
-    anime({
-      targets           : '#meetingOver',
-      'background-color': 'rgba(0,0,0,.8)',
-      opacity           : 0,
-      duration          : 100
-    });
-    anime.remove(this.targetNode.childNodes);
-    anime.remove(document.getElementById('meetingOver').childNodes);
-
-    if (doCallback)
+    if (!!doCallback)
       this.#offCB();
   } // #cancel
 
@@ -454,7 +444,7 @@ class TimerCountDown {
     });
   }
 
-  static #registerCallbacks(cbs) {
+  #registerCallbacks(cbs) {
     const _cbs = [];
     cbs.forEach((cb, i) => {
       if (!Array.isArray(cb.times)) {
@@ -638,15 +628,17 @@ class TimerCountDown {
       }
 
       //user's time-based callbacks
-      let cb = cbs[Math.ceil(minsLeft)];
-      if (cb && !cb.isDone) {
+      let cbOpts = cbs[Math.ceil(minsLeft)];
+      if (cbOpts && !cbOpts.isDone) {
         //cb.firedOn !== Math.ceil(minsLeft) ) {
         try {
-          cb.cb(Math.ceil(minsLeft));
-          cb.firedOn = Math.ceil(minsLeft);
-          cb.isDone = true;
+          //pass in TimerCountDown instance
+          let cb = cbOpts.cb.bind(that);
+          cb(Math.ceil(minsLeft));
+          cbOpts.firedOn = Math.ceil(minsLeft);
+          cbOpts.isDone = true;
         } catch (e) {
-          console.log('callback failed');
+          console.log('callback failed', e);
         }
 
       }
@@ -739,22 +731,11 @@ class TimerCountDown {
 
   }
 
-  static grandFinale(minsLeft, endTime) {
+  static grandFinale() {
     anime('#meetingOver').remove();
     anime('#meetingOver *').remove();
-    let intervalFn;
-    let updateCounter = function (el) {
-      el.value = new Date().toLocaleTimeString("en-US",
-        {
-          timeZone: "Canada/Eastern",
-          hour12  : false,
-          hour    : "2-digit",
-          minute  : "2-digit",
-          second  : "2-digit"
-        })
-    };
 
-    return anime.timeline({loop: 1})
+    anime.timeline({loop: 1})
       .add({
         targets           : '#meetingOver',
         'background-color': 'rgba(0,0,0,.8)',
@@ -768,7 +749,24 @@ class TimerCountDown {
         translateZ: 0,
         easing    : "easeOutExpo",
         duration  : 600,
-        delay     : (el, i) => 70 * (i + 1)
+        delay     : (el, i) => 70 * (i + 1),
+        complete  : () => {
+          try {
+            let ev2 = document.createEvent('MouseEvents')
+            ev2.initEvent('dblclick', true, true);
+            document.getElementById('✌🏻').dispatchEvent(ev2);
+            anime({
+              targets : document.querySelector('#gallery .dragTemp'),
+              top     : 240,
+              left    : 700,
+              opacity : [0, 1],
+              duration: 2000,
+              easing  : 'easeInSine'
+            });
+          } catch (e) {
+            console.log(e)
+          }
+        }
       })
       .add({
         targets : '#meetingOver .line',
@@ -776,44 +774,9 @@ class TimerCountDown {
         opacity : [0.5, 1],
         easing  : "easeOutExpo",
         duration: 700,
-        offset  : '-=700',
-        complete: function () {
-          try {
-            let ev2 = document.createEvent('MouseEvents')
-            ev2.initEvent('dblclick', true, true);
-            document.getElementById('✌🏻').dispatchEvent(ev2);
-            anime({
-              targets: document.querySelector('#gallery .dragTemp'),
-              top    : 240,
-              left   : 700,
-              opacity : [0,1],
-              duration  : 2000,
-              easing : 'easeInSine'
-            });
-          } catch (e) {
-          }
-        }
-      })
-      .add({
-        targets  : document.querySelector('.goodBye__counter'),
-        opacity : [0,.8],
-        duration: 1000,
-        begin : ()=>updateCounter(document.querySelector('.goodBye__counter'))
-      })
-    .add({
-      targets: document.querySelector('.goodBye__counter'),
-        opacity : [.8, 1],
-        duration: (30 * 60 * 60 * 1000),
-        update  : function (a) {
-          intervalFn = setInterval( function() {
-            updateCounter(document.querySelector('.goodBye__counter'));
-          }, 500 )
-        },
-      complete : function(){
-          clearInterval( intervalFn )
-      }
+        offset  : '-=700'
       });
-  }
+  } //grandFinale
 
   show() {
 

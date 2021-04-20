@@ -1001,7 +1001,61 @@ J$(document).ready(function ($) {
         },
         {
           times: [0], //essentially on expiry
-          cb      : MeetingCountDown.grandFinale
+          cb   : function (minsLeft) {
+            let triggerNode = this.triggerNode;
+            MeetingCountDown.grandFinale();
+            let oneClick = function (ev) {
+              clearInterval(intervalFn);
+              //remove this event after firing once
+              ev.currentTarget.removeEventListener('click', oneClick);
+            }
+            let updateCounter = function (el) {
+              el.value = new Date().toLocaleTimeString("en-US",
+                {
+                  timeZone: "Canada/Eastern",
+                  hour12  : false,
+                  hour    : "2-digit",
+                  minute  : "2-digit",
+                  second  : "2-digit"
+                })
+            };
+            let counterNode = document.querySelector('.goodBye__counter');
+            updateCounter(counterNode);
+            let intervalFn;
+
+            anime.timeline({loop: 1})
+              .add({
+                targets   : counterNode,
+                scale     : 1,
+                duration  : 10000,
+                opacity   : [0, 0],
+                translateY: 150,
+                complete  : () => {
+                  intervalFn = setInterval(function () {
+                    updateCounter(counterNode);
+                  }, 500);
+                }
+              })
+              .add({
+                targets   : counterNode,
+                opacity   : [0, 1],
+                duration  : 5000,
+                translateY: 0
+              })
+              .add({
+                  targets : counterNode,
+                  scale   : 1,
+                  duration: (10 * 60 * 60 * 1000),
+                  update  : function (a) {
+                    /* this will probably get killed before completion so
+                    setup a handler on the clock's triggerNode to
+                     */
+                    triggerNode
+                      .addEventListener('click',oneClick);
+                  }
+                }
+              ); //animation
+          }
         }
       ]
 
@@ -1016,8 +1070,24 @@ J$(document).ready(function ($) {
     },
     //off
     function () {
+
       $('#flexClock').hide();
+      document.querySelector('.goodBye__counter').value = '';
+      anime.remove('#meetingOver');
+      anime.remove('#meetingOver *');
+      anime({
+        targets           : '#meetingOver',
+        'background-color': 'rgba(0,0,0,.8)',
+        opacity           : 0,
+        duration          : 100
+      });
+      anime({
+        targets : document.querySelector('.goodBye__counter'),
+        opacity : 0,
+        duration: 100
+      });
       document.querySelector('.emojipreview__clocknum').value = '';
+      anime.remove(document.getElementById('meetingOver').childNodes);
     });
 
 
