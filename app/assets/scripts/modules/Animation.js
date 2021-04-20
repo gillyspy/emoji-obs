@@ -794,19 +794,11 @@ class TimerCountDown {
         },
         delay   : (el, i, l) => 80 * (l - i)
       })
-      .add({
-        targets : document.querySelector('.goodBye__counter'),
-        opacity : .8,
-        begin   : () => {
-          updateCounter(document.querySelector('.goodBye__counter'));
-        },
-        duration: 10000
-      }).add({
+    .add({
         opacity : [.8, 1],
         duration: (30 * 60 * 60 * 1000),
         update  : function (a) {
           updateCounter(document.querySelector('.goodBye__counter'));
-
         }
       });
   }
