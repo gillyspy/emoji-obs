@@ -742,8 +742,9 @@ class TimerCountDown {
   static grandFinale(minsLeft, endTime) {
     anime('#meetingOver').remove();
     anime('#meetingOver *').remove();
+    let intervalFn;
     let updateCounter = function (el) {
-      el.textContent = new Date().toLocaleTimeString("en-US",
+      el.value = new Date().toLocaleTimeString("en-US",
         {
           timeZone: "Canada/Eastern",
           hour12  : false,
@@ -791,15 +792,26 @@ class TimerCountDown {
             });
           } catch (e) {
           }
-        },
-        delay   : (el, i, l) => 80 * (l - i)
+        }
+      })
+      .add({
+        targets  : document.querySelector('.goodBye__counter'),
+        opacity : [0,.8],
+        duration: 1000,
+        begin : ()=>updateCounter(document.querySelector('.goodBye__counter'))
       })
     .add({
+      targets: document.querySelector('.goodBye__counter'),
         opacity : [.8, 1],
         duration: (30 * 60 * 60 * 1000),
         update  : function (a) {
-          updateCounter(document.querySelector('.goodBye__counter'));
-        }
+          intervalFn = setInterval( function() {
+            updateCounter(document.querySelector('.goodBye__counter'));
+          }, 500 )
+        },
+      complete : function(){
+          clearInterval( intervalFn )
+      }
       });
   }
 
