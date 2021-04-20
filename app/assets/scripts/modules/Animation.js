@@ -173,6 +173,7 @@ class TimerCountDown {
   #isRunning = false;
   #endTime;
   #scaleAnimation = [];
+  #callbacks = []; //timebased callbacks that fire on times
 
   constructor(triggerNode, valueNode, targetNode, opts, onCB, offCB) {
     this.triggerNode = triggerNode;
@@ -199,6 +200,7 @@ class TimerCountDown {
       zoomWhen        : [600000, 300000] // time remaining threshold to zoom in at
     };
     this.#_ = Object.assign({}, this.#_, opts);
+    this.#callbacks = TimerCountDown.#registerCallbacks(this.#_.callbacks);
     this.init();
   }
 
@@ -235,6 +237,7 @@ class TimerCountDown {
       now = new Date()
       sPassed = (now - that.#timeStarted);
       let keepGoing = fn(sPassed);
+
       if (typeof keepGoing === 'function') {
         keepGoing();
       } else if (!that.#isRunning) {
@@ -244,7 +247,7 @@ class TimerCountDown {
         setTimeout(p, tick);
 
       } else {
-        TimerCountDown.grandFinale()
+        //TOOD? anything?
       }
     })();
   }
@@ -283,6 +286,9 @@ class TimerCountDown {
     //reset the slider
 //    this.sliderNode.style.transform = `translateY(0px)`;
     TimerCountDown.#resetSlider();
+
+    //re-register callbacks (so that they can fire again)
+    TimerCountDown.#registerCallbacks(this.#_.callbacks);
 
     //reset anything a cancel would anime-based animations
     this.#cancel('doCallback' === 'no');
@@ -448,6 +454,21 @@ class TimerCountDown {
     });
   }
 
+  static #registerCallbacks(cbs) {
+    const _cbs = [];
+    cbs.forEach((cb, i) => {
+      if (!Array.isArray(cb.times)) {
+        cb.times = [cb.times]
+      }
+      cb.times.forEach(t => {
+        //index this callback for each time
+        _cbs[t] = cb;
+      })
+      cb.isDone = false; //flag to track its use
+    });
+    return _cbs;
+  }
+
   #zoomIn() {
     //keep zoomOn for the 5 minute threshold
     this.#_.zoomOn = (this.#_.timeLeft > this.#_.zoomWhen[1])
@@ -562,6 +583,7 @@ class TimerCountDown {
       return this.#_.minsRemaining;
     }.bind(this);
     const that = this;
+    const cbs = this.#callbacks;
 
     this.#scaleAnimation.push(anime({
       targets          : '.flexClock__sub--B .flexClock__step',  //'.' + this.#_.drainClass,//'#domAttr .demo-content',
@@ -601,11 +623,12 @@ class TimerCountDown {
       that.#_.timeLeft = (duration - milliPassed);
       let minsLeft = that.#_.timeLeft / 60000;
       updateTimeLeft(minsLeft);
+      let overRun = 5000;
 
       try {
         let h = that.#endTime.getHours();
-        let m = that.#endTime.getMinutes()+1;
-        [h,m] =  m===60 ? [h+1,0] : [h,m];
+        let m = that.#endTime.getMinutes() + 1;
+        [h, m] = m === 60 ? [h + 1, 0] : [h, m];
 
         m = m < 10 ? '0' + m : m;
         h = h < 10 ? '0' + h : h;
@@ -614,14 +637,31 @@ class TimerCountDown {
       } catch (e) {
       }
 
+      //user's time-based callbacks
+      let cb = cbs[Math.ceil(minsLeft)];
+      if (cb && !cb.isDone) {
+        //cb.firedOn !== Math.ceil(minsLeft) ) {
+        try {
+          cb.cb(Math.ceil(minsLeft));
+          cb.firedOn = Math.ceil(minsLeft);
+          cb.isDone = true;
+        } catch (e) {
+          console.log('callback failed');
+        }
+
+      }
       if (milliPassed < milliDelay) {
         keepGoing = true;
       } else if (ratioTimePassed >= 0 && ratioTimePassed <= 1) {
         curY = ratioTimePassed * pxDistance;
         keepGoing = true;
       } else {
-        curY = pxDistance;
-        keepGoing = false;
+        curY = pxDistance
+        //allow overrun
+        let now = new Date();
+        if ((now - that.#endTime) > overRun) {
+          keepGoing = false;
+        }
       }
 
       if (!that.#_.sunsetTriggered && minsLeft < 5) {
@@ -699,7 +739,20 @@ class TimerCountDown {
 
   }
 
-  static grandFinale() {
+  static grandFinale(minsLeft, endTime) {
+    anime('#meetingOver').remove();
+    anime('#meetingOver *').remove();
+    let updateCounter = function (el) {
+      el.textContent = new Date().toLocaleTimeString("en-US",
+        {
+          timeZone: "Canada/Eastern",
+          hour12  : false,
+          hour    : "2-digit",
+          minute  : "2-digit",
+          second  : "2-digit"
+        })
+    };
+
     return anime.timeline({loop: 1})
       .add({
         targets           : '#meetingOver',
@@ -724,16 +777,37 @@ class TimerCountDown {
         duration: 700,
         offset  : '-=700',
         complete: function () {
-          let ev2 = document.createEvent('MouseEvents')
-          ev2.initEvent('dblclick', true, true);
-          document.getElementById('✌🏻').dispatchEvent(ev2);
+          try {
+            let ev2 = document.createEvent('MouseEvents')
+            ev2.initEvent('dblclick', true, true);
+            document.getElementById('✌🏻').dispatchEvent(ev2);
+            anime({
+              targets: document.querySelector('#gallery .dragTemp'),
+              top    : 240,
+              left   : 700,
+              opacity : [0,1],
+              duration  : 2000,
+              easing : 'easeInSine'
+            });
+          } catch (e) {
+          }
         },
         delay   : (el, i, l) => 80 * (l - i)
       })
       .add({
-        targets: document.querySelector('#gallery .dragTemp'),
-        top    : 200,
-        left   : 800
+        targets : document.querySelector('.goodBye__counter'),
+        opacity : .8,
+        begin   : () => {
+          updateCounter(document.querySelector('.goodBye__counter'));
+        },
+        duration: 10000
+      }).add({
+        opacity : [.8, 1],
+        duration: (30 * 60 * 60 * 1000),
+        update  : function (a) {
+          updateCounter(document.querySelector('.goodBye__counter'));
+
+        }
       });
   }
 

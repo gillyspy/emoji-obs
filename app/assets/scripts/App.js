@@ -946,7 +946,66 @@ J$(document).ready(function ($) {
     document.querySelector('.emojipreview__clock'),
     document.querySelector('.emojipreview__clocknum'),
     document.querySelector('.flexClock__steps'), //flexClock__steps
-    {},
+    {
+      callbacks: [
+        {
+          times: [5,10],
+          cb      : (minsLeft) => {
+            anime(document.querySelector('.flexClock__shadow')).remove();
+            anime(document.querySelector('.flexClock__spotlight')).remove();
+
+            let spotlight =
+            anime.timeline({
+            }).add({
+              duration : 3000,
+              targets   : document.querySelector('.flexClock__spotlight'),
+              scale: [5, 1],
+              translateY: 35,
+              opacity   : (e)=>{
+                e.textContent = minsLeft;
+                return 1;
+              },
+              easing    : 'easeOutBounce'
+            }).add({
+              duration : 10000,
+              targets: document.querySelector('.flexClock__spotlight'),
+              // scale: 1.2,
+              opacity: 0,
+              easing : 'easeInBounce', //translateY : -50,
+            }).add({
+              targets: document.querySelector('.flexClock__spotlight'),
+              translateY: 0,
+              complete : a=>{a.remove()}
+            });
+            let shadow =
+            anime.timeline({
+            }).add({
+              targets   : document.querySelector('.flexClock__shadow'),
+              opacity   : 1,
+              duration: 3000,
+              scale: [.1, 1],
+              translateY: 0,
+              easing    : 'easeOutBounce'
+            })
+              .add({
+                duration: 10000,
+                targets: document.querySelector('.flexClock__shadow'),
+                opacity: 0,
+                easing : 'easeInBounce', // translateY : 50,
+              }).add({
+              targets: document.querySelector('.flexClock__shadow'),
+              translateY: 0,
+              complete: a=>{ a.remove() }
+            });
+          }
+        },
+        {
+          times: [0], //essentially on expiry
+          cb      : MeetingCountDown.grandFinale
+        }
+      ]
+
+    },
     //on
     function () {
       $('#flexClock').show();

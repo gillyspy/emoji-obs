@@ -613,6 +613,42 @@
     margin-top: auto;
 }
 
+.flexClock__spotlight {
+    border-radius : 100%;
+    width: 2em;
+    height: 2em;
+    top: -25px;
+    left: 1em;
+    border: .2em solid rgba(255,255,255,.8);
+    background-color: rgba(0,0,0,.8);
+    color : rgba( 255,255,255, .9);
+    padding: 0;
+    font-size: 5em;
+    font-weight: bold;
+    position :absolute;
+     opacity : 0;
+}
+
+.flexClock__shadow {
+    border-radius : 100%;
+    background-color : rgba( 255,255,255,.3);
+    width: 2em;
+    height: 2em;
+    top: 15px;
+    left: 1em;
+    border: .2em solid rgba(255,255,255,0);
+    padding: 20px;
+    font-size: 5em;
+    font-weight: bold;
+    position :absolute;
+    opacity : 0;
+}
+
+.flexClock__spotlight--hide{
+    display:'none';
+}
+
+
 #meetingOver {
     position: fixed;
     background-color: rgba(0, 0, 0, 0);
@@ -632,6 +668,14 @@
 
 .goodBye__letter {
     color: white;
+}
+.goodBye__counter {
+    color :white;
+    opacity : 0;
+}
+
+.goodBye__header{
+    text-align: center;
 }
 
 .goodBye__line {
@@ -716,6 +760,9 @@ border : 0,
         </div>
     </div>
     <div class="flexClock__slider"><button class="big flexClock__slider__button">⏳</button></div>
+    <button class="flexClock__shadow">&nbsp;</button>
+    <button class="flexClock__spotlight">10</button>
+
 </div>
 
 <div id="meetingOver" class="goodBye">
@@ -737,7 +784,7 @@ border : 0,
         <span class="goodBye__letter">r</span>
             </div>
     <div class="goodBye__line goodBye__line--line2"></div>
-  </div>
+  </div><span class="goodBye__counter">&nbsp;</span>
     </h1>
 </div>
 <table id="tableTop">
