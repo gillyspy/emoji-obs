@@ -218,8 +218,11 @@ class TimerCountDown {
     //add number
     let subEl = document.createElement('span');
     subEl.innerText = txt;
+    let superEl = document.createElement('span');
+    superEl.append(subEl);
+    superEl.classList.add('flexClock__span--super')
 
-    el.append(subEl);
+    el.append(superEl);
     return el;
   } //#getStep
 
@@ -570,7 +573,7 @@ class TimerCountDown {
     this.#scaleAnimation.push(
       anime({
         targets   : '.flexClock__sub--A .flexClock__step',
-        scaleX    : 1.5,
+      //  scaleX : '*=1.5',
         translateY: (e, i) => {
           if (i === 0) {
             h.push(+e.style.height.match(/[^p]*/)[0]) + 3;
@@ -580,8 +583,12 @@ class TimerCountDown {
           }
         },
         duration  : anime.stagger(100)
-      })
-    );
+      }));
+    anime({
+      targets : '.flexClock__span--super',
+      scaleX : 1.2,
+      complete : a=>a.remove()
+    });
 
     this.#scaleAnimation.push(
       anime({
