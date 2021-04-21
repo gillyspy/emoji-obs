@@ -220,10 +220,6 @@ class TimerCountDown {
     subEl.innerText = txt;
 
     el.append(subEl);
-    return el;
-    /*
-        <div class="flexClock__step"><span style="color:white">40</span></div>
-     */
   } //#getStep
 
   queueFunc(fn, tick = 100) {
@@ -370,8 +366,6 @@ class TimerCountDown {
       [ m, h ] = timeRequest.match(/^(\d{2})(\d{2})/).reverse();
       [m, h] = [+m,+h];
 
-
-
       let future = new Date();
       future.setHours(h, m, 0, 0);
       duration = (future - now) / 1000 / 60;
@@ -424,8 +418,8 @@ class TimerCountDown {
       translateY: 0,
       duration  : 1000,
       easing    : 'eastOutInQuad',
-      complete  : function () {
-        anime.remove(this.sliderNode);
+      complete  : function (a) {
+        a.remove(this.sliderNode);
       }
     });
   }
@@ -446,7 +440,6 @@ class TimerCountDown {
   }
 
   #zoomIn() {
-
     //keep zoomOn for the 5 minute threshold
     this.#_.zoomOn = (this.#_.timeLeft > this.#_.zoomWhen[1])
     // stop the timer but do NOT trigger the end sequence
@@ -462,15 +455,26 @@ class TimerCountDown {
       targets   : '.flexClock__step',
       translateY: 0,
       duration  : 500,
-      onComplete: function () {
+      onComplete: function (a) {
+        a.remove('*')
       }
     });
+    anime({
+      targets   : this.sliderNode,
+      translateY: 0,
+      duration  : 500,
+      onComplete: function (a) {
+        a.remove('*')
+      }
+    })
 
+    //remove any impacting animations (that have been stored)
     this.#scaleAnimation.forEach(a => {
       a.restart();
       a.pause();
       a.remove('*');
     });
+
     //slide the slider back up ( this animation does not have to be time-accurate)
     //this is taken care of by refresh()
     //TimerCountDown.#resetSlider();
@@ -509,8 +513,6 @@ class TimerCountDown {
           }
         },1000)
 
-
-
       } else //turn on
       {
         this.triggerNode.classList.add('pressed');
@@ -521,14 +523,10 @@ class TimerCountDown {
         this.#_.duration = this.translateInput(
           this.valueNode.value
         );
-        anime({
-          targets: '' //TODO:
-        })
 
         this.#timeStarted = new Date();
         this.#onCB();
         this.start();
-
       }
     }.bind(this));
   }
@@ -537,11 +535,6 @@ class TimerCountDown {
     this.#_.timeLeft = this.#_.duration;
     this.refresh();
     this.#animateDrain();
-    //this.#animateFill().restart();
-  }
-
-  pause() {
-
   }
 
 //TODO: is this needed?
@@ -576,6 +569,7 @@ class TimerCountDown {
     this.#scaleAnimation.push(
       anime({
         targets   : '.flexClock__sub--A .flexClock__step',
+        scaleX    : 1.5,
         translateY: (e, i) => {
           if (i === 0) {
             h.push(+e.style.height.match(/[^p]*/)[0]) + 3;
@@ -606,16 +600,6 @@ class TimerCountDown {
       })
     );
 
-    /*  this.#scaleAnimation.push(anime({
-        targets          : '.flexClock__sub--B .flexClock__step',  //'.' + this.#_.drainClass,//'#domAttr .demo-content',
-        opacity          : 1,
-        //duration         : duration,
-        //background-color : 'rgba(255,0,0,0,2)'
-        delay            : anime.stagger(stagger), // steps * 5000
-        // easing           : stepsTime,// 'linear',
-
-      }));*/
-
     const anime2 = anime.timeline({loop: 1});
     this.#scaleAnimation.push(anime2);
 
@@ -637,7 +621,6 @@ class TimerCountDown {
           });
         }
       );
-
 
     /* this animation will be kicked off with the other */
     this.queueFunc(function (milliPassed) {
@@ -721,52 +704,12 @@ class TimerCountDown {
         return zoomIn;
       }
 
-      //slide it down the next bit via transform
+      //slide the guide down via transform
       sliderNode.style.transform = `translateY(${curY}px)`;
       return keepGoing;
     });
 
-    /*
-    let slider = anime({
-
-      targets   : '.flexClock__slider',
-      translateY: 525,
-      duration  : duration,
-      easing    : 'linear',
-      delay     : ((50 / 568 * duration)), // this doesn't need a delayFudge
-      update    : function (a) {
-        console.log(secondsPast++, a.progress, this.#timePassed());
-      }.bind(this),
-      loop      : 1,
-      autoplay  : false
-    }); */
-
-    /* anime({
-       targets: '.flexClock__sub--A .flexClock__step',
-       update : function (a) {
-         //update each block to countdown their value
-       }
-     }); */
-
-
   } //animateDrain
-
-  #animateFill() {
-    return;
-    return anime({
-      targets          : '.' + this.#_.fillClass, //'#domAttr .demo-content',
-      height           : [573, 3],
-      //background : 'rgba( 50,255,50,1)',
-      opacity          : [.8, .2],
-      duration         : this.#_.duration,
-      //transformZ : 5000,
-      easing           : steps(this.durationToMinutes()), //'linear',
-      border           : 0,
-      'margin-top'     : [3, 573],
-      //left : 0,
-      'justify-content': 'start'
-    });
-  } //animateFill
 
   hide() {
 
@@ -822,10 +765,6 @@ class TimerCountDown {
         offset  : '-=700'
       });
   } //grandFinale
-
-  show() {
-
-  }
 
 } //TimerCountDown
 
