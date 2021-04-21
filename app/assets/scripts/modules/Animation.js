@@ -220,6 +220,7 @@ class TimerCountDown {
     subEl.innerText = txt;
 
     el.append(subEl);
+    return el;
   } //#getStep
 
   queueFunc(fn, tick = 100) {

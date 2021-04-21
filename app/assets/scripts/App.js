@@ -944,7 +944,7 @@ J$(document).ready(function ($) {
    *
    * clicking it again destroys it and recreates it.
    *
-   * TODO:
+   * TODO:??
    * You can pause the visual part of animation (by clicking on the sliding hour glass),
    * but it continues to count down.
    * This is because it is going towards a time and not trying to accomplish a duration.
