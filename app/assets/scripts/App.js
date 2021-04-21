@@ -780,6 +780,16 @@ J$(document).ready(function ($) {
         RP.resume();
         RP.getTarget().style.display = '';
       }
+      anime({
+        targets : $mouseFollowButton[0],
+        rotate  : '360',
+        duration: 1000,
+        scaleX  : '*=-1',
+        complete: (a) => {
+          a.remove('*')
+        }
+      });
+
     },
     //action when user is moving mouse
     function (mouse) {

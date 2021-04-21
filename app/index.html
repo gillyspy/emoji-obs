@@ -544,9 +544,10 @@
     width: 100%;
     height: 525px; /* 1%; */
     /* background-color: red;*/
-    background-color: rgba(255, 255, 255, 1); /* green */
+    background-color: rgba(0, 0, 0, 1); /* green */
     margin-top: 2px;
-    opacity: 0;
+    opacity: 0.3;
+    transform : scale(1) scale(0);
     transform-origin: 0 0;
 }
 
@@ -559,22 +560,12 @@
     transform-origin: 0 0;
     top: 0;
 }
-
 .flexClock__step {
     /*display: flex;*/
     justify-content: center;
     position: absolute;
-    width: 100%
-}
-
-.flexClock__sub--B .flexClock__step {
-    background-color: red; /*green;*/
-    color: rgba(0, 0, 0, 0);
-    /*    border : rgba(0,0,0,0) dashed;*/
-    /*    border-width: 1px 0; */
-    opacity: 0;
-
-
+    width: 100%;
+    transform: scaleX(1.5);
 }
 
 .flexClock__sub--A .flexClock__step {
@@ -768,9 +759,6 @@ border : 0,
     <div class="flexClock__progress flexClock__progress--drain"></div>
     <div class="flexClock__progress flexClock__progress--fill"></div>
     <div class="flexClock__steps">
-        <div class="flexClock__sub flexClock__sub--B">
-&nbsp;
-        </div>
         <div class="flexClock__sub flexClock__sub--A">
             &nbsp;
 

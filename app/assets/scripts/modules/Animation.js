@@ -327,11 +327,8 @@ class TimerCountDown {
     stepHeight = remainingPixels / remainingDuration * this.#_.stepSize;// (stepsNeeded-1)
 
     //populate those steps
-    let stepsB, stepsA, nodeB;
+    let stepsA
     //fill steps are always 1 step that grows
-    nodeB = [this.#getStep(pixels, '&nbsp;')];
-    document.getElementsByClassName(this.#_.subClass)[0]
-      .append(...nodeB);
 
     for (let i = 0; i < stepsNeeded; i++) {
       //first step height is different
@@ -342,7 +339,7 @@ class TimerCountDown {
         stepsA = [this.#getStep(stepHeight, stepText)];
       }
       // 0 = B, 1=A
-      document.getElementsByClassName(this.#_.subClass)[1]
+      document.getElementsByClassName(this.#_.subClass)[0]
         .append(...stepsA);
     }
   }
@@ -573,16 +570,6 @@ class TimerCountDown {
     const that = this;
     const cbs = this.#callbacks;
 
-    /*
-    cause the background elements to show through in steps.
-    There are 6X the number of B steps than A steps
-     */
-    this.#scaleAnimation.push(
-      anime({
-        targets: '.flexClock__progress--drain',
-        opacity: .1
-      })
-    );
     console.log('duration', duration);
 
     let h = [];
@@ -613,7 +600,7 @@ class TimerCountDown {
       anime({
         targets : '.flexClock__progress--fill',
         scaleY  : [0, 1],
-        opacity : .8,
+        opacity : [.8,.8],
         duration: duration,
         easing  : 'linear'
       })
@@ -638,10 +625,15 @@ class TimerCountDown {
       .forEach(node => {
           anime2.add({
             targets          : node,  //'.' + this.#_.drainClass,//'#domAttr .demo-content',
-            scale            : 0,
-            duration         : (duration / that.#_.steps),
-            easing           : 'easeInBack',// 'linear',
-            'justify-content': 'start'
+            scale            : .1,
+            duration         : (duration / that.#_.steps) - 300,
+            easing           : 'easeInBack'// 'linear',
+          }).add({
+            targets : node,
+            scale : 5,
+            opacity : 0,
+            duration : 300,
+            easing : 'easeInQuad'
           });
         }
       );
@@ -666,7 +658,7 @@ class TimerCountDown {
 
       try {
         let h = that.#endTime.getHours();
-        let m = that.#endTime.getMinutes() ;
+        let m = that.#endTime.getMinutes() +1;
         [h, m] = m === 60 ? [h + 1, 0] : [h, m];
 
         m = m < 10 ? '0' + m : m;
@@ -811,6 +803,10 @@ class TimerCountDown {
               opacity : [0, 1],
               duration: 2000,
               easing  : 'easeInSine'
+            })
+            anime({
+              targets :  document.querySelector('#gallery .dragTemp button'),
+              'font-size' : 45
             });
           } catch (e) {
             console.log(e)
