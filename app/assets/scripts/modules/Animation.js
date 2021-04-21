@@ -239,7 +239,7 @@ class TimerCountDown {
       let keepGoing = fn(sPassed);
 
       if (typeof keepGoing === 'function') {
-        keepGoing();
+        keepGoing(); //zoomin
       } else if (!that.#isRunning) {
         //quit early
 
@@ -264,14 +264,6 @@ class TimerCountDown {
   * -
   *
    */
-
-
-  #injectStep(step) {
-    const nodes = document.getElementsByClassName(this.#_.subClass);
-    [...nodes].forEach((el, i) => {
-      el.append(step[i]);
-    });
-  }
 
   refresh() {
     let steps = [];
@@ -335,26 +327,23 @@ class TimerCountDown {
     stepHeight = remainingPixels / remainingDuration * this.#_.stepSize;// (stepsNeeded-1)
 
     //populate those steps
+    let stepsB, stepsA, nodeB;
+    //fill steps are always 1 step that grows
+    nodeB = [this.#getStep(pixels, '&nbsp;')];
+    document.getElementsByClassName(this.#_.subClass)[0]
+      .append(...nodeB);
+
     for (let i = 0; i < stepsNeeded; i++) {
-      //stepText = dur - (i * this.#_.stepSize); //e.g. 100 - (5)
-
-      // stepText = (i * this.#_.stepSize); //
-
       //first step height is different
       if (i === 0 && this.#_.delayFudge > 0) {
-        step = [
-          this.#getStep( firstStepH, '~' + Math.round(dur)),
-          this.#getStep( firstStepH, '~' + Math.round(dur))
-        ];
+        stepsA = [this.#getStep(firstStepH, '~' + Math.round(dur))]
       } else {
         stepText = adjustedDuration - (i * this.#_.stepSize); //
-        step = [
-          this.#getStep(stepHeight, stepText),
-          this.#getStep(stepHeight, stepText)
-        ];
+        stepsA = [this.#getStep(stepHeight, stepText)];
       }
-      steps.push(step);
-      this.#injectStep(step);
+      // 0 = B, 1=A
+      document.getElementsByClassName(this.#_.subClass)[1]
+        .append(...stepsA);
     }
   }
 
@@ -460,6 +449,7 @@ class TimerCountDown {
   }
 
   #zoomIn() {
+
     //keep zoomOn for the 5 minute threshold
     this.#_.zoomOn = (this.#_.timeLeft > this.#_.zoomWhen[1])
     // stop the timer but do NOT trigger the end sequence
@@ -470,12 +460,20 @@ class TimerCountDown {
 
     // "reverse" won't work here cuz that will take too long so...
     // "restart" the timeScale animation, but don't re-animate
+
+    anime({
+      targets   : '.flexClock__step',
+      translateY: 0,
+      duration  : 500,
+      onComplete: function () {
+      }
+    });
+
     this.#scaleAnimation.forEach(a => {
       a.restart();
       a.pause();
       a.remove('*');
     });
-
     //slide the slider back up ( this animation does not have to be time-accurate)
     //this is taken care of by refresh()
     //TimerCountDown.#resetSlider();
@@ -549,7 +547,7 @@ class TimerCountDown {
 
   }
 
-  //TODO: is this needed?
+//TODO: is this needed?
   #timePassed() {
     let now = new Date()
     let dif = now - this.#timeStarted;
@@ -560,8 +558,8 @@ class TimerCountDown {
     let duration = this.durationJS();
     let delayFudge = this.durationJS(this.#_.delayFudge);
     let secondsPast = 0;
-    let stagger = this.#_.timeOnEach * .5;
-    let stepsTime = 'steps(' + (this.#_.duration * .5) + ')';
+    let stagger = duration / (this.#_.steps * 6); //(this.#_.timeOnEach * .5)/6;
+    let stepsTime = 'steps(' + (this.#_.duration * .5) / 6 + ')';
     let sliderNode = this.sliderNode;
     let valueNode = this.valueNode;
     let zoomIn = this.#zoomIn.bind(this);
@@ -575,16 +573,67 @@ class TimerCountDown {
     const that = this;
     const cbs = this.#callbacks;
 
-    this.#scaleAnimation.push(anime({
-      targets          : '.flexClock__sub--B .flexClock__step',  //'.' + this.#_.drainClass,//'#domAttr .demo-content',
-      opacity          : [1, 0],
-      duration         : duration,
-      delay            : anime.stagger(stagger), // steps * 5000
-      easing           : stepsTime,// 'linear',
-      'justify-content': 'start'
-    }));
+    /*
+    cause the background elements to show through in steps.
+    There are 6X the number of B steps than A steps
+     */
+    this.#scaleAnimation.push(
+      anime({
+        targets: '.flexClock__progress--drain',
+        opacity: .1
+      })
+    );
+    console.log('duration', duration);
+
+    let h = [];
+    this.#scaleAnimation.push(
+      anime({
+        targets   : '.flexClock__sub--A .flexClock__step',
+        translateY: (e, i) => {
+          if (i === 0) {
+            h.push(+e.style.height.match(/[^p]*/)[0]) + 3;
+            return 3;
+          } else {
+            return (i - 1) * (+e.style.height.match(/[^p]*/)[0] + 1) + (h[0]) + 2;
+          }
+        },
+        duration  : anime.stagger(100)
+      })
+    );
+
+    this.#scaleAnimation.push(
+      anime({
+        targets : '.flexClock__progress--drain',
+        scaleY  : [0, 1],
+        duration: 2000
+      })
+    );
+
+    this.#scaleAnimation.push(
+      anime({
+        targets : '.flexClock__progress--fill',
+        scaleY  : [0, 1],
+        opacity : .8,
+        duration: duration,
+        easing  : 'linear'
+      })
+    );
+
+    /*  this.#scaleAnimation.push(anime({
+        targets          : '.flexClock__sub--B .flexClock__step',  //'.' + this.#_.drainClass,//'#domAttr .demo-content',
+        opacity          : 1,
+        //duration         : duration,
+        //background-color : 'rgba(255,0,0,0,2)'
+        delay            : anime.stagger(stagger), // steps * 5000
+        // easing           : stepsTime,// 'linear',
+
+      }));*/
+
     const anime2 = anime.timeline({loop: 1});
     this.#scaleAnimation.push(anime2);
+
+
+    //cause the numbers to disappear by becoming to small
     document.querySelectorAll('.flexClock__sub--A .flexClock__step span')
       .forEach(node => {
           anime2.add({
@@ -617,7 +666,7 @@ class TimerCountDown {
 
       try {
         let h = that.#endTime.getHours();
-        let m = that.#endTime.getMinutes() + 1;
+        let m = that.#endTime.getMinutes() ;
         [h, m] = m === 60 ? [h + 1, 0] : [h, m];
 
         m = m < 10 ? '0' + m : m;

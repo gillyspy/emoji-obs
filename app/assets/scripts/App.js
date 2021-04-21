@@ -1070,8 +1070,14 @@ J$(document).ready(function ($) {
     },
     //off
     function () {
-
-      $('#flexClock').hide();
+      anime({
+        targets  : '.flexClock__sub--A .flexClock__step',
+        translateY: 0,
+        duration : anime.stagger(100, {direction : 'reverse'}),
+        complete : ()=>{
+          $('#flexClock').hide();
+        }
+      });
       document.querySelector('.goodBye__counter').value = '';
       anime.remove('#meetingOver');
       anime.remove('#meetingOver *');
