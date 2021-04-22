@@ -171,18 +171,45 @@ J$(document).ready(function ($) {
     }
     //check if the element is wider or higher than the panel on the screen
     //if it is then diminish the font until it is 20px
-
-    var fontSize = $M.css('font-size').match(/\d*/)[0]++;
-    while (($M.width() > $('#chromKey').width() || $M.height() > $('#chromaKey').height()) &&
-    fontSize > 12) {
-      fontSize--;
-      $M.css('font-size', fontSize);
-    }
-
     //restore font
-    if ($M.width < $drawingTarget.width && $M.height < $drawingTarget.height) {
-      $M.css('font-size', '90px');
+    let fontSize = 90;
+    $M.css('font-size', fontSize);
+
+  //  let fontSize = +($M.css('-size').match(/\d*/)[0]);
+    //$M.width < $drawingTarget.width &&
+
+    while (
+      // if message target is too big
+    ($M.height() /  $('#chromaKey').height() ) > .95
+      ) {
+      Math.min(Math.max(12, --fontSize), 90);
+      $M.css('font-size', fontSize);
+   //   ratio = $('#chromaKey').height() / $M.height();
+
     }
+    //  ratio =    $('#chromaKey').width() /  $M.width() ;
+    //fontSize *= ratio ;
+
+
+    /*
+    if ($M.height() < $('#chromaKey').height()) {
+      //scale back up
+       while ( $M.height() < $('#chromaKey').height() && fontSize<90) {
+        fontSize++;
+        //have to update the fontsize here so that the $M.width can be re-evaulated for the loop condition
+        $M.css('font-size', fontSize);
+      }
+       fontSize = 90;
+       $M.css('font-size', fontSize);
+    } else {
+
+      while ( $M.height() > $('#chromaKey').height() ) {
+        fontSize--;
+        //have to update the fontsize here so that the $M.width can be re-evaulated for the loop condition
+        $M.css('font-size', fontSize);
+      }
+    }*/
+
     return true;
   });
 
@@ -784,7 +811,9 @@ J$(document).ready(function ($) {
         targets : $mouseFollowButton[0],
         rotate  : '360',
         duration: 1000,
-        scaleX  : '*=-1',
+        scaleX  : (el) => {
+          return (/scaleX[(][-]+/).test(el.style.transform) ? 1 : -1;
+        },
         complete: (a) => {
           a.remove('*')
         }
@@ -856,62 +885,56 @@ J$(document).ready(function ($) {
           delay   : 1000
         });
     }
-    /*  }else{
-          $history.appendTo($('#col1a'));
-        myAnimation.anime.timeline({loop : 1})
-          .add({
-            targets   : '#history .history',
-            scale     : [0.3, 1],
-            opacity   : [0, 1],
-            translateZ: 0,
-            easing    : "easeOutExpo",
-            duration  : 600,
-            delay     : (el, i) => 70 * (i + 1)
-          })
-      }*/
   }); //moveHistory
 
   //button to change width of the message
-  $('.messageSource__changeW').on('click', function () {
+  $('.messageSource__changeW').on('click', function (ev) {
+    let btn = ev.target;
     let $ms = $('.messageTarget__pre');
     console.log('hi');
-    let classModifiers = [
+    let targetModifiers = [
+      'messageTarget__pre--off',
       'messageTarget__pre--narrow',
       'messageTarget__pre--full',
       'messageTarget__pre--left',
       'messageTarget__pre--right',
       'messageTarget__pre--fullBottom',
       'messageTarget__pre--leftBottom',
-      'messageTarget__pre--rightBottom',
-
-      'messageTarget__pre--off'
+      'messageTarget__pre--rightBottom'
     ];
+
+    let buttonModifiers = [
+      'pressed'
+    ];
+//⏯️↕️⏮️⏯️↕️↔️⏮️  ️⏬
+    let buttonContents = ['⏏️', '↕️', '↔️',
+      '↖️', '↗️', '⬇️', '↙️', '↘️'];
     //determine which index currently have.
-    for (var i = 0; i < classModifiers.length; i++) {
+    for (var i = 0; i < targetModifiers.length; i++) {
       let j = i;
-      if ($ms.hasClass(classModifiers[i])) {
+      btn.classList.add('pressed');
+      if ($ms.hasClass(targetModifiers[i])) {
         //remove the class
-        $ms.removeClass(classModifiers[i]);
+        $ms.removeClass(targetModifiers[i]);
         j = i + 1;
-        if (j === classModifiers.length) {
+        if (j === targetModifiers.length) {
+          //start over next loop
           j = 0;
+          //also 0 ==> "off"
+          btn.classList.remove('pressed');
         }
         //go to the next class
-        $ms.addClass(classModifiers[j]);
+        $ms.addClass(targetModifiers[j]);
+        btn.textContent = buttonContents[j];
+
+
+        //trigger keyup for resize
+        $('#Message').keyup();
         break;
+
       }
       continue;
     }
-    /*
-    if ($ms.css('margin-left')[0] === '0') {
-      $ms.css('margin-left', '20%');
-      $ms.css('width', '60%');
-      $('.messageSource__changeW').addClass('pressed');
-    } else if ($ms.css('margin-left')) {
-      $ms.css('margin-left', 0);
-      $ms.css('width', '100%');
-   $('.messageSource__changeW').removeClass('pressed');
-    } */
     return false;
   });
 

@@ -466,7 +466,7 @@ class TimerCountDown {
     anime({
       targets   : this.sliderNode,
       translateY: 0,
-      duration  : 500,
+      duration  : 2000,
       onComplete: function (a) {
         a.remove('*')
       }
@@ -744,11 +744,19 @@ class TimerCountDown {
         delay     : (el, i) => 70 * (i + 1),
         complete  : () => {
           try {
-            let ev2 = document.createEvent('MouseEvents')
-            ev2.initEvent('dblclick', true, true);
-            document.getElementById('✌🏻').dispatchEvent(ev2);
+            //find already promoted emoji
+            let emoji = document.querySelector('#gallery .dragTemp');
+            if (!emoji) {
+              //promote an emoji
+              let ev2 = document.createEvent('MouseEvents')
+              ev2.initEvent('dblclick', true, true);
+              emoji = document.getElementById('✌🏻');
+              emoji.dispatchEvent(ev2);
+              emoji = document.querySelector('#gallery .dragTemp');
+            }
+            //move emoji to compatible spot
             anime({
-              targets : document.querySelector('#gallery .dragTemp'),
+              targets : emoji,
               top     : 240,
               left    : 700,
               opacity : [0, 1],
@@ -756,7 +764,7 @@ class TimerCountDown {
               easing  : 'easeInSine'
             })
             anime({
-              targets :  document.querySelector('#gallery .dragTemp button'),
+              targets     : document.querySelector('#gallery .dragTemp button'),
               'font-size' : 45
             });
           } catch (e) {
