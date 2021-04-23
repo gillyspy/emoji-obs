@@ -25,7 +25,7 @@ class Favorites {
       this.stash = JSON.parse(defaults);
       localStorage.setItem(this.storageKey, defaults);
     }
-    this.stash.forEach( (a)=>{
+    this.stash.forEach((a) => {
       this.nameIndex.push(a.emoji);
     })
   } //Init
@@ -34,23 +34,56 @@ class Favorites {
     return this.stash;
   }
 
+  trashFave(emojiOrPosition) {
+    let type = typeof emojiOrPosition;
+    let position;
+    if (!emojiOrPosition) {
+      //trash current
+      position = this.position
+    }
+
+    if(type === 'string'){
+      position = recallFave(emoji).position;
+    } else if(type ===  'number'){
+      position =emojiOrPosition
+    }
+
+    if( typeof position === 'number') {
+      try {
+        this.nameIndex.splice(position, 1);
+        this.stash.splice(position, 1)
+
+        //update storage
+        this.doStorage(/* no arguments */);
+
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+  }
+
+  #doLocalStorage() {
+    localStorage.setItem(
+      "emojiPicker.recent",
+      JSON.stringify(this.stash)
+    );
+  }
+
   doStorage(fave) {
     if (fave) {
-       this.stash.push([fave]);
+      this.stash.push([fave]);
     }
     //let history = JSON.parse(localStorage.getItem('emojiPicker.recent')) || [];
     // add the item to the END of storage.
     //slice off the beginning when it gets too big
     this.stash.unique('emoji', false);
-    this.nameIndex.unique(false,true);
-    if(this.stash.length > this.historyMax){
+    this.nameIndex.unique(false, true);
+    if (this.stash.length > this.historyMax) {
       this.stash.shift();
       this.nameIndex.shift();
     }
-    localStorage.setItem(
-      "emojiPicker.recent",
-      JSON.stringify( this.stash )
-    );
+    this.#doLocalStorage()
   } //doStorage
   /*
         const e = JSON.parse(localStorage.getItem("emojiPicker.recent")) || [];

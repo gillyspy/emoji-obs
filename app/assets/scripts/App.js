@@ -121,6 +121,7 @@ J$(document).ready(function ($) {
   const $history = $('#history');
   const $moveHistory = $('#moveHistory');
   const $hideButton = $('#hideEmoji');
+  const trashButton = document.getElementById('trashEmoji');
   const $drawing = $('#drawing').hide();
   const $drawingTarget = $('#drawingPane');
   const $drawButton = $('button.draw');
@@ -278,6 +279,88 @@ J$(document).ready(function ($) {
     } else {
       $hideButton.removeClass('pressed');
       $('.history--draggable').removeClass('history--hidden');
+    }
+  });
+
+  trashButton.addEventListener('click', function (ev) {
+    //whether in the gallery or in history the candidate is always with highlight class
+    const emoji = document.querySelector('.highlight') ;
+    if (emoji) {
+      const candidate = emoji.parentElement;
+
+      //remove any current animations
+      anime(candidate).remove('*');
+
+      //make a different emoji active so we can delete the candidate
+      let deletePosition = myFavs.position;
+
+      //before delete
+      document.getElementById('scrollDown').click();
+
+      //create a temp container for the candidate
+      let trashCan = document.createElement('div');
+      //trashCan.classList.add('history--draggable');
+
+      //size the container before remove candidate
+      const { top, left, width, height} = emoji.getBoundingClientRect();
+
+      if (candidate.classList.contains('history--draggable')) {
+        //?
+      } else {
+        //remove candidate from the current position in dom hiearchy
+        //make the candidate appear like it has not moved
+        document.body.append(candidate);
+        candidate.classList.add('history--draggable');
+        anime.set(candidate, {
+            // 'border'       : '2px solid rgba(255,0,0,.8)',
+            //  'border-radius': '100%',
+            position: 'absolute',
+            top     :top,
+            left    :left,
+            width   :height,
+            height  :height
+          }
+        );
+      }
+      //get the other elements for it:
+      let draggableClasses =[...(candidate.classList)].filter(c => /draggable\d/.test(c));
+      //remove them later
+
+      //JSON.parse(JSON.stringify(candidate.getBoundingClientRect())));
+
+      //document.body.append(trashCan);
+
+      anime.timeline({})
+        /*.add({
+        targets: trashCan,
+        begin  : a => {
+          //trashCan.append(candidate);
+        }
+      })*/
+        .add({
+          targets   : candidate,
+          translateX: 1400,
+          duration  : 7000,
+          easing    : 'easeOutQuad',
+          begin     : a => {
+            anime({
+              targets : emoji,
+              rotate  : 360,
+              duration: 1500,
+              easing  : 'linear',
+              loop    : true
+            });
+          },
+          complete  : a => {
+            a.remove('*');
+            //delete candidate elements
+            console.log('completed... would be removed');
+            myFavs.trashFave(deletePosition);
+            draggableClasses.forEach(draggables => {
+              [...document.getElementsByClassName(draggables)].forEach(el => el.remove());
+            })
+          }
+        });
     }
   });
 
