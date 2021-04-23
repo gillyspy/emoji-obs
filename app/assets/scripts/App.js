@@ -64,7 +64,6 @@ J$(document).ready(function ($) {
     linger :   (Config.linger === 'true'),
      idlerotation: (Config.idlerotation === 'true'),
       adjustment  : +(Config.idlespeedoffset)
-
   });
 
   const RP = new IdlePath(
@@ -1067,51 +1066,63 @@ J$(document).ready(function ($) {
         {
           times: [5,10],
           cb      : (minsLeft) => {
-            anime(document.querySelector('.flexClock__shadow')).remove();
-            anime(document.querySelector('.flexClock__spotlight')).remove();
+            let shadow = document.querySelector('.flexClock__shadow');
+            let spotlight = document.querySelector('.flexClock__spotlight');
+            if (!spotlight || !shadow) {
+              return;
+            }
+            if(Config.clocklocation==='left'){
+              shadow.classList.add('flexClock__shadow--left');
+              spotlight.classList.add('flexClock__spotlight--left');
+            }
 
-            let spotlight =
-            anime.timeline({
-            }).add({
-              duration : 3000,
-              targets   : document.querySelector('.flexClock__spotlight'),
-              scale: [5, 1],
+            anime(shadow).remove();
+            anime(spotlight).remove();
+
+            anime.timeline({}).add({
+              duration  : 3000,
+              targets   : spotlight,
+              scale     : [5, 1],
               translateY: 35,
-              opacity   : (e)=>{
+              opacity   : (e) => {
                 e.textContent = minsLeft;
                 return 1;
               },
               easing    : 'easeOutBounce'
             }).add({
-              duration : 10000,
-              targets: document.querySelector('.flexClock__spotlight'),
+              duration: 10000,
+              targets : spotlight,
               // scale: 1.2,
-              opacity: 0,
-              easing : 'easeInBounce', //translateY : -50,
+              opacity : 0,
+              easing  : 'easeInBounce', //translateY : -50,
             }).add({
-              targets: document.querySelector('.flexClock__spotlight'),
+              targets   : spotlight,
               translateY: 0,
-              complete : a=>{a.remove()}
+              complete  : a => {
+                a.remove()
+              }
             });
-            let shadow =
+
             anime.timeline({
+              //
             }).add({
-              targets   : document.querySelector('.flexClock__shadow'),
+              targets   : shadow,
               opacity   : 1,
-              duration: 3000,
-              scale: [.1, 1],
+              duration  : 3000,
+              scale     : [.1, 1],
               translateY: 0,
               easing    : 'easeOutBounce'
-            })
-              .add({
-                duration: 10000,
-                targets: document.querySelector('.flexClock__shadow'),
-                opacity: 0,
-                easing : 'easeInBounce', // translateY : 50,
-              }).add({
-              targets: document.querySelector('.flexClock__shadow'),
+            }).add({
+              duration: 10000,
+              targets : shadow,
+              opacity : 0,
+              easing  : 'easeInBounce', // translateY : 50,
+            }).add({
+              targets   : shadow,
               translateY: 0,
-              complete: a=>{ a.remove() }
+              complete  : a => {
+                a.remove()
+              }
             });
           }
         },
@@ -1174,15 +1185,23 @@ J$(document).ready(function ($) {
           }
         }
       ]
-
     },
     //on
     function () {
       $('#flexClock').show();
       //reset classes
 
+      //control left vs ride side
+      if( Config.clocklocation==='left'){
+        let classes = ['flexClock__slider', 'flexClock'];
+        document.querySelector('.flexClock__slider')
+          .classList.add('flexClock__slider--left');
+        document.querySelector('.flexClock')
+          .classList.add('flexClock--left');
+        document.querySelector('.flexClock__slider__button')
+          .classList.add('flexClock__slider__button--left');
+      }
       //restart countdown
-
     },
     //off
     function () {

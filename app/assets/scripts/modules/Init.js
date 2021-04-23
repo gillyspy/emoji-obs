@@ -14,13 +14,15 @@ const Init = {
   idletimeout : 100000,
   idlerotation : false,
   linger   : true,
+  clocklocation : 'right',
   urlParams :  [
     'idlespeedoffset',
     'defaultidleemoji',
     'defaultpointeremoji',
     'idletimeout',
     'idlerotation',
-    'linger'
+    'linger',
+    'clocklocation'
   ],
   canvas           : {
     backgroundColor: "rgba(85,0,255,0)", //"#5500ff",

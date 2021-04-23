@@ -533,6 +533,11 @@
     z-index: 0;
 }
 
+
+.flexClock--left {
+    margin-left: 20%;
+}
+
 .flexClock__progress {
     position: absolute
 }
@@ -607,6 +612,14 @@
    /* z-index:0; */
 }
 
+.flexClock__slider--left{
+   margin-left : -60px;
+    margin-right : 0;
+    position:relative;
+    position:relative;
+    display: flex;
+}
+
 .flexClock__slider__button {
     text-align: right;
     align-self: flex-end;
@@ -617,12 +630,22 @@
     margin-top: auto;
 }
 
+.flexClock__slider__button--left {
+    text-align: left;
+    border-radius: 0;
+    border-top-left-radius: 20px;
+    border-width: 4px 0 0 4px;
+    padding-left: 0;
+    padding-right: 70px;
+    margin-top: auto;
+}
+
 .flexClock__spotlight {
     border-radius : 100%;
     width: 2em;
     height: 2em;
     top: -25px;
-    left: 1em;
+    left: -2em;
     border: .2em solid rgba(255,255,255,.8);
     background-color: rgba(0,0,0,.8);
     color : rgba( 255,255,255, .9);
@@ -632,6 +655,9 @@
     position :absolute;
      opacity : 0;
 }
+.flexClock__spotlight--left {
+    left: 2em;
+}
 
 .flexClock__shadow {
     border-radius : 100%;
@@ -639,13 +665,16 @@
     width: 2em;
     height: 2em;
     top: 15px;
-    left: 1em;
+    left:-2em;
     border: .2em solid rgba(255,255,255,0);
     padding: 20px;
     font-size: 5em;
     font-weight: bold;
     position :absolute;
     opacity : 0;
+}
+.flexClock__shadow--left {
+  left : 2em
 }
 
 .flexClock__spotlight--hide{
