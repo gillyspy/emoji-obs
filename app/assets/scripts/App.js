@@ -450,7 +450,7 @@ J$(document).ready(function ($) {
             ballFlight.remove('*');
             //delete emoji objects
             console.log('completed... would be removed');
-            // myFavs.trashFave(deletePosition);
+            myFavs.trashFave(deletePosition);
 
             //delete emoji and candidate elements
             draggableClasses.forEach(draggables => {
