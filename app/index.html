@@ -226,7 +226,12 @@
         font-size : 40px;
         vertical-align: top;
     }
-
+        .highlight {
+        /* text-decoration: underline solid red ; */
+        opacity: 1.0 !important;
+        font-size: 1.5em ; /* !important;*/
+        border: 1px dashed white !important;
+    }
 
     .history {
         /*  opacity: .5; */
@@ -254,9 +259,11 @@
         border: none;
         cursor: pointer;
         padding: 0;
-        width: 44px;
-        height: 44px;
+        width: 1.5em;
+        height: 1.5em;
+        font-size : 32px;
     }
+
 
 .history, .aniLetter {
     color: red;
@@ -267,51 +274,6 @@
     /* */
 }
 
-
-.trashCan {
-    position: absolute;
-    top: 500px;
-    left: -200px;
-    opacity: .7;
-    z-index: 10000;
-}
-
-.trashCan__emoji {
-    font-size: 4em;
-    margin-left: 20px;
-    display: inline-block;
-    position: absolute;
-    bottom: 0;
-}
-
-.trashCan__hand {
-    font-size: 4em;
-    /* transform-origin: 0 0; */
-    display: inline-block;
-    position: absolute;
-    bottom: 0;
-}
-
-.trashCan__ball2 {
-    /* transform-origin: 0 0; */
-    display: inline-block;
-    position: absolute;
-    bottom: 0;
-    opacity : .8;
-}
-
-.trashCan__ball2--hide {
-    /* transform-origin: 0 0; */
-    display: none;
-}
-
-.trashCan__ball {
-    position: absolute;
-    z-index: 9999;
-    opacity : .8
-    top: 0;
-    left: 0;
-}
 
 .dragTemp__x {
     color: gray;
@@ -329,18 +291,13 @@
         vertical-align: sub;
     }
 
-    .highlight {
-        /* text-decoration: underline solid red ; */
-        opacity: 1.0 !important;
-        font-size: 1.2em ; /* !important;*/
-        border: 1px dashed white;
-    }
+
 .history--draggable {
         position: absolute;
         z-index: 20000;
         /*       // opacity: 1 !important; */
         background-color: rgba(0, 0, 0, 0) !important;
-        border: none;
+        border: none !important;
         cursor: pointer;
     }
 
@@ -666,7 +623,6 @@
    margin-left : -60px;
     margin-right : 0;
     position:relative;
-    position:relative;
     display: flex;
 }
 
@@ -783,6 +739,57 @@
 
 .goodBye__line--line2 {
     bottom: 0;
+}
+
+
+.trashCan {
+    position: absolute;
+    top: 500px;
+    left: -200px;
+    opacity: .7;
+    z-index: 10000;
+}
+
+.trashCan__emoji {
+    font-size: 4em;
+    margin-left: 20px;
+    display: inline-block;
+    position: absolute;
+    bottom: 0;
+}
+
+.trashCan__hand {
+    font-size: 4em;
+    /* transform-origin: 0 0; */
+    display: inline-block;
+    position: absolute;
+    bottom: 0;
+}
+
+.trashCan__ball2 {
+    /* transform-origin: 0 0; */
+    display: inline-block;
+    position: absolute;
+    bottom: 0;
+    font-size: 1.5em;
+    margin-left: 45px;
+    margin-bottom: 15px;
+    transform: rotate(50deg);
+    opacity: .6;
+}
+
+.trashCan__ball2--hide {
+    /* transform-origin: 0 0; */
+    display: none;
+}
+
+.trashCan__ball {
+    position: absolute;
+    z-index: 9999;
+    opacity : .8;
+    top: 0;
+    left: 0;
+    border : 0 !important
 }
 
 /*

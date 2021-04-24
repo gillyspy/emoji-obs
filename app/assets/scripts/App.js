@@ -286,38 +286,45 @@ J$(document).ready(function ($) {
     try {
       // whether in the gallery or in history the candidate is always with highlight class
       const emoji = document.querySelector('.highlight');
+      const fave = emoji.textContent;
       if (emoji) {
         const inGallery = emoji.classList.contains('history--draggable');
+        const scaleStart = inGallery ? 5 : 1;
         const candidate = emoji.parentElement;
-        const trashCan = document.querySelector('.trashCan');
+        const trashCan = document.getElementById('trashCan');
         const trashBall = document.createElement('div');
         const trashBallHide = document.querySelector('.trashCan__ball2');
+        trashBallHide.textContent = fave;
         trashBall.classList.add('trashCan__ball');
 
-        // trashCan will slide on the screen this amount
-        let canMovesX = 200;
+        //remove any current animations
+        anime(candidate).remove('*');
 
-        const canAnimePt2 = {
-          translateX: canMovesX,
-          duration  : 1500,
-          easing    : 'easeInQuint'
-        };
-        const canAnime = anime.timeline({
-          autoplay: false
+        // trashCan will slide on the screen this amount
+        const canMovesX = 200;
+        const canIsHalfway = anime.timeline({
+          //  autoplay: false
         }).add({
-          targets: '.trashCan__hand',
+          targets: trashCan.querySelector('.trashCan__hand'),
           rotate : [0, 90],
           begin  : a => {
             trashBallHide.classList.add('trashCan__ball2--hide');
           }
-        }).add(
-          Object.assign({
-            targets: trashCan
-          }, canAnimePt2)
-        );
+        });
 
-        //remove any current animations
-        anime(candidate).remove('*');
+        const canAnime = new Promise((resolve, reject) => {
+          anime.timeline().add({
+            targets   : trashCan,
+            translateX: canMovesX + 'px',
+            duration  : 4000,
+            easing    : 'easeInQuint',
+            update    : a => {
+              if (a.progress > 75) {
+                resolve(a);
+              }
+            }
+          });
+        });
 
         //make a different emoji active so we can delete the candidate
         let deletePosition = myFavs.position;
@@ -348,14 +355,25 @@ J$(document).ready(function ($) {
           });
         })(emoji.getBoundingClientRect(), trashCan.getBoundingClientRect())
 
-        trashBall.append(emoji);
+
+        //animate the emoji into a trashball
+        const ballForm = anime.timeline({
+          targets : candidate,
+          autoplay: false,
+          scale   : 1,
+          complete: a => {
+            trashBall.append(emoji);
+          }
+          //duration : 1000
+        });
+
+
         document.body.append(trashBall);
         //size the container before remove candidate
         //make the candidate appear like it has not moved
         anime.set(trashBall,
           Object.assign({}, startXY)
         );
-
 
         if (candidate.classList.contains('history--draggable')) {
           //TODO: not sure if this is a different case
@@ -371,14 +389,16 @@ J$(document).ready(function ($) {
         let draggableClasses = [...(candidate.classList)].filter(c => /draggable\d/.test(c));
 
         //JSON.parse(JSON.stringify(candidate.getBoundingClientRect())));
-
         let arcTop = diffXY.top - 500;
 
-        const Xfudge = inGallery ? 0 : 30;
-        const Yfudge = inGallery ? -150 : -80;
+        const Xfudge = inGallery ? 30 : 30;
+        const Yfudge = inGallery ? -100 : -80;
 
-        //animate the emoji into a trashball
-        const ballFlight = anime({
+        let ballFlight;
+        const ballFlightP = new Promise((resolve, reject) => {
+          ballFlight = anime.timeline({
+            autoplay: false
+          }).add({
             targets   : trashBall, // document.querySelector('.highlight'),
             translateY: [
               {
@@ -406,55 +426,52 @@ J$(document).ready(function ($) {
                 easing  : 'linear'
               }
             ],
-            scale     : [
-              {
-                value   : 1,
-                duration: 1000
-              },
-              {
-                value   : .5,
-                duration: 1000,
-                easing  : 'linear'
-              }
-            ],
             begin     : a => {
-              //start the can movement
-              canAnime.play()
-
               //spin emoji inside the ball
               anime({
                 targets: emoji,
                 rotate : [{
                   value   : 90,
-                  duration: 1000,
+                  duration: 500,
                   easing  : 'easeInQuad'
                 },
                   {
-                    value   : 720,
+                    value   : 940,
                     duration: 1000,
                     easing  : 'linear'
+                  },
+                  {
+                    value   : 90,
+                    duration: 500,
+                    easing  : 'easeOutQuad'
                   }]
               })
             },
             update    : a => {
               //ball-up/crumple in the last half of the flight
-              let olda = emoji.textContent;
-              if (a.progress > 95) {
-                emoji.textContent = olda;
+              if (a.progress > 85) {
+                emoji.textContent = fave;
               } else if (a.progress > 50) {
                 emoji.textContent = '🏐'
               }
+            },
+            complete  : a => {
+              resolve(a);
             }
-          })
-        ;
+          });
+        });
+        let canAnimeW = await canAnime;
+        //await Promise.all([ canIsHalfway.finished, canAnime.startSlide]);
+        //        canAnime.play();
 
-        await ballFlight.finished
+        ballForm.play()
+        ballFlight.play();
 
-        //delete emoji animations
+        await ballFlightP;
+
         ballFlight.remove('*');
         //delete emoji objects
         console.log('completed... would be removed');
-
 
         //delete emoji and candidate elements
         draggableClasses.forEach(draggables => {
@@ -465,16 +482,21 @@ J$(document).ready(function ($) {
         trashBall.remove();
         //replace it with a fake one that is in the can
         trashBallHide.classList.remove('trashCan__ball2--hide');
-        //slide trashcan out of view
-        canAnime.reverse();
-        canAnime.play();
 
-        await canAnime.finished
+        //slide trashcan out of view
+        canAnimeW.reverse();
+        canAnimeW.play();
+
         //slide ball with trashCan
+        await canAnimeW.finished;
+
+        //hide the fake ball again (for next time)
         trashBallHide.classList.add('trashCan__ball2--hide');
 
-        //very last thing
-        myFavs.trashFave(deletePosition);
+        //very last thing -- delete the emoji from cache
+        myFavs.trashFave(fave);
+
+        //  });
       }
     } catch (e) {
       console.log('trashCan error:',e);
@@ -528,12 +550,12 @@ J$(document).ready(function ($) {
 
     }
     //update size of icons
-    var histCt = $('.history').length;
-    var size = (675 / 25) + 5;
-    if (histCt < 14) {
-      size = Math.max(size, 80);
-    }
-    $('.history').css('font-size', size + 'px');
+    let histCt = $history.length;
+    let area = $history.width * $history.height
+    let size = Math.min((area / histCt) ^ .5, 80);
+
+    $history.css('font-size', size + 'px');
+
   } //archiveFave
 
   //add to the emojiPicker cache

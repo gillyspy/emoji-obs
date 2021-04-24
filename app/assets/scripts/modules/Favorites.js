@@ -43,7 +43,7 @@ class Favorites {
     }
 
     if(type === 'string'){
-      position = recallFave(emoji).position;
+      position = this.recallFave(emojiOrPosition).position;
     } else if(type ===  'number'){
       position =emojiOrPosition
     }
