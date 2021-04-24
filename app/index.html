@@ -253,26 +253,71 @@
         opacity: .8;
         border: none;
         cursor: pointer;
+        padding: 0;
+        width: 44px;
+        height: 44px;
     }
 
-    .history, .aniLetter {
-        color: red;
-        font-weight: bold;
-    }
+.history, .aniLetter {
+    color: red;
+    font-weight: bold;
+}
 
-    .history--sticky{
-        /* */
-    }
+.history--sticky {
+    /* */
+}
 
 
+.trashCan {
+    position: absolute;
+    top: 500px;
+    left: -200px;
+    opacity: .7;
+    z-index: 10000;
+}
 
-    .dragTemp__x {
-        color: gray;
-        font-size: .5em;
-        vertical-align: sub;
-        margin-top: 30px;
-        position: absolute;
-    }
+.trashCan__emoji {
+    font-size: 4em;
+    margin-left: 20px;
+    display: inline-block;
+    position: absolute;
+    bottom: 0;
+}
+
+.trashCan__hand {
+    font-size: 4em;
+    /* transform-origin: 0 0; */
+    display: inline-block;
+    position: absolute;
+    bottom: 0;
+}
+
+.trashCan__ball2 {
+    /* transform-origin: 0 0; */
+    display: inline-block;
+    position: absolute;
+    bottom: 0;
+}
+
+.trashCan__ball2--hide {
+    /* transform-origin: 0 0; */
+    display: none;
+}
+
+.trashCan__ball {
+    position: absolute;
+    z-index: 9999;
+    top: 0;
+    left: 0;
+}
+
+.dragTemp__x {
+    color: gray;
+    font-size: .5em;
+    vertical-align: sub;
+    margin-top: 30px;
+    position: absolute;
+}
 
 
     .dragTemp__pin {
@@ -321,12 +366,15 @@
     .emoji-picker__wrapper {
         z-index: 10000;
     }
-    button{
+    button {
         color: white;
         border-radius: 14px;
-        padding: 0px 3px 2px;
-        margin: 6px 0px 0px 0px;
-        border: 2px dashed white;
+       padding: 0;
+    /*   dding: 0px 6px 0px 6px ;*/
+        width : 1.5em;
+        height: 1.5em;
+      /*  margin: 6px 0px 0px 0px;*/
+         border: 2px dashed white;
         background: rgba(255, 255, 255, .1);
         /* margin:0px */
     }
@@ -784,6 +832,11 @@ border : 0,
     <div id="afk3" class="afkImages afkImages--hide">
         <img width="100%" src="assets/img/afk3.gif">
     </div>
+</div>
+<div id="trashCan" class="trashCan">
+    <span class="trashCan__hand">🤚🏻</span>
+    <span class="trashCan__emoji">🗑️</span>
+    <span class="trashCan__ball2 trashCan__ball2--hide">🏐</span>
 </div>
 <div id="flexClock" class="flexClock">
 
