@@ -55,26 +55,27 @@ let config = {
                 test   : /\.(js)$/,
                 exclude: /node_modules/,
                 use    : {
-                    loader : 'babel-loader',
+                    loader : 'babel-loader'  ,
                     options: {
                         presets: [['@babel/preset-env',
-                         /*   {
-                                "useBuiltIns": "entry"
-                            }, */
+                         //  {
+                         //       "useBuiltIns": "entry"
+                         //   },
                             {
                                 "targets": {
                                     //"esmodules": true
                                     "chrome" : "80"
                                 }
-                            }/*,
-                            {
-                                plugins: [
-                                    '@babel/plugin-proposal-class-properties',
-                                    '@babel/plugin-proposal-private-methods'
-                                ]
-                            }*/
+                            }
+                            //,
+                          //  {
+                          //      plugins: [
+                            //        '@babel/plugin-proposal-class-properties',
+                            //        '@babel/plugin-proposal-private-methods'
+                           //     ]
+                         //   }
                         ]]
-                    }
+                    } /* */
                 }
             }
         ]

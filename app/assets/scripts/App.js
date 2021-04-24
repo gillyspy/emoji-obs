@@ -284,6 +284,8 @@ J$(document).ready(function ($) {
   trashButton.addEventListener('click', async function (ev) {
     //emojis get crumpled into a trashBall and thrown into a trashCan
     try {
+      this.classList.add('pressed');
+      this.classList.remove('pressed--error');
       // whether in the gallery or in history the candidate is always with highlight class
       const emoji = document.querySelector('.highlight');
       const fave = emoji.textContent;
@@ -500,7 +502,9 @@ J$(document).ready(function ($) {
       }
     } catch (e) {
       console.log('trashCan error:',e);
+      this.classList.add('pressed--error');
     }
+    this.classList.remove('pressed');
 
   });
 

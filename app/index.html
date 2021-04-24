@@ -274,7 +274,6 @@
     /* */
 }
 
-
 .dragTemp__x {
     color: gray;
     font-size: .5em;
@@ -282,7 +281,6 @@
     margin-top: 30px;
     position: absolute;
 }
-
 
     .dragTemp__pin {
         font-size: 2px;
@@ -293,13 +291,14 @@
 
 
 .history--draggable {
-        position: absolute;
-        z-index: 20000;
-        /*       // opacity: 1 !important; */
-        background-color: rgba(0, 0, 0, 0) !important;
-        border: none !important;
-        cursor: pointer;
-    }
+    position: absolute;
+    z-index: 20000;
+    /*       // opacity: 1 !important; */
+    background-color: rgba(0, 0, 0, 0) !important;
+    border: none !important;
+    cursor: pointer;
+    font-size: 1.5em;
+}
 
     #col1b {
         margin: 0px;
@@ -356,60 +355,66 @@
         font-size : 1em;
     }
 
-    #history button.pressed,
-    #buttons button.pressed,
-    .drawing button.pressed
-    {
-        appearance: none;
-        background-color: lightgrey;
-    }
+#history button.pressed,
+#buttons button.pressed,
+.drawing button.pressed {
+    appearance: none;
+    background-color: lightgrey;
+}
 
-    #gallery button.pressed{
-        background-color: unset;
-    }
+#gallery button.pressed {
+    background-color: unset;
+}
 
-    .stickybutton {
-    }
+.pressed--error {
+    background-color: lightcoral;
+}
 
-    .afkImages {
-        opacity: .9;
-        margin-bottom: -1000px;
-        background-color: rgba(117, 202, 221, .8);
-     /*   position: fixed; */
-        width: 100%;
-        z-index: -1500;
-        position: absolute;
-    }
-    .afkImages--hide {
-        display: none;
-    }
+.stickybutton {
+}
+
+.afkImages {
+    opacity: .9;
+    margin-bottom: -1000px;
+    background-color: rgba(117, 202, 221, .8);
+    /*   position: fixed; */
+    width: 100%;
+    z-index: -1500;
+    position: absolute;
+}
+
+.afkImages--hide {
+    display: none;
+}
 
 
-    img {
-        box-shadow: 0 0 5px 10px #555;
-    }
+img {
+    box-shadow: 0 0 5px 10px #555;
+}
 
-    #emojipreview {
-        font-size: 2em;
-    }
-    .emoji_preview-name{
-        font-size: 2em;
-        margin-left: 50px;
+#emojipreview {
+    font-size: 2em;
+}
 
-    }
-    .emoji_preview-emoji {
-        font-size: 5em;
-    }
+.emoji_preview-name {
+    font-size: 2em;
+    margin-left: 50px;
 
-    .emojipreview__clocknum{
-        font-size: 1.5em;
+}
 
-    }
+.emoji_preview-emoji {
+    font-size: 5em;
+}
 
-    .together__col1{
-        width : 40%;
-        vertical-align: top;
-    }
+.emojipreview__clocknum {
+    font-size: 1.5em;
+
+}
+
+.together__col1 {
+    width: 40%;
+    vertical-align: top;
+}
     .together__col2 {
         width: 60%;
         text-decoration: white;
