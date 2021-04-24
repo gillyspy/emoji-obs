@@ -457,56 +457,20 @@ J$(document).ready(function ($) {
               [...document.getElementsByClassName(draggables)].forEach(el => el.remove());
             });
 
+            //remove the real ball
             trashBall.remove();
+            //replace it with a fake one that is in the can
             trashBallHide.classList.remove('trashCan__ball2--hide');
+            //slide trashcan out of view
             canAnime.reverse();
             canAnime.play();
             canAnime.finished.then(() => {
+              //slide ball with trashCan
               trashBallHide.classList.add('trashCan__ball2--hide');
             })
-            /* setTimeout(() => {
-               anime(
-                 Object.assign({
-                     targets  : trashBall,
-                   },
-                   canAnimePt2,
-                   {
-                   translateX : diffXY.left + 20 + ( -1 * canMovesX),
-                     begin: a => {
-
-                     }
-                   })
-               )
-
-             }, 1000)*/
-
           });
         }
       );
-
-      /*
-            anime.timeline({})
-
-              .add({
-                targets   : candidate,
-                translateX: 1400,
-                duration  : 7000,
-                easing    : 'easeOutQuad',
-                begin     : a => {
-                  anime({
-                    targets : emoji,
-                    rotate  : 360,
-                    duration: 1500,
-                    easing  : 'linear',
-                    loop    : true
-                  });
-                },
-                complete  : a => {
-
-                }
-              });
-              */
-
     }
   });
 
