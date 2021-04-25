@@ -215,6 +215,10 @@ class TimerCountDown {
     el.classList.add('flexClock__step');
     el.style.height = (height - borderFudge) + 'px';
 
+    if((height - borderFudge)<20){
+      txt = '';
+    }
+
     //add number
     let subEl = document.createElement('span');
     subEl.innerText = txt;
