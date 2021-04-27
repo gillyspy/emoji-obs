@@ -1192,17 +1192,7 @@ class Trash {
     });
 
     tossPromise.then(() => {
-      //candidate and artifacts have draggable classes
-      let draggableClassesToRemove =
-        [...(nodeToEncapsulate.classList)].filter(c => /draggable\d/.test(c));
 
-      if (1 /* delete the elements now */) {
-        //delete emoji and parent elements
-        draggableClassesToRemove.forEach(draggables => {
-          [...document.getElementsByClassName(draggables)].forEach(el => el.remove());
-        });
-
-      }
       this.#trashOffCB
     } );
 

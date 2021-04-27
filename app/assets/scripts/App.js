@@ -305,12 +305,23 @@ J$(document).ready(function ($) {
         const emojiTrash = new TrashCan(emoji);
         emojiTrash.tossIt().then(() => {
 
-          document.querySelector('#trash' + fave).remove();
+          //candidate and artifacts have draggable classes
+          let draggableClassesToRemove =
+            [...(emoji.classList)].filter(c => /draggable\d/.test(c));
 
+          if (1 /* delete the elements now */) {
+            //delete emoji and parent elements
+            draggableClassesToRemove.forEach(draggables => {
+              [...document.getElementsByClassName(draggables)].forEach(el => el.remove());
+            });
+
+          }
           //delete additional  requested selectors
           [/*selectorsToCleanup*/].forEach(sel => {
             [...document.querySelectorAll(sel)].forEach(el => el.remove())
           });
+
+          document.querySelector('#trash' + fave).remove();
 
           //delete the emoji from history
           //  console.log(`${fave} would be trashed now!`);
