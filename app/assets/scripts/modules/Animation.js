@@ -149,21 +149,12 @@ class Animation {
   }
 }
 
-const _ = {
-  scale       : 1,
-  opacity     : 1,
-  began       : false,
-  adjustment  : 2000,
-  idlerotation: true
-};
-var RP; //singleton
-
-
 /**************
  * 2 phases:
  * countdown
  * reset & restart
  */
+
 
 class TimerCountDown {
   #onCB;
@@ -788,6 +779,550 @@ class TimerCountDown {
 
 } //TimerCountDown
 
+
+const _Can = {
+  node          : null,
+  queue         : [],
+  isEmpty       : true,
+  inUse         : false,
+  pushTranslateX: -200,
+  pushDuration  : 4000,
+  pullCan       : Promise.resolve(true),
+  pushCan       : Promise.resolve(true),
+  animateCan    : null,
+  xy            : null,
+  hiddenBall    : null
+};
+
+class Trash {
+  // #trashBall;
+  #type;
+  #_ = {};
+  #canEmoji;
+  #trashOffCB;
+  #cl = {
+    trashable: 'history--draggable'
+  };
+  #startXY = {};
+  #diffXY = {};
+  #emoji;
+
+  /*
+  "TrashCan is always latent on the side of the screen.
+  You choose what to throw into it
+  When it's discarded the callback will be called
+   */
+  constructor(emoji, trashCB) {
+    this.#emoji = emoji
+    this.#trashOffCB = trashCB;
+  }
+
+  #setType() {
+    if (this.#type === 'trash') {
+      this.#_.canSpan = '🗑️'
+    } else {
+      this.#_.canSpan = '♻️'
+    }
+  }
+
+  static #setHiddenBall(emoji) {
+    emoji = emoji || '🏐';
+    const node =  document.createElement('span');
+    node.classList.add('trashCan__ball2', 'trashCan__ball2--hide');
+    node.textContent = emoji;
+    return node;
+  }
+
+  static #constructCan() {
+    //TODO: check to see if there is a conflicting dom element
+    let tempCan = document.createElement('div');
+    tempCan.classList.add('trashCan');
+    tempCan.id = 'trashCan';
+
+    tempCan.innerHTML =
+      `<span class="trashCan__sleeve">&nbsp;</span>
+    <span class="trashCan__hand">🤚🏻</span>
+    <span class="trashCan__emoji">🗑️</span>`;
+    _Can.node = tempCan;
+    document.body.append(_Can.node);
+
+    //now that can is in the dom it has coordinates... cache those
+    _Can.xy = _Can.node.getBoundingClientRect();
+
+    _Can.hiddenBall = Trash.#setHiddenBall('&nbsp;');
+    _Can.node.append(_Can.hiddenBall);
+
+    anime.timeline({
+      //  autoplay: false
+    }).add({
+      targets: _Can.node.querySelector('.trashCan__hand'),
+      rotate : [0, 90],
+      begin  : a => {
+        _
+        //TODO:hide with class or make it empty space?
+        // .classList.add('trashCan__ball2--hide');
+      }
+    });
+  }
+
+  static initCan(translateX = _Can.pushTranslateX,
+                 duration = _Can.pushDuration) {
+    let canPromise;
+    //can itself is a singleton;
+    //if multiple items are tossIt they are queued up
+    if (_Can.node === null) {
+      //create a new can
+      Trash.#constructCan();
+
+      _Can.animateCan = anime.timeline({
+        targets : _Can.node,
+        autoplay: false
+      }).add({
+        translateX: translateX + 'px',
+        duration  : duration,
+        easing    : 'easeOutQuint',
+        update    : a => {
+          //check if there is a need to reverse back to normal
+          if (!_Can.isEmpty && !a.reversed) {
+            // need to reverse
+            a.reverse();
+          }
+        }
+      });
+
+      _Can.animateCan.play()
+
+      Window._Can = _Can;
+      //store the animation promise (just the 1st time)
+      _Can.pushCan = _Can.animateCan.finished;
+    } else {
+      //if there is a can do nothing
+      //TODO:
+
+    }
+  } //initCan
+
+  /*
+  * TODO... as soon as pulling the can back we need to take back the promise on the
+  * "pushed" can.
+   */
+  #pullCan2() {
+    console.log('pullCan.  is it in use?', _Can.inUse);
+
+    //make sure is ready for pulled direction
+    if (_Can.animateCan.direction !== 'reverse') {
+      _Can.animateCan.reverse();
+    }
+
+    _Can.pullCan = new Promise((resolve, reject) => {
+      _Can.animateCan.finished.then(x => {
+        //normalize for the next animation
+        _Can.animateCan.reverse();
+
+        //set as available
+        _Can.inUse = false;
+
+        resolve(_Can.animateCan);
+      });
+
+      //pull the can out
+      _Can.animateCan.play();
+    });
+  } //pullCan2
+
+
+  //pull = normal;  push =reverse
+  #pullCan() {
+    console.log('pullCan.  is it in use?', _Can.inUse);
+    //make sure is ready for normal (i.e. pull) direction
+    if (_Can.animateCan.reversed) {
+      _Can.animateCan.reverse();
+    }
+
+    _Can.pullCan = new Promise((resolve, reject) => {
+      let P = function (a) {
+        a.finished.then(x => {
+          /* as soon as we enter this. _Can.animateCan has a new promise
+          so if we don't like this promise we can start over with a new one
+          */
+          if (!a.reversed /* can was going in the correct direction */) {
+            //set as available
+            _Can.inUse = false;
+
+            // then do normal resolve
+            resolve(_Can.animateCan);
+          } else {
+            /* never resolve instead
+            ** recreate with the updated animation
+            * */
+            P(_Can.animateCan);
+          }
+        })
+      }
+      //first call
+      P(_Can.animateCan);
+
+      //pull the can back
+      if (_Can.animateCan.progress === 0 || !_Can.isEmpty) { //|| _Can.animateCan.paused) {
+        _Can.animateCan.play();
+      }
+
+    });
+  } //pullCan
+
+
+  // reverse = push
+  #pushCan(force) {
+
+    console.log('pushCan.  is it in use?', _Can.inUse);
+    //_Can.animateCan always resets it's promise on it's own
+    // see animejs anime.finished behaviour
+
+    //make sure is ready for pushed direction
+    if (!_Can.animateCan.reversed) {
+      // even if the can is going back in. then stop it
+      _Can.animateCan.pause();
+      //reverse the direction back to reversed
+      _Can.animateCan.reverse();
+    }
+
+    // going correct (normal) direction but not started (0%)
+    if (_Can.animateCan.progress > 0) {
+
+      _Can.pushCan = new Promise((resolve, reject) => {
+        // Promise.all([_Can.pullCan, _Can.animateCan.finished]).then(x => {
+        let P = function (a) {
+          a.finished.then(x => {
+            if (a.reversed) {
+              _Can.inUse = true
+              // animation finished => resolve
+              resolve(_Can.animateCan);
+            } else {
+              P(_Can.animateCan);
+            }
+          })
+        }
+        P(_Can.animateCan);
+
+        //push the can out.
+        if (_Can.animateCan.paused || _Can.animateCan.progress === 100) {
+          _Can.animateCan.play();
+        }
+      });
+    } else //correct direction and 100% out
+    {
+      //do nothing
+      _Can.inUse = true
+    }
+
+  } //pushCan
+
+  /*
+  ** queue processing will continue until it is empty
+  *
+  * the queue is full of promises.
+  * each time an item is passed to the queue the global promise can be updated.
+  *
+  * e.g. promise.all
+   */
+  #processQueue() {
+    let next = _Can.queue.pop();
+
+    if (next) {
+      _Can.isEmpty = false;
+      _Can.inUse = true;
+
+      //do next
+      Promise.all([_Can.pushCan, next]).then(values => {
+        //recursively check queue when this toss resolves and do the next toss
+        this.#processQueue();
+      });
+    } else {
+      _Can.isEmpty = true;
+      /*
+      * queue is finally empty...
+      * end the queued toss-animations and begin the pullback animation
+       */
+      this.#pullCan();
+    }
+  } //processQueue
+
+  #calcDiffXY(emoji) {
+    try {
+      (({top, left, height, width}, {top: endT, left: endL}) => {
+        Object.assign(this.#startXY, {
+          top   : top,
+          left  : left,
+          height: height,
+          width : width
+        });
+        Object.assign(this.#diffXY, {
+          top : endT - top,
+          //consider trashCan's future translateX ?
+          left: (endL /* - _Can.pushTranslateX */) - left
+        });
+      })(emoji.getBoundingClientRect(), _Can.xy);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  } //calcDiffXY
+
+  static #getBall(emoji) {
+    const trashBall = document.createElement('div');
+    trashBall.classList.add('trashCan__ball');
+    trashBall.id = 'trash' + emoji;
+
+    return trashBall;
+  } //getBall
+
+  /*
+  * this ball is a co-hort to the emoji.
+  * it will copy its content. it already sits in the trash can
+   */
+  #revealBall2() {
+
+  }
+
+  /*
+  * App will call toss when it has something to throw out.
+  * That will be added to a queue.
+  *
+  * They will get a promise in return that can be evaluated
+  *
+  * e.g.
+  *
+  * await myTrash.tossIt( node1 selectors);
+  *
+  * if( myTrash.tossIt ){
+  *  // cheer
+  * } else {
+  *   //boo
+  * }
+   */
+  tossIt(/* emoji */
+         selectorsToCleanUpAfter = []) {
+    //begin animation on the can
+
+
+    this.#pushCan();
+    _Can.inUse = true;
+    const nodeToEncapsulate = this.#emoji;
+    const parentNode = nodeToEncapsulate.parentElement;
+    const emoji = nodeToEncapsulate.textContent;
+
+    const tossPromise = new Promise(async (resolve, reject) => {
+      //store where the current element is
+      // calculate the difference from start location to final-trash-location
+      this.#calcDiffXY(nodeToEncapsulate);
+
+      //get the ball (holder)
+      const trashBall = Trash.#getBall(emoji);
+
+      //add a class which makes it position = absolute
+      trashBall.classList.add(this.#cl.trashable); //draggable
+
+      //add the ball (holder) to the Dom
+      document.body.append(trashBall);
+
+      //size the holder
+      anime.set(trashBall, Object.assign({}, this.#startXY, {
+        translateY: 0,
+        translateX: 0,
+        scale     : 1
+      }));
+
+      //resize the candidate to match the start size of the trash
+      const transformParent = anime.timeline({
+        targets : parentNode,
+        autoplay: false
+      }).add({
+        scale   : 1,
+        complete: a => a.remove('*'),
+        duration: 1000
+      });
+
+      const emojiInBall = new Promise((resolve, reject) => {
+        transformParent.finished.then(() => {
+          //insert emoji into the ball (still in Dom)
+          resolve(true);
+          trashBall.append(nodeToEncapsulate);//emoji
+        });
+      });
+
+      transformParent.play();
+
+      if (parentNode.classList.contains('history--draggable')) {
+        //TODO: not sure if this is a different case
+      } else {
+        //prevent the history list from collapsing
+        //TODO:prevent the history list from collapsing
+        trashBall.classList.add('history--draggable');
+      }
+
+      await emojiInBall;
+
+      //for debugging
+      //  _Can.pushCan.then(value => {
+      //  console.log(value);
+      //})
+
+      //make sure can has completed being pushed out
+      await _Can.pushCan;
+
+      const ballFlight = this.#animateBall(
+        nodeToEncapsulate,
+        trashBall
+      );
+
+      ballFlight.play();
+      await Trash.#animateOnce(ballFlight);
+
+      // replace ball with a fake one that is in the can
+      // then remove the real ball
+    //  _Can.hiddenBall.textContent = emoji;
+    //  _Can.hiddenBall.classList.remove('trashCan__ball2--hide');
+      const hiddenBall = Trash.#setHiddenBall(emoji);
+      _Can.node.append( hiddenBall);
+      hiddenBall.classList.remove('trashCan__ball2--hide');
+
+      resolve(true);
+
+      //delete this item from the queue is taken care of elsewhere
+    });
+
+    tossPromise.then(() => {
+      //candidate and artifacts have draggable classes
+      let draggableClassesToRemove =
+        [...(nodeToEncapsulate.classList)].filter(c => /draggable\d/.test(c));
+
+      if (1 /* delete the elements now */) {
+        //delete emoji and parent elements
+        draggableClassesToRemove.forEach(draggables => {
+          [...document.getElementsByClassName(draggables)].forEach(el => el.remove());
+        });
+
+      }
+      this.#trashOffCB
+    } );
+
+    //add this promise to the front of the queue
+    _Can.queue.unshift(tossPromise);
+
+    //begin processing the queue
+    //if (!_Can.inUse) {
+    this.#processQueue()
+    //}
+    return tossPromise;
+  } //toss
+
+  /*
+  * when an animation completes then animation.finished promise is fulfilled
+  * the problem is that it is instantly reset to a pending promise so you cannot check it again
+  *
+  * #animateOnce wraps the animation in a promise that will only be resolved once;
+  *
+   */
+  static
+  #animateOnce(animation) {
+    return new Promise((resolve, reject) => {
+      animation.finished.then(() => {
+        resolve(animation);
+      })
+    });
+  }
+
+  #animateBall(node, trashBall) {
+    const emoji = node.textContent;
+    const inGallery = node.classList.contains('history--draggable');
+    const Xfudge = inGallery ? 30 : 30;
+    const Yfudge = inGallery ? -100 : -80;
+    const arcTop = this.#diffXY.top - 500;
+    const tranY = [
+      arcTop,
+      this.#diffXY.top + Yfudge,
+      this.#diffXY.top + Yfudge + 20
+    ];
+    return anime.timeline({
+      autoplay: false
+    })
+      .add({
+        targets   : trashBall, // document.querySelector('.highlight'),
+        translateY: [
+          {
+            value   : tranY[0],
+            duration: 1000,
+            easing  : 'easeOutQuad'
+          },
+          {
+            value   : tranY[1],
+            duration: 800,
+            easing  : 'easeInQuad'
+          }, {
+            value   : tranY[2],
+            duration: 200,
+            easing  : 'linear'
+          }
+        ],
+        translateX: [
+          {
+            value   : (this.#diffXY.left + Xfudge),
+            duration: 2000,
+            easing  : 'linear'
+          }
+        ],
+        begin     : a => {
+          anime({
+            targets: node,
+            rotate : [{
+              value   : 90,
+              duration: 500,
+              easing  : 'easeInQuad'
+            },
+              {
+                value   : 940,
+                duration: 1000,
+                easing  : 'linear'
+              },
+              {
+                value   : 90,
+                duration: 500,
+                easing  : 'easeOutQuad'
+              }]
+          });
+        }
+        ,
+        update    : a => {
+          //ball-up/crumple in the last half of the flight
+          if (a.progress > 85) {
+            node.textContent = emoji;
+          } else if (a.progress > 50) {
+            node.textContent = '🏐'
+          }
+
+          if (!_Can.animateCan.reversed) {
+            // this.#pushCan()
+          }
+        },
+        complete  : a => {
+          a.remove('*');
+        }
+      });
+  }//animateBall
+
+} //TrashCan
+
+
+const _ = {
+  scale       : 1,
+  opacity     : 1,
+  began       : false,
+  adjustment  : 2000,
+  idlerotation: true
+};
+var RP; //singleton
+
+
 class RocketPath {
   constructor(target, pathNode, opts) {
     this.path = anime.path(pathNode);
@@ -911,7 +1446,8 @@ Animation.prototype.moveTarget = function (direction, pixels = 10, $el) {
 export default {
   Animation     : Animation,
   RocketPath    : RocketPath,
-  TimerCountDown: TimerCountDown
+  TimerCountDown: TimerCountDown,
+  TrashCan      : Trash
 }
 
 /*

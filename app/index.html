@@ -750,9 +750,18 @@ img {
 .trashCan {
     position: absolute;
     top: 500px;
-    left: -200px;
+    left: 0;
     opacity: .7;
     z-index: 10000;
+}
+
+.trashCan__sleeve {
+    width: 10px;
+    opacity: 0;
+    left: 0;
+    height: 3px;
+    background-color: rgba(0,0,255,.9);
+    transform-origin: 0 0;
 }
 
 .trashCan__emoji {
@@ -792,8 +801,9 @@ img {
     position: absolute;
     z-index: 9999;
     opacity : .8;
-    top: 0;
-    left: 0;
+   /* top: 0; */
+  /*  left: 0; */
+    transform-origin: center;
     border : 0 !important
 }
 
@@ -847,11 +857,6 @@ border : 0,
     <div id="afk3" class="afkImages afkImages--hide">
         <img width="100%" src="assets/img/afk3.gif">
     </div>
-</div>
-<div id="trashCan" class="trashCan">
-    <span class="trashCan__hand">🤚🏻</span>
-    <span class="trashCan__emoji">🗑️</span>
-    <span class="trashCan__ball2 trashCan__ball2--hide">🏐</span>
 </div>
 <div id="flexClock" class="flexClock">
 

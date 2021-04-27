@@ -15,6 +15,7 @@ const Init = {
   idlerotation : false,
   linger   : true,
   clocklocation : 'right',
+  trashoffset : '400',
   urlParams :  [
     'idlespeedoffset',
     'defaultidleemoji',
@@ -22,7 +23,8 @@ const Init = {
     'idletimeout',
     'idlerotation',
     'linger',
-    'clocklocation'
+    'clocklocation',
+    'trashoffset'
   ],
   canvas           : {
     backgroundColor: "rgba(85,0,255,0)", //"#5500ff",
