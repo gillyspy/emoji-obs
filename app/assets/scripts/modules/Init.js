@@ -15,7 +15,7 @@ const Init = {
   idlerotation : false,
   linger   : true,
   clocklocation : 'right',
-  trashoffset : '660',
+  trashoffset : '600',
   urlParams :  [
     'idlespeedoffset',
     'defaultidleemoji',
@@ -142,13 +142,19 @@ const Init = {
       Mouse: 
       - double-click on any history emoji => toggle BIG|dock mode
       - double-click toggle drawing mode off
-      - click+drag => drag ANY BIG emoji
+      - click+drag => drag ANY BIG emoji or trashCan
       - click+drag => draw on canvas when visible
       - click|drag any emoji to make it the top emoji
       
       Config:
-      can use the css settings in OBS as some config (example, idle duration,etc) 
-      v20210415.01
+      can use  query params some config:
+      time-based-integers:  idlespeedoffset, rocketspeedoffset
+      on-off bools: linger, idlerotation
+      pixel-value-integers: trashoffset
+      size : historySize
+      text: defaultpointeremoji, defaultidleemoji
+      other : clocklocation (left|right)
+      v20210429.01
       `
 
   }

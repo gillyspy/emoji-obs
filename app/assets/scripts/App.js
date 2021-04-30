@@ -64,8 +64,9 @@ J$(document).ready(function ($) {
   Object.assign(Config, {
     linger      : (Config.linger === 'true'),
     idlerotation: (Config.idlerotation === 'true'),
-    adjustment  : +(Config.idlespeedoffset),
-    trashoffset : +(Config.trashoffset)
+    idlespeedoffset  : +(Config.idlespeedoffset),
+    trashoffset : +(Config.trashoffset),
+    rocketspeedoffset : +(Config.rocketspeedoffset)
   });
 
   const RP = new IdlePath(
@@ -74,6 +75,7 @@ J$(document).ready(function ($) {
     {
       idlerotation: Config.idlerotation,
       adjustment  : Config.idlespeedoffset
+
     }
   );
   RP.setTarget(Config.defaultidleemoji)
