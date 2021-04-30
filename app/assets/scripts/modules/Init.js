@@ -15,7 +15,7 @@ const Init = {
   idlerotation : false,
   linger   : true,
   clocklocation : 'right',
-  trashoffset : '400',
+  trashoffset : '660',
   urlParams :  [
     'idlespeedoffset',
     'defaultidleemoji',
