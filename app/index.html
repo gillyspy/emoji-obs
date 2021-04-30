@@ -287,11 +287,14 @@
         margin-left: 21em;
         margin-top: 21em;
         vertical-align: sub;
+        position:absolute
     }
-
 
 .history--draggable {
     position: absolute;
+    display:flex;
+    justify-content: center;
+    align-items: center;
     z-index: 20000;
     /*       // opacity: 1 !important; */
     background-color: rgba(0, 0, 0, 0) !important;
@@ -299,6 +302,15 @@
     cursor: pointer;
     font-size: 1.5em;
 }
+
+.history--draggable2 {
+    position: absolute;
+    z-index: 20000;
+    /*       // opacity: 1 !important; */
+    background-color: rgba(0, 0, 0, 0) !important;
+    border: none !important;
+}
+
 
     #col1b {
         margin: 0px;
@@ -654,39 +666,44 @@ img {
 
 .flexClock__spotlight {
     border-radius : 100%;
-    width: 2em;
-    height: 2em;
-    top: -25px;
-    left: -2em;
     border: .2em solid rgba(255,255,255,.8);
     background-color: rgba(0,0,0,.8);
     color : rgba( 255,255,255, .9);
     padding: 0;
-    font-size: 5em;
+    width : 100%;
+    height : 100%;
     font-weight: bold;
     position :absolute;
-     opacity : 0;
+    transform-origin: center;
 }
+
+.flexClock__warnWrap{
+    position: absolute;
+    display : flex;
+    justify-content: center;
+    align-items: center;
+    top:35px;
+    opacity:0;
+    width: 2em;
+    height: 2em;
+}
+
 .flexClock__spotlight--left {
     left: 2em;
 }
 
 .flexClock__shadow {
     border-radius : 100%;
+    width: 100%;
+    height: 100%;
     background-color : rgba( 255,255,255,.3);
-    width: 2em;
-    height: 2em;
-    top: 15px;
-    left:-2em;
     border: .2em solid rgba(255,255,255,0);
-    padding: 20px;
-    font-size: 5em;
-    font-weight: bold;
     position :absolute;
-    opacity : 0;
+    transform-origin: center;
+
 }
 .flexClock__shadow--left {
-  left : 2em
+  /* left : 2em*/
 }
 
 .flexClock__spotlight--hide{
@@ -746,50 +763,82 @@ img {
     bottom: 0;
 }
 
+.trashCan__dragWrap{
+    position : absolute;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    opacity : 1;
+    border : 2px dashed white; /* debugging */
+}
 
 .trashCan {
     position: absolute;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
     top: 500px;
-    left: 0;
+    left: 35px;
+    width : 88px;
+    height : 88px;
     opacity: .7;
-    z-index: 10000;
+    z-index: 19999;
+    transform-origin: center;
+;
 }
 
 .trashCan__sleeve {
+    position : absolute;
     width: 10px;
     opacity: 0;
-    left: 0;
-    height: 3px;
+    margin-left : -50px;
     background-color: rgba(0,0,255,.9);
     transform-origin: 0 0;
 }
 
 .trashCan__emoji {
     font-size: 4em;
-    margin-left: 20px;
-    display: inline-block;
     position: absolute;
     bottom: 0;
+    opacity : .8;
 }
 
 .trashCan__hand {
     font-size: 4em;
+    margin-left : -50px;
+    position:absolute;
     /* transform-origin: 0 0; */
-    display: inline-block;
-    position: absolute;
     bottom: 0;
 }
+.trashCan__bottom{
+    display: flex;
+    justify-content: center;
+    position : absolute;
+    font-size : 1.5em;
+    opacity : .6;
+}
+
+.trashCan__clickFace{
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    position : absolute;
+    font-size : 1.5em;
+    opacity : 1;
+}
+
 
 .trashCan__ball2 {
     /* transform-origin: 0 0; */
-    display: inline-block;
     position: absolute;
-    bottom: 0;
-    font-size: 1.5em;
+
+  /*  font-size: 1.5em;
     margin-left: 45px;
     margin-bottom: 15px;
+    transform: rotate(50deg); */
     transform: rotate(50deg);
-    opacity: .6;
+    opacity: 1;
 }
 
 .trashCan__ball2--hide {
@@ -799,13 +848,38 @@ img {
 
 .trashCan__ball {
     position: absolute;
-    z-index: 9999;
+    display: flex;
+    margin: auto;
+    z-index: 20000;
     opacity : .8;
-   /* top: 0; */
+    /* these needs to be  unset for flex */
+   /* top: 0;   /*/
   /*  left: 0; */
     transform-origin: center;
-    border : 0 !important
+    justify-content: center;
+    align-items: center;
+    border : 0 !important;
 }
+
+.trashCan__ball__wrapper {
+    position: absolute;
+    z-index: 20000;
+    /* top: 0;
+    left: 0; */
+    transform-origin: center;
+
+}
+
+.trashCan__ballMask{
+    position: absolute;
+    z-index:20001;
+    opacity : 0;
+    font-size : 20px;
+    transform-origin: center;
+}
+
+
+
 
 /*
 Window.anime({
@@ -869,9 +943,6 @@ border : 0,
         </div>
     </div>
     <div class="flexClock__slider"><button class="big flexClock__slider__button">⏳</button></div>
-    <button class="flexClock__shadow">&nbsp;</button>
-    <button class="flexClock__spotlight">10</button>
-
 </div>
 
 <div id="meetingOver" class="goodBye">

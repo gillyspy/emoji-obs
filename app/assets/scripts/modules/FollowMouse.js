@@ -272,9 +272,10 @@ class MouseActions {
 } //class MouseActions
 
 MouseActions.makeDraggable =
-  function (node, opts = {}) {
-    let target = node;
+  function (node, opts = {}, useButton = true) {
+    const target = node;
     let isDragging = false;
+    const startXY = {};
 
     target.addEventListener('mousedown', function (ev) {
       if (ev.detail === 2) {
@@ -286,7 +287,11 @@ MouseActions.makeDraggable =
       }
 
       //initialize the position of element w.r.t the mouse
-      let {width, height} = (node.querySelector('button').getBoundingClientRect());
+      let {width, height, top, left} =
+        useButton
+          ? node.querySelector('button').getBoundingClientRect()
+          : node.getBoundingClientRect();
+
       opts = Object.assign({
           left: 0,
           top : 0
@@ -304,30 +309,44 @@ MouseActions.makeDraggable =
       anime.remove(target);
 
       //remove any XY translations that might interfere
-      if (target.style.transform) {
+      /*if (target.style.transform) {
         let oldTransform = target.style.transform;
         //positive lookahead https://regex101.com/r/6zRic1/1
-        target.style.transform = oldTransform.replace(/(?<=translate[XY][(])([^()])*/g, '0px');
-      }
+        target.style.transform = oldTransform.replace(/(?<=translate[XY][(])([^()])* /g, '0px');
+      }*/
       //perform client callback
-      opts.mousedownCB && opts.mousedownCB();
-      target.style.left = (ev.pageX - opts.left) + 'px';
-      target.style.top = (ev.pageY - opts.top) + 'px';
+      opts.mousedownCB && opts.mousedownCB(ev);
+
+      startXY.X = ev.pageX;
+      startXY.Y = ev.pageY;
+      startXY.tX = anime.get(target, 'left');
+      startXY.tY = anime.get(target, 'top');
+      startXY.S = anime.get(target, 'scale');
+      startXY.tX = startXY.tX ? +startXY.tX.replace('px', '') : 0
+      startXY.tY = startXY.tY ? +startXY.tY.replace('px', '') : 0
+
+      // target.style.left = (ev.pageX - opts.left) + 'px';
+      //target.style.top = (ev.pageY - opts.top) + 'px';
       // return false;
     });
 
     target.addEventListener('mousemove', function (ev) {
       if (isDragging) {
         log.browser(' draggin!', opts, ev.pageX, ev.pageY)
-        target.style.left = (ev.pageX - opts.left) + 'px';
-        target.style.top = (ev.pageY - opts.top) + 'px';
+
+        anime.set(target, {
+          left: (startXY.tX + (ev.pageX - startXY.X)),
+          top:( startXY.tY + (ev.pageY - startXY.Y))
+        });
+        //  target.style.left = (ev.pageX - pageX + 'px';
+        //  target.style.top = (ev.pageY- opts.top) + 'px';
       }
     });
 
     target.addEventListener('mouseup', function (ev) {
       log.browser('stop drag')
       isDragging = false;
-      opts.mouseupCB && opts.mouseupCB(target);
+      opts.mouseupCB && opts.mouseupCB(ev);
 
       //return false;
     });

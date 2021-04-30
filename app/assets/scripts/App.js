@@ -285,6 +285,41 @@ J$(document).ready(function ($) {
 
   /********** TRASH CAN ************/
   TrashCan.initCan(Config.trashoffset);
+  const trackCanXYDelta = {};
+  //0. prepare the wrap
+  const dragWrap = (x => {
+    x.classList.add('trashCan__dragWrap');
+    return x;
+  })(document.createElement('div'));
+
+  document.body.append(dragWrap);
+  MouseActions.makeDraggable(TrashCan.getCanNode(), {
+    mousedownCB: (ev) => {
+      //1.make it identical size, etc
+      //   anime.set(dragWrap, );
+      const bigCan = document.querySelector('.trashCan__emoji');
+      //2. wrap it
+      //  dragWrap.append(TrashCan.getCanNode());
+      anime({
+        targets: TrashCan.getCanNode(),
+        scale  : 1.5
+      });
+      //3. put an animation on it. ?
+      //Object.assign( trackCanXYDelta , TrashCan.getCanNode().getBoundingClientRect());
+
+      //track the XY travelled.
+    },
+    mouseupCB  : (ev) => {
+      const bigCan = document.querySelector('.trashCan__emoji');
+      anime({
+        targets: TrashCan.getCanNode(),
+        scale  : 1
+      });
+      //track the XY and update the wrapper
+      TrashCan.updateCanXY();
+    },
+  }, false /**/);
+
 
   trashButton.addEventListener('click', async function (ev) {
     //emojis get crumpled into a trashBall and thrown into a trashCan
@@ -294,6 +329,7 @@ J$(document).ready(function ($) {
       btn.classList.remove('pressed--error');
       // whether in the gallery or in history the candidate is always with highlight class
       const emoji = document.querySelector('.highlight');
+      const parent = emoji.parentElement;
       const fave = emoji.textContent;
       if (emoji) {
         const inGallery = emoji.classList.contains('history--draggable');
@@ -302,12 +338,12 @@ J$(document).ready(function ($) {
         //make a different emoji selected
         document.getElementById('scrollDown').click();
 
-        const emojiTrash = new TrashCan(emoji);
-        emojiTrash.tossIt().then(() => {
+        //candidate and artifacts have draggable classes
+        let draggableClassesToRemove =
+          [...(parent.classList)].filter(c => /draggable\d/.test(c));
 
-          //candidate and artifacts have draggable classes
-          let draggableClassesToRemove =
-            [...(emoji.classList)].filter(c => /draggable\d/.test(c));
+        const emojiTrash = new TrashCan(emoji);
+        emojiTrash.tossIt(true).then(() => {
 
           if (1 /* delete the elements now */) {
             //delete emoji and parent elements
@@ -487,11 +523,13 @@ J$(document).ready(function ($) {
           randomClass = 'draggable' + Math.floor(Math.random() * 1000);
         }
         let $temp = $('<span class="randomClass dragTemp"></span>');
+
+
         /*
         if it is sticky then give it a pin
          */
         let fave = myFavs.recallFave($this.text());
-        let pin = $('<span class="dragTemp__pin history--draggable">📌</span>')
+        let pin = $('<span class="dragTemp__pin">📌</span>')
         pin.hide()
         $temp.append(pin);
         if (fave && fave.sticky) {
@@ -529,37 +567,45 @@ J$(document).ready(function ($) {
           //half the time (just to mix it up) do a trash animation here
           //there is no callback to throw it out though
           if (Math.random() > .5) {
+            const parentNode = $this[0].parentElement;
             const emojiTrash = new TrashCan($this[0]);
-            emojiTrash.tossIt().then(() => {
-              $this
-                .appendTo($origin)
-                .removeClass('history--draggable')
-                .addClass('history__btn');
-              $temp.removeData('draggable').remove();
-              anime({
-                targets : '.' + randomClass,
-                scale   : 1,
-                opacity : [0, 1],
-                rotate  : 0,
-                duration: 3000,
-                delay   : 0,
-                easing  : 'linear',
-                complete: a => anime.remove('.' + randomClass)
+            TrashCan.animateOnce(anime({
+              targets : parentNode,
+              scale   : 1,
+              duration: 2000
+            }), true, 0).then(a => {
+              emojiTrash.tossIt(false, $this[0]).then(() => {
+                parentNode.remove()
+                $this
+                  .appendTo($origin)
+                  .removeClass('history--draggable')
+                  .addClass('history__btn');
+                $temp.removeData('draggable').remove();
+                anime({
+                  targets : '.' + randomClass,
+                  scale   : 1,
+                  opacity : [0, 1],
+                  rotate  : 0,
+                  duration: 3000,
+                  delay   : 0,
+                  easing  : 'linear',
+                  complete: a => anime.remove('.' + randomClass)
+                });
+                // document.querySelector('#trash'+emoji).remove();
               });
-              document.querySelector('#trash'+emoji).remove();
             });
             return;
-          }
+          } //if
 
           myAnimation
             .timeline(randomClass + 'From', {loop: 1})
             .addToTimeline(randomClass + 'From', {
-                targets : $this[0],//$this[0],
-                scale   : [1, .1],
-                opacity : [1, 0],
-                duration: 2000,
-                delay   : 0,
-                easing  : "easeOutExpo",
+              targets   : $this[0],//$this[0],
+              scale     : [1, .1],
+              opacity   : [1, 0],
+              duration  : 2000,
+              delay     : 0,
+              easing    : "easeOutExpo",
                 complete: function () {
                   //put it back in history at "front"
                   $this
@@ -610,9 +656,9 @@ J$(document).ready(function ($) {
                     myAnimation.doTimeline(randomClass + 'Fade', 'pause');
                   }
                 },
-                mouseupCB  : function (el) {
+                mouseupCB  : function (ev) {
                   //resume the "linger" animation after mouseup
-                  Config.linger && MouseActions.linger(el);
+                  Config.linger && MouseActions.linger(ev.target);
                 }
               })
           })
@@ -629,8 +675,18 @@ J$(document).ready(function ($) {
           .removeClass('history__btn')
           .prependTo($temp)
           .addClass('history--draggable');
-        let randomY = Math.floor(400 * Math.random()) - 100;
-        let randomX = Math.floor(800 * Math.random());
+        anime.set($temp[0],
+          (({left, top, height, width}) => ({
+              top   : top,
+              left  : left,
+              height: height,
+              width : width
+            })
+          )($this[0].getBoundingClientRect())
+        );
+
+        let randomY = Math.floor(530 * Math.random()) + 10;
+        let randomX = Math.floor(950 * Math.random()) + 10;
 
         myAnimation.timeline(randomClass + 'To', {loop: 1})
           .addToTimeline(randomClass + 'To', {
@@ -1059,55 +1115,99 @@ J$(document).ready(function ($) {
     {
       callbacks: [
         {
-          times: [5,10],
-          cb      : (minsLeft) => {
-            let shadow = document.querySelector('.flexClock__shadow');
-            let spotlight = document.querySelector('.flexClock__spotlight');
+          times    : [5, 10],
+          completed: [],
+          cb       : (minsLeft) => {
+            const shadow = MeetingCountDown.makeWarning(' ', 'flexClock__shadow');
+            const spotlight = MeetingCountDown.makeWarning(minsLeft, 'flexClock__spotlight');
             if (!spotlight || !shadow) {
               return;
             }
-            if(Config.clocklocation==='left'){
+            if (Config.clocklocation === 'left') {
               shadow.classList.add('flexClock__shadow--left');
               spotlight.classList.add('flexClock__spotlight--left');
             }
 
-            anime(shadow).remove();
-            anime(spotlight).remove();
+            /*
+            * 1. get position of the slider
+            * 2. determine left of right
+            * 3.  do math so set the position of the new elements
+             */
 
-            anime.timeline({}).add({
+            //1.
+            const slider = document.getElementById('flexClock');
+            const startPosition = slider.getBoundingClientRect();
+            (({left}) => {
+
+              //2.
+              left -= (Config.clocklocation === 'left' ? -100 : -50);
+              anime.set(shadow, {left: left});
+              anime.set(spotlight, {left: left});
+            })(startPosition)
+
+            //2.
+
+            //3.
+
+            const spotlightAnimation = anime.timeline({
+              autplay: false,
+              targets: spotlight
+            }).add({
               duration  : 3000,
-              targets   : spotlight,
-              scale     : [5, 1],
-              translateY: 35,
-              opacity   : (e) => {
-                e.textContent = minsLeft;
-                return 1;
-              },
+              scale     : [10, 3],
+              translateY: [-1, -1],
+              opacity   : 1,
               easing    : 'easeOutBounce'
             }).add({
-              duration: 10000,
-              targets : spotlight,
+              duration: 3000,
               // scale: 1.2,
-              opacity : 0,
+              //   opacity : 0,
+              update  : a => {
+                //     console.log('spotlight', a.progress, shadow.getBoundingClientRect());
+              },
               easing  : 'easeInBounce', //translateY : -50,
             }).add({
+              scale     : .5,
+              duration  : 1500,
+              translateY: 0,
+              easing    : 'easeOutQuint',
+              complete  : a => {
+
+                console.log(a.progress, spotlight.getBoundingClientRect())
+              }
+
+            })
+            /*.add({
               targets   : spotlight,
               translateY: 0,
               complete  : a => {
                 a.remove()
               }
-            });
+            });*/
 
-            anime.timeline({
-              //
+            const shadowAnimation = anime.timeline({
+              autoplay: false,
+              targets : shadow
             }).add({
-              targets   : shadow,
               opacity   : 1,
               duration  : 3000,
-              scale     : [.1, 1],
+              scale     : [.1, 3],
               translateY: 0,
               easing    : 'easeOutBounce'
             }).add({
+              duration: 3000,
+              //  opacity : 0,
+              update  : a => {
+                //  console.log('shadow', a.progress, shadow.getBoundingClientRect());
+              },
+              easing  : 'easeInBounce', //translateY : -50,
+            }).add({
+              scale   : .1,
+              opacity : 0,
+              duration: 1500,
+              easing  : 'easeOutQuint'
+            })
+            /*.add({
               duration: 10000,
               targets : shadow,
               opacity : 0,
@@ -1118,7 +1218,39 @@ J$(document).ready(function ($) {
               complete  : a => {
                 a.remove()
               }
+            });*/
+
+            //using the child will strip off all the animation transformations
+            const spotlightToss = new TrashCan(spotlight.firstChild);
+            //  const shadowToss = new TrashCan(shadow);
+
+            const XY =
+              (({left, top, width, height}) => (
+                {
+                  left  : left,
+                  top   : top,
+                  width : width,
+                  height: height
+                }
+              ))(shadow.getBoundingClientRect());
+
+            TrashCan.animateOnce(spotlightAnimation, spotlightAnimation, 2000)
+              .then(a => {
+                  spotlightToss.tossIt(true, XY, spotlightAnimation).then(x => {
+                    spotlight.remove();
+                    spotlightAnimation.remove('*');
+                  });
+                }
+              );
+
+            shadowAnimation.finished.then(() => {
+              shadowAnimation.remove();
+              shadow.remove();
             });
+
+            spotlightAnimation.play();
+            shadowAnimation.play();
+
           }
         },
         {
