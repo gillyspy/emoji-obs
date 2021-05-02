@@ -749,9 +749,6 @@ class TimerCountDown {
             }); //anime (inner)
             H -= n.data.h;
           }
-        },
-        complete: a => {
-          i++;
         }
       })
     }, 1500);

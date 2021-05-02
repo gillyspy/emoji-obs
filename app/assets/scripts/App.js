@@ -1,11 +1,11 @@
 import anime from "animejs";
-
+anime.suspendWhenDocumentHidden = false; // default true
 const J$ = require("jquery").noConflict();
 import {EmojiButton} from '@joeattardi/emoji-button';
 import Favorites from "./modules/Favorites";
 import A from './modules/Animation';
 
-anime.suspendWhenDocumentHidden = false; // default true
+
 import Init from './modules/Init.js';
 import Draw from 'draw-on-canvas';
 import Log from './modules/Log.js';
