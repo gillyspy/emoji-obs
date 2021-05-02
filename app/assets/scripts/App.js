@@ -4,6 +4,8 @@ const J$ = require("jquery").noConflict();
 import {EmojiButton} from '@joeattardi/emoji-button';
 import Favorites from "./modules/Favorites";
 import A from './modules/Animation';
+
+anime.suspendWhenDocumentHidden = false; // default true
 import Init from './modules/Init.js';
 import Draw from 'draw-on-canvas';
 import Log from './modules/Log.js';
@@ -313,12 +315,17 @@ J$(document).ready(function ($) {
     },
     mouseupCB  : (ev) => {
       const bigCan = document.querySelector('.trashCan__emoji');
+
+      //undo #2
       anime({
-        targets: TrashCan.getCanNode(),
-        scale  : 1
+        targets : TrashCan.getCanNode(),
+        scale   : 1,
+        //re-init the animation
+        complete: a => TrashCan.initAnimation(100)
       });
       //track the XY and update the wrapper
-      TrashCan.updateCanXY();
+
+      //TrashCan.updateCanXY();
     },
   }, false /**/);
 
@@ -345,7 +352,7 @@ J$(document).ready(function ($) {
           [...(parent.classList)].filter(c => /draggable\d/.test(c));
 
         const emojiTrash = new TrashCan(emoji);
-        emojiTrash.tossIt(true).then(() => {
+        emojiTrash.tossIt(false).then(() => {
 
           if (1 /* delete the elements now */) {
             //delete emoji and parent elements
@@ -576,8 +583,8 @@ J$(document).ready(function ($) {
               scale   : 1,
               duration: 2000
             }), true, 0).then(a => {
-              emojiTrash.tossIt(false, $this[0]).then(() => {
-                parentNode.remove()
+              emojiTrash.tossIt(true, $this[0]).then(() => {
+            //    parentNode.remove()
                 $this
                   .appendTo($origin)
                   .removeClass('history--draggable')
@@ -1157,7 +1164,7 @@ J$(document).ready(function ($) {
             }).add({
               duration  : 3000,
               scale     : [10, 3],
-              translateY: [-1, -1],
+              //translateY: [, -1],
               opacity   : 1,
               easing    : 'easeOutBounce'
             }).add({
@@ -1194,7 +1201,7 @@ J$(document).ready(function ($) {
               opacity   : 1,
               duration  : 3000,
               scale     : [.1, 3],
-              translateY: 0,
+              translateY: 1,
               easing    : 'easeOutBounce'
             }).add({
               duration: 3000,
@@ -1226,7 +1233,7 @@ J$(document).ready(function ($) {
             const spotlightToss = new TrashCan(spotlight.firstChild);
             //  const shadowToss = new TrashCan(shadow);
 
-            const XY =
+            const XY = //TODO : do we need this
               (({left, top, width, height}) => (
                 {
                   left  : left,
@@ -1238,12 +1245,18 @@ J$(document).ready(function ($) {
 
             TrashCan.animateOnce(spotlightAnimation, spotlightAnimation, 2000)
               .then(a => {
-                  spotlightToss.tossIt(true, XY, spotlightAnimation).then(x => {
+                //spotlight is actually wrapped so we want it's first child
+                  spotlightToss.tossIt(false, spotlight.firstChild, spotlightAnimation).then(x => {
                     spotlight.remove();
-                    spotlightAnimation.remove('*');
+                    spotlightAnimation.remove();
                   });
                 }
               );
+
+            spotlightAnimation.finished.then(() => {
+             /* spotlight.remove();
+              spotlightAnimation.remove();*/
+            })
 
             shadowAnimation.finished.then(() => {
               shadowAnimation.remove();

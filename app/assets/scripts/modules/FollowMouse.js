@@ -306,7 +306,8 @@ MouseActions.makeDraggable =
 
       //removeAny anime animations which might impact its position, especially transformations
 
-      anime.remove(target);
+      //TODO: restore this? and fix the resulting Can's animation issue?
+      //anime.remove(target);
 
       //remove any XY translations that might interfere
       /*if (target.style.transform) {

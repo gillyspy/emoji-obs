@@ -816,6 +816,11 @@ img {
     position : absolute;
     font-size : 1.5em;
     opacity : .6;
+    color: white;
+}
+
+.trashCan__bottom > * {
+    position:absolute;
 }
 
 .trashCan__clickFace{
@@ -832,13 +837,18 @@ img {
 .trashCan__ball2 {
     /* transform-origin: 0 0; */
     position: absolute;
-
-  /*  font-size: 1.5em;
-    margin-left: 45px;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+   /* margin-left: 45px;
     margin-bottom: 15px;
     transform: rotate(50deg); */
     transform: rotate(50deg);
     opacity: 1;
+}
+
+.trashCan__ball2 > * {
+      font-size: 1em !important;
 }
 
 .trashCan__ball2--hide {

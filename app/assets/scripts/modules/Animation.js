@@ -478,7 +478,7 @@ class TimerCountDown {
       translateY: 0,
       duration  : 500,
       onComplete: function (a) {
-        a.remove('*')
+        a.remove()
       }
     });
     anime({
@@ -486,7 +486,7 @@ class TimerCountDown {
       translateY: 0,
       duration  : 2000,
       onComplete: function (a) {
-        a.remove('*')
+        a.remove()
       }
     })
 
@@ -494,7 +494,7 @@ class TimerCountDown {
     this.#scaleAnimation.forEach(a => {
       a.restart();
       a.pause();
-      a.remove('*');
+      a.remove();
     });
 
     //slide the slider back up ( this animation does not have to be time-accurate)
@@ -523,7 +523,7 @@ class TimerCountDown {
         this.#scaleAnimation.forEach(a => {
           a.restart();
           a.pause();
-          a.remove('*');
+          a.remove();
         });
 
         const valueNode = this.valueNode;
@@ -629,86 +629,118 @@ class TimerCountDown {
       })
     );
 
-    setTimeout(() => {
+    const _interval = setTimeout(() => {
 
-      const pxTotal = 525;
-      const nodes = [...document.querySelectorAll('.flexClock__sub--A .flexClock__step')];
-      const nextStep = (j, node, fall) => {
-        const h = +node.style.height.replace('px', '');
-        const R = h / pxTotal;
-        const T = R * duration;
-        const nextfall = fall - h;
-        j++;
-        const N = node.querySelector('.flexClock__span--super')
-        anime({
-          targets : {key: 'value'},
-          scale   : 1,
-          duration: T,
-          loop    : 1,
-          complete: a => {
-            if (nodes[j])
-              nextStep(j, nodes[j], nextfall);
-            anime.timeline({
-              targets: N
-            }).add({
-              translateY: [
-                {
-                  value   : h - 16,
-                  duration: 200,
-                  easing  : 'easeInQuad',
-                },
-                {
-                  value   : fall,
-                  duration: 1000,
-                  easing  : 'easeInQuad'
-                }
-              ],
-              translateX: [
-                {
-                  value   : -40,
-                  duration: 100,
-                  delay   : 100
-                },
-                {
-                  value   : -60,
-                  duration: 1000,
-                  easing  : 'easeInQuad'
-                }
-              ],
-              rotateZ   : [
-                {
-                  value   : 45,
-                  duration: 200,
-                  easing  : 'linear'
-                },
-                {
-                  value   : -45,
-                  duration: 900,
-                  easing  : 'linear'
-                },
-                {
-                  value   : -0,
-                  duration: 100,
-                  easing  : 'linear'
-                }
-              ],
-              rotateX   : [
-                {
-                  value   : 80,
-                  duration: 100,
-                  delay   : 1500,
-                  easing  : 'linear'
-                }
-              ]
-            }).add({
-              opacity : 0,
-              duration: T
-            }); //anime
-          }
-        }) //anime
+      const N = [...document.querySelectorAll('.flexClock__sub--A .flexClock__step .flexClock__span--super')];
+      if (!N.length) {
+        return;
       }
-      nextStep(0, nodes[0], 525);
-    }, 500);
+      clearInterval(_interval);
+
+      let T = 0;
+      let H = 525;
+      const pxTotal = 525;
+      N.forEach((n, i) => {
+        let h = +n.parentElement.style.height.replace('px', '');
+        n.data = {
+          h: h,
+          t: (h / pxTotal * duration)
+        }
+      });
+      T = N[0].data.t
+      //anime as a time controller
+      anime({
+        targets : {ct: 0},
+        ct      : duration,
+        duration: duration,
+        update  : a => {
+          //console.log(O[0])
+          //        delay   : anime.stagger(T1, {start: T0}),
+          if (a.currentTime > T) {
+            let n = N.shift();
+            if (N.length)
+              T += N[0].data.t;
+
+            anime.timeline({
+              targets: n
+            })
+              .add({
+                translateY: [
+                  {
+                    value   : n.data.h,
+                    duration: 200,
+                    easing  : 'easeInQuad',
+                  },
+                  {
+                    value   : H,
+                    duration: 1000,
+                    easing  : 'easeInQuad'
+                  }
+                ],
+                translateX: [
+                  {
+                    value   : -40,
+                    duration: 100,
+                    delay   : 100
+                  },
+                  {
+                    value   : -60,
+                    duration: 1000,
+                    easing  : 'easeInQuad'
+                  }
+                ],
+                rotateZ   : [
+                  {
+                    value   : 45,
+                    duration: 200,
+                    easing  : 'linear'
+                  },
+                  {
+                    value   : -45,
+                    duration: 900,
+                    easing  : 'linear'
+                  },
+                  {
+                    value   : -0,
+                    duration: 100,
+                    easing  : 'linear'
+                  }
+                ],
+                rotateX   : [
+                  {
+                    value   : 80,
+                    duration: 100,
+                    delay   : 1500,
+                    easing  : 'linear'
+                  }
+                ],
+                complete  : a => {
+                  //put it IN the trashCan if it is near by
+                  try {
+                    let canX = Trash.getXY(document.querySelector('.trashCan')).left;
+                    let sliderX = Trash.getXY(document.querySelector('.flexClock__slider')).left;
+                    let X = Trash.getXY(n).left;
+                    if (X - 65 < canX && X > canX) {
+                      document.querySelector('.trashCan__bottom').append(n.firstChild);
+                      anime.set(n, {translateX: '', translateY : ''});
+                    }
+                  } catch (e) {
+                    console.log(e);
+                  }
+                  //  a.remove();
+                }
+              }).add({
+              opacity : 0,
+              duration: (duration - a.currentTime)
+            }); //anime (inner)
+            H -= n.data.h;
+          }
+        },
+        complete: a => {
+          i++;
+        }
+      })
+    }, 1500);
 
     (go => {
         if (go) {
@@ -894,19 +926,20 @@ class TimerCountDown {
 } //TimerCountDown
 
 
-const _Can = {
-  node          : null,
-  queue         : [],
-  isEmpty       : true,
-  inUse         : false,
-  pushTranslateX: -200,
-  pushDuration  : 4000,
-  pullCan       : Promise.resolve(true),
-  pushCan       : Promise.resolve(true),
-  animateCan    : null,
-  xy            : null,
-  hiddenBall    : null
-};
+const
+  _Can = {
+    node          : null,
+    queue         : [],
+    isEmpty       : true,
+    inUse         : false,
+    pushTranslateX: -200,
+    pushDuration  : 2000,
+    pullCan       : Promise.resolve(true),
+    pushCan       : Promise.resolve(true),
+    animateCan    : null,
+    xy            : null,
+    hiddenBall    : null
+  };
 
 class Trash {
   // #trashBall;
@@ -939,20 +972,47 @@ class Trash {
     }
   }
 
-  static #setHiddenBall(emoji) {
-    emoji = emoji || '🏐';
+  static #setHiddenBall(emoji, innerNode) {
+    if (emoji instanceof Element) {
+      innerNode = emoji;
+    } else {
+      emoji = emoji || '🏐';
+    }
+
     const node = document.createElement('span');
     node.classList.add('trashCan__ball2', 'trashCan__ball2--hide');
-    node.textContent = emoji;
+    if (innerNode) {
+      node.append(innerNode);
+      anime.set(node, {
+        translateX : 0,
+        translateY : 0,
+        width : '100%',
+        height : '100%'
+      });
+    } else if (typeof emoji === 'string') {
+      node.textContent = emoji;
+    }
     return node;
   }
 
-  static updateCanXY() {
+  static updateCanXY(xy) {
     //_Can.animateCan.finished()
-    Object.assign(_Can.xy, {
-      left: (anime.get(_Can.node, 'left') + '').replace('px', ''),
-      top : (anime.get(_Can.node, 'top') + '').replace('px', '')
-    });
+    if (_Can.animateCan) {
+
+    }
+
+    if (xy) {
+      Object.assign(_Can.xy, {
+        left: xy.left,
+        top : (anime.get(_Can.node, 'top') + '').replace('px', '')
+      });
+    } else {
+
+      Object.assign(_Can.xy, {
+        left: (anime.get(_Can.node, 'left') + '').replace('px', ''),
+        top : (anime.get(_Can.node, 'top') + '').replace('px', '')
+      });
+    }
     // _Can.xy = _Can.node.getBoundingClientRect();
   }
 
@@ -996,8 +1056,48 @@ class Trash {
     });
   }
 
-  static initCan(translateX = _Can.pushTranslateX,
-                 duration = _Can.pushDuration) {
+  /*
+  * 1. when the page loads the trashCan is placed and then animated to the
+  * requested (by configuration setting) spot
+  * 2. every time the push animation is triggered it goes to the left edge of the screen
+   */
+  static initAnimation(
+    translateX = _Can.pushTranslateX,
+    duration = _Can.pushDuration
+  ) {
+    if (_Can.animateCan) {
+      _Can.animateCan.remove();
+    }
+
+    anime.remove(_Can.node);
+
+    _Can.animateCan = anime.timeline({
+      targets : _Can.node,
+      autoplay: false
+    }).add({
+      // translateX: translateX,
+      left    : translateX,
+      //top : top,
+      duration: duration,
+      easing  : 'easeOutQuint',
+      update  : a => {
+        //check if there is a need to reverse back to normal
+        if (!_Can.isEmpty && !a.reversed) {
+          // need to reverse
+          a.reverse();
+        }
+      }
+    });
+    Trash.updateCanXY(_Can.xy);
+    _Can.pushCan = _Can.animateCan.finished;
+    return _Can.animateCan;
+
+  }
+
+  static initCan(
+    translateX = _Can.pushTranslateX,
+    duration = _Can.pushDuration
+  ) {
     let canPromise;
     //can itself is a singleton;
     //if multiple items are tossIt they are queued up
@@ -1005,29 +1105,29 @@ class Trash {
       //create a new can
       Trash.#constructCan();
 
-      _Can.animateCan = anime.timeline({
-        targets : _Can.node,
-        autoplay: false
-      }).add({
-        translateX: translateX,
-        //    left : translateX,
-        // top : top,
-        duration  : duration,
-        easing    : 'easeOutQuint',
-        update    : a => {
-          //check if there is a need to reverse back to normal
-          if (!_Can.isEmpty && !a.reversed) {
-            // need to reverse
-            a.reverse();
-          }
-        }
-      });
+      //1.
+      const _A =
+        anime.timeline({
+          targets: _Can.node
+        }).add({
+          left    : translateX,
+          //top : top,
+          duration: duration,
+          easing  : 'easeOutQuint'
+        });
 
-      _Can.animateCan.play()
+      //update it's base location
+      _Can.xy =
+        Object.assign(
+          Trash.getXY(_Can.node),
+          {left: 100}
+        );
+
+      _A.finished.then(() => Trash.initAnimation(_Can.xy.left, duration));
 
       Window._Can = _Can;
       //store the animation promise (just the 1st time)
-      _Can.pushCan = _Can.animateCan.finished;
+
     } else {
       //if there is a can do nothing
       //TODO:
@@ -1064,11 +1164,11 @@ class Trash {
   } //pullCan2
 
 
-  //pull = normal;  push =reverse
+  //pull = reverse;  push =normal
   #pullCan() {
     console.log('pullCan.  is it in use?', _Can.inUse);
     //make sure is ready for normal (i.e. pull) direction
-    if (_Can.animateCan.reversed) {
+    if (!_Can.animateCan.reversed) {
       _Can.animateCan.reverse();
     }
 
@@ -1090,13 +1190,13 @@ class Trash {
             * */
             P(_Can.animateCan);
           }
-        })
+        });
       }
       //first call
       P(_Can.animateCan);
 
       //pull the can back
-      if (_Can.animateCan.progress === 0 || !_Can.isEmpty) { //|| _Can.animateCan.paused) {
+      if (_Can.animateCan.progress === 100 || !_Can.isEmpty) { //|| _Can.animateCan.paused) {
         _Can.animateCan.play();
       }
 
@@ -1112,7 +1212,7 @@ class Trash {
     // see animejs anime.finished behaviour
 
     //make sure is ready for pushed direction
-    if (!_Can.animateCan.reversed) {
+    if (_Can.animateCan.reversed) {
       // even if the can is going back in. then stop it
       _Can.animateCan.pause();
       //reverse the direction back to reversed
@@ -1120,13 +1220,13 @@ class Trash {
     }
 
     // going correct (normal) direction but not started (0%)
-    if (_Can.animateCan.progress > 0) {
+    if (_Can.animateCan.progress < 100) {
 
       _Can.pushCan = new Promise((resolve, reject) => {
         // Promise.all([_Can.pullCan, _Can.animateCan.finished]).then(x => {
         let P = function (a) {
           a.finished.then(x => {
-            if (a.reversed) {
+            if (!a.reversed) {
               _Can.inUse = true
               // animation finished => resolve
               resolve(_Can.animateCan);
@@ -1138,7 +1238,7 @@ class Trash {
         P(_Can.animateCan);
 
         //push the can out.
-        if (_Can.animateCan.paused || _Can.animateCan.progress === 100) {
+        if (_Can.animateCan.paused || _Can.animateCan.progress === 0) {
           _Can.animateCan.play();
         }
       });
@@ -1192,7 +1292,8 @@ class Trash {
 
   #calcDiffXY(
     start, /*emoji*/
-    end = _Can.xy /* trash can*/) {
+    end = _Can.xy,/* trash can*/
+    maxHW = [50, 50]) {
 
     try {
       (({top, left, height, width},
@@ -1206,8 +1307,8 @@ class Trash {
         Object.assign(this.#startXY, {
           top   : top,
           left  : left,
-          height: height,
-          width : width
+          height: Math.min(height, maxHW[0]),
+          width : Math.min(width, maxHW[1])
         });
         Object.assign(this.#diffXY, {
           top: endT - top, ///- height / 2,
@@ -1225,6 +1326,7 @@ class Trash {
   } //calcDiffXY
 
   static #getBall(emoji) {
+    //TODO: size this?
     const trashBall = document.createElement('div');
     trashBall.classList.add('trashCan__ball');
     trashBall.id = 'trash' + emoji;
@@ -1277,10 +1379,11 @@ class Trash {
     const tossPromise = new Promise(async (resolve, reject) => {
       //kill animations on the node
 
-      //clone it (and contents)a
+      //clone it (and contents)
 
       const nodeToBallUp = doRemove ? this.#emoji.cloneNode(true) : this.#emoji;
 
+      //determine if the node is in the gallery. (helpful later)
       const parentNode = this.#emoji.parentElement;
       const inGallery = parentNode.classList.contains('history--draggable');
 
@@ -1299,8 +1402,12 @@ class Trash {
 
       if (startXY && startXY instanceof Element) {
         startXY = Trash.getXY(startXY);
+      } else if (startXY) {
+        //startXY
+      } else {
+        startXY = this.#emoji.getBoundingClientRect();
       }
-      this.#calcDiffXY(startXY || this.#emoji.getBoundingClientRect());
+      this.#calcDiffXY(startXY, _Can.xy, [50, 50]);
 
       //size the holder (has to be in DOM to be sized)
       anime.set(trashBall, Object.assign({}, this.#startXY, {
@@ -1338,33 +1445,30 @@ class Trash {
 
       await emojiInBall;
 
-      //for debugging
-      //  _Can.pushCan.then(value => {
-      //  console.log(value);
-      //})
-
-      //make sure can has completed being pushed out
-
       const ballFlight = this.#animateBall(trashBall, doRemove, inGallery);
 
+
+      //make sure can has completed being pushed out
       await _Can.pushCan;
 
-      const R = Trash.animateOnce(
-        ballFlight,
-        true,
-        150 // early resolution
-      )
+      /*  const R = Trash.animateOnce(
+          ballFlight,
+          true,
+          150 // early resolution
+        )*/
 
       ballFlight.finished.then(() => {
         // replace ball with a fake one that is in the can
         // then remove the real ball
-        resolve(true);
-        const hiddenBall = Trash.#setHiddenBall(emoji);
+
+        const hiddenBall = Trash.#setHiddenBall(emoji, trashBall.firstChild);
 
         //remove the real ball is done in the animation
         anime.set(hiddenBall, {rotate: Math.random() * 90});
         _Can.node.querySelector('.trashCan__bottom').append(hiddenBall);
         hiddenBall.classList.remove('trashCan__ball2--hide');
+        trashBall.remove();
+        resolve(true);
       });
 
       // resolve(true);
@@ -1382,6 +1486,7 @@ class Trash {
     });
 
     tossPromise.then(() => {
+
       this.#trashOffCB
     });
 
@@ -1505,11 +1610,11 @@ class Trash {
           easing  : 'easeInOutQuad'
         },
         {
-          value   : (this.#diffXY.left * .93) - Xfudge,
+          value   : (this.#diffXY.left * .93), //- Xfudge,
           duration: 500,
           easing  : 'easeInQuad'
         }, {
-          value   : (this.#diffXY.left * 1) - Xfudge,
+          value   : (this.#diffXY.left * 1),//- Xfudge,
           duration: 300,
           easing  : 'linear'
         },
@@ -1562,7 +1667,7 @@ class Trash {
         }
       },
       complete  : a => {
-        a.remove('*');
+        a.remove();
         if (doRemove) {
           trashBall.remove();
         }
