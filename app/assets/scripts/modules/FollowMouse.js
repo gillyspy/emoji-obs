@@ -1,8 +1,8 @@
 import Log from './Log.js';
 import anime from "animejs";
 
-//const log = new Log(('disabled' == 'on'));
-const log = new Log(('enabled' === 'enabled'));
+const log = new Log(('disabled' == 'on'));
+//const log = new Log(('enabled' === 'enabled'));
 var $;
 var FM;
 const m = {

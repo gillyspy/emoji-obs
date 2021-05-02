@@ -1148,15 +1148,13 @@ J$(document).ready(function ($) {
             const startPosition = slider.getBoundingClientRect();
             (({left}) => {
 
-              //2.
+              //2. 3.
               left -= (Config.clocklocation === 'left' ? -100 : -50);
               anime.set(shadow, {left: left});
               anime.set(spotlight, {left: left});
             })(startPosition)
 
-            //2.
 
-            //3.
 
             const spotlightAnimation = anime.timeline({
               autplay: false,
@@ -1168,13 +1166,8 @@ J$(document).ready(function ($) {
               opacity   : 1,
               easing    : 'easeOutBounce'
             }).add({
-              duration: 3000,
-              // scale: 1.2,
-              //   opacity : 0,
-              update  : a => {
-                //     console.log('spotlight', a.progress, shadow.getBoundingClientRect());
-              },
-              easing  : 'easeInBounce', //translateY : -50,
+              duration: 3000, //wait 3 seconds here
+              easing  : 'easeInBounce',
             }).add({
               scale     : .5,
               duration  : 1500,
@@ -1184,15 +1177,7 @@ J$(document).ready(function ($) {
 
                 console.log(a.progress, spotlight.getBoundingClientRect())
               }
-
-            })
-            /*.add({
-              targets   : spotlight,
-              translateY: 0,
-              complete  : a => {
-                a.remove()
-              }
-            });*/
+            });
 
             const shadowAnimation = anime.timeline({
               autoplay: false,
@@ -1205,43 +1190,16 @@ J$(document).ready(function ($) {
               easing    : 'easeOutBounce'
             }).add({
               duration: 3000,
-              //  opacity : 0,
-              update  : a => {
-                //  console.log('shadow', a.progress, shadow.getBoundingClientRect());
-              },
               easing  : 'easeInBounce', //translateY : -50,
             }).add({
               scale   : .1,
               opacity : 0,
               duration: 1500,
               easing  : 'easeOutQuint'
-            })
-            /*.add({
-              duration: 10000,
-              targets : shadow,
-              opacity : 0,
-              easing  : 'easeInBounce', // translateY : 50,
-            }).add({
-              targets   : shadow,
-              translateY: 0,
-              complete  : a => {
-                a.remove()
-              }
-            });*/
+            });
 
             //using the child will strip off all the animation transformations
             const spotlightToss = new TrashCan(spotlight.firstChild);
-            //  const shadowToss = new TrashCan(shadow);
-
-            const XY = //TODO : do we need this
-              (({left, top, width, height}) => (
-                {
-                  left  : left,
-                  top   : top,
-                  width : width,
-                  height: height
-                }
-              ))(shadow.getBoundingClientRect());
 
             TrashCan.animateOnce(spotlightAnimation, spotlightAnimation, 2000)
               .then(a => {
@@ -1253,10 +1211,6 @@ J$(document).ready(function ($) {
                 }
               );
 
-            spotlightAnimation.finished.then(() => {
-             /* spotlight.remove();
-              spotlightAnimation.remove();*/
-            })
 
             shadowAnimation.finished.then(() => {
               shadowAnimation.remove();
@@ -1377,6 +1331,7 @@ J$(document).ready(function ($) {
   /**************/
   Window.anime = anime;
   Window.mTimer = A.TimerCountDown;
+  Window.Trash = TrashCan;
 
   $drawButton.click(); // default
 

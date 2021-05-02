@@ -647,7 +647,7 @@ class TimerCountDown {
           t: (h / pxTotal * duration)
         }
       });
-      T = N[0].data.t
+      T = N[0].data.t;
       //anime as a time controller
       anime({
         targets : {ct: 0},
@@ -657,10 +657,24 @@ class TimerCountDown {
           //console.log(O[0])
           //        delay   : anime.stagger(T1, {start: T0}),
           if (a.currentTime > T) {
+            if (!N.length) {
+              return;
+            }
             let n = N.shift();
-            if (N.length)
+            let distance = H;
+            let putInCan =false;
+            if (!n) {
+              return;
+            }
+            let h = n.data ? n.data.h : 40;
+            if (N[0])
               T += N[0].data.t;
-
+            const canProximity = Trash.calcDiffXY(n, Trash.getCanNode());
+            //if the can is near on the X-axis then drop it in the can
+            if (canProximity.diff.centerX >-100  && canProximity.diff.centerX <0) {
+              putInCan = true;
+              distance = canProximity.diff.centerY;// + 40;
+            }
             anime.timeline({
               targets: n
             })
@@ -672,7 +686,7 @@ class TimerCountDown {
                     easing  : 'easeInQuad',
                   },
                   {
-                    value   : H,
+                    value   : distance,
                     duration: 1000,
                     easing  : 'easeInQuad'
                   }
@@ -717,10 +731,7 @@ class TimerCountDown {
                 complete  : a => {
                   //put it IN the trashCan if it is near by
                   try {
-                    let canX = Trash.getXY(document.querySelector('.trashCan')).left;
-                    let sliderX = Trash.getXY(document.querySelector('.flexClock__slider')).left;
-                    let X = Trash.getXY(n).left;
-                    if (X - 65 < canX && X > canX) {
+                    if(putInCan){
                       document.querySelector('.trashCan__bottom').append(n.firstChild);
                       anime.set(n, {translateX: '', translateY : ''});
                     }
@@ -1282,6 +1293,7 @@ class Trash {
 
 
   static getXY(node) {
+
     return (({top, left, height, width}) => ({
       top   : top,
       left  : left,
@@ -1290,28 +1302,61 @@ class Trash {
     }))(node.getBoundingClientRect());
   }
 
-  #calcDiffXY(
+  static getSpecificXY(XY, choices = ['left', 'top', 'width', 'height']) {
+    const O = {}
+    choices.forEach(choice => {
+      O[choice] = XY[choice];
+    });
+    return O;
+  }
+
+  static calcDiffXY(
     start, /*emoji*/
-    end = _Can.xy,/* trash can*/
+    end, /* trash can*/
     maxHW = [50, 50]) {
+    const diff = {};
+    const _start = {};
+    if (start instanceof Element) {
+      start = start.getBoundingClientRect();
+    }
+
+    if (end instanceof Element) {
+      end = end.getBoundingClientRect();
+    }
 
     try {
-      (({top, left, height, width},
+      (({top, left, height, width, bottom, right},
         {
           top   : endT,
           height: endH,
           width : endW,
-          left  : endL
+          left  : endL,
+          bottom: endB,
+          right : endR
         }) => {
+        const centerY = top - height / 2;
+        const centerX = right - width / 2;
+        const endCY = endB - endH / 2;
+        const endCX = endR - endW / 2;
         //calc the center difference
-        Object.assign(this.#startXY, {
-          top   : top,
-          left  : left,
-          height: Math.min(height, maxHW[0]),
-          width : Math.min(width, maxHW[1])
+        Object.assign(_start, {
+          top    : top,
+          left   : left,
+          height : Math.min(height, maxHW[0]),
+          width  : Math.min(width, maxHW[1]),
+          centerX: centerX,
+          centerY: centerY,
+          bottom : bottom,
+          right  : right
         });
-        Object.assign(this.#diffXY, {
-          top: endT - top, ///- height / 2,
+        Object.assign(diff, {
+          height : endH,
+          width  : endW,
+          bottom : endB - bottom,
+          right  : endR - right,
+          centerX: endCX - centerX,
+          centerY: endCY - centerY,
+          top    : endT - top, ///- height / 2,
           //   top: (endT - (endH / 2)) - top,
 
           //consider trashCan's future translateX ?
@@ -1319,7 +1364,10 @@ class Trash {
           //   left : (endL - (endW / 2 ) - _Can.pushTranslateX) - left
         });
       })(start, end);
-      return true;
+      return {
+        start: _start,
+        diff : diff
+      };
     } catch (e) {
       return false;
     }
@@ -1407,7 +1455,10 @@ class Trash {
       } else {
         startXY = this.#emoji.getBoundingClientRect();
       }
-      this.#calcDiffXY(startXY, _Can.xy, [50, 50]);
+
+      const calcDiff = Trash.calcDiffXY(startXY, _Can.xy, [50, 50]);
+      this.#startXY = Trash.getSpecificXY(calcDiff.start);
+      this.#diffXY = calcDiff.diff;
 
       //size the holder (has to be in DOM to be sized)
       anime.set(trashBall, Object.assign({}, this.#startXY, {
