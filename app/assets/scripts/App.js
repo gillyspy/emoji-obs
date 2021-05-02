@@ -575,6 +575,7 @@ J$(document).ready(function ($) {
 
           //half the time (just to mix it up) do a trash animation here
           //there is no callback to throw it out though
+
           if (Math.random() > .5) {
             const parentNode = $this[0].parentElement;
             const emojiTrash = new TrashCan($this[0]);
@@ -609,12 +610,11 @@ J$(document).ready(function ($) {
           myAnimation
             .timeline(randomClass + 'From', {loop: 1})
             .addToTimeline(randomClass + 'From', {
-              targets   : $this[0],//$this[0],
-              scale     : [1, .1],
-              opacity   : [1, 0],
-              duration  : 2000,
-              delay     : 0,
-              easing    : "easeOutExpo",
+                targets :  $this[0].parentElement,//$this[0],
+                scale   : .1,
+                opacity : 0,
+                duration: 2000,
+                easing  : "easeOutExpo",
                 complete: function () {
                   //put it back in history at "front"
                   $this

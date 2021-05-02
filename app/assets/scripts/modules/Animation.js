@@ -369,7 +369,7 @@ class TimerCountDown {
     if (timeRequest instanceof Date) {
       future = timeRequest;
       duration = (future - now) / 1000 / 60
-    } else if (/^(\d{1,2})[.]?\d+$/.test(timeRequest)) {
+    } else if (/^(\d{1,3})([.]\d{1,2})?$/.test(timeRequest)) {
       //e.g. 10.2 for 10.2 minutes
       [s, m] = timeRequest.match(/^(\d{1,2})[.]?([\d]{0,2})$/).reverse();
       [s, m] = [+s, +m];
