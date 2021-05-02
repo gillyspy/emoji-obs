@@ -241,7 +241,7 @@ class MouseActions {
       if(!firstTimeDone){
         anime({
           targets : el,
-          scale : 5,
+          //scale : 5,
           duration : 1000
         }).remove()  ;
         firstTimeDone = true;
