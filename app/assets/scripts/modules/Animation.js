@@ -291,9 +291,7 @@ class TimerCountDown {
     this.#cancel(false);
 
     //remove old steps
-    [...this.targetNode.querySelectorAll('div')].forEach((e) => {
-      e.innerHTML = '';
-    });
+    [...this.targetNode.firstElementChild.children].forEach(el => el.remove());
 
     this.#_.sunsetTriggered = false;
 
@@ -492,8 +490,8 @@ class TimerCountDown {
 
     //remove any impacting animations (that have been stored)
     this.#scaleAnimation.forEach(a => {
-      a.restart();
-      a.pause();
+      // a.restart();
+      // a.pause();
       a.remove();
     });
 
@@ -520,21 +518,26 @@ class TimerCountDown {
         document.querySelector('.' + this.#_.showClass)
           .classList.add(this.#_.hideClass)
 
+
         this.#scaleAnimation.forEach(a => {
-          a.restart();
-          a.pause();
+          //a.restart();
+          //  a.pause();
           a.remove();
         });
 
+        //remove all steps
+        [...this.targetNode.firstElementChild.children].forEach(el => el.remove());
+
+
         const valueNode = this.valueNode;
         this.#cancel('doCallback');
-        var deleteValue = setInterval( function(){
-          if(valueNode.value===''){
+        var deleteValue = setInterval(function () {
+          if (valueNode.value === '') {
             clearInterval(deleteValue)
           } else {
             valueNode.value = '';
           }
-        },1000)
+        }, 1000)
 
       } else //turn on
       {
@@ -732,7 +735,7 @@ class TimerCountDown {
                   //put it IN the trashCan if it is near by
                   try {
                     if(putInCan){
-                      document.querySelector('.trashCan__bottom').append(n.firstChild);
+                      document.querySelector('.trashCan__bottom').append(n.firstElementChild);
                       anime.set(n, {translateX: '', translateY : ''});
                     }
                   } catch (e) {
@@ -1512,7 +1515,7 @@ class Trash {
         // replace ball with a fake one that is in the can
         // then remove the real ball
 
-        const hiddenBall = Trash.#setHiddenBall(emoji, trashBall.firstChild);
+        const hiddenBall = Trash.#setHiddenBall(emoji, trashBall.firstElementChild);
 
         //remove the real ball is done in the animation
         anime.set(hiddenBall, {rotate: Math.random() * 90});
