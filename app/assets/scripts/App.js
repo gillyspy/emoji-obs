@@ -1122,7 +1122,70 @@ J$(document).ready(function ($) {
     document.querySelector('.emojipreview__clocknum'),
     document.querySelector('.flexClock__steps'), //flexClock__steps
     {
-      callbacks: [
+      callbacks: [{
+        times    : (function (i, a) {
+          while (i--) {
+            if (i % 2 === 0 && i > 0) {
+              a.push(i)
+            }
+          }
+          return a;
+        })(100, []),
+        completed: [],
+        cb       : (minsLeft, obj) => {
+          if (obj.isDone) {
+            return
+          }
+          obj.isDone = true;
+          const XY = TrashCan.getXY(MeetingCountDown.getClock());
+          const broom = document.querySelector('.floor__broom');
+          let dust = [...document.querySelectorAll('.floor__trash')];
+          let dustItChk = 2000;
+          let dustItCt = 0;
+
+          if (!dust.length) {
+            //flip
+            anime.timeline({
+              targets  : broom,
+              direction: 'alternate',
+              loop     : 2
+            }).add({
+              rotateY : 180,
+              duration: 500
+            });
+            return;
+          } else {
+            broom.style.top = XY.top;
+            anime.timeline({
+              targets  : broom,
+              direction: 'alternate',
+              loop     : 2
+            }).add({
+              translateX: [0, XY.left],
+              rotateY   : {
+                value: [-25, 25],
+                duration: 500,
+                easing: 'linear',
+                loop : true
+              },
+              duration  : 3000,
+              update    : a => {
+                dustItCt++;
+                if ( dustItCt > dustItChk )
+                  dust.forEach(el => {
+                    dustItChk = 4000;
+                    el.remove();
+                    //update for next pass
+                    dust = [...document.querySelectorAll('.floor__trash')];
+                  });
+              },
+              complete  : a => {
+
+              }
+            }); //anime
+          } // if
+        }
+      },
         {
           times    : [5, 10],
           completed: [],
@@ -1284,28 +1347,126 @@ J$(document).ready(function ($) {
     },
     //on
     function () {
-      $('#flexClock').show();
-      //reset classes
+      //show
+      const clock = document.getElementById('flexClock');
+      clock.classList.remove('flexClock--hide');
 
+      /* 1. create a body trigger to get mouse
+      * 2. check on position of the clock v mouse
+      * 3. determine if the mouse is over the clock
+      * 4. elevate the clock z-index and trigger mousedownCB
+      * 5. proceed to drag
+      * 6. on mouse release lower the Z again
+       */
+      //1.
+      document.body.addEventListener('mousedown', function (ev) {
+        const mouseLocation = {};
+        //transpose mouselocation onto 1-dimensional rectangle co-ordinates
+        (({pageX, pageY}, XY) => {
+          Object.assign(XY, {
+            left  : pageX,
+            top   : pageY,
+            bottom: pageY,
+            right : pageX
+          });
+        })(ev, mouseLocation)
+        let isMouseOver = TrashCan.isAwithinB(mouseLocation, clock);
+
+        if (!isMouseOver)
+          return true;
+
+        if (clock.classList.contains('isDraggable')) {
+          //trigger the click that was already made
+          clock.dispatchEvent(new Event('mousedown'));
+          //already draggable..quit early
+          return true;
+        }
+
+        //TODO:
+        //2.
+        let doElevate = false;
+
+
+        //3b
+        if (isMouseOver) {
+          doElevate = true;
+        } else {
+          return
+        }
+
+        //4.
+
+
+        //5.make clock draggable
+
+        //5.
+        MouseActions.makeDraggable(clock, {
+          mousedownCB: function (ev) {
+            console.log('zoomin', this);
+            anime.set(this, {
+              'z-index': 23000
+            });
+            //console.log('dragging the clock');
+
+          },
+          mousemoveCB: function () {
+            //if we're past the center point on horizontal (X-asis) then flip the slider
+
+            const bodyXY = (({innerHeight, innerWidth}) => {
+              return {
+                height: innerHeight,
+                width : innerWidth,
+                right : innerWidth
+              }
+            })(window);
+            const clockXY = TrashCan.calcDiffXY(clock, bodyXY, [2000, 2000]);
+            const sliderBtn = MeetingCountDown.getSlider().firstChild;
+            if (clockXY.diff.centerX < 0) {
+              //right
+              sliderBtn.classList.remove('flexClock__slider__button--left');
+            } else {
+              //left
+              sliderBtn.classList.add('flexClock__slider__button--left');
+            }
+
+          },
+          mouseoutCB : function (ev) {
+            //send backward
+            console.log('send backward');
+            anime.set(this, {
+              'z-index': 0
+            });
+          }
+        }); //makedraggable
+
+        //4
+        anime.set(this.target, {
+          'z-index': 23000
+        });
+        //trigger the click that was already made
+        clock.dispatchEvent(new Event('mousedown'));
+
+      });
       //control left vs ride side
-      if( Config.clocklocation==='left'){
-        let classes = ['flexClock__slider', 'flexClock'];
-        document.querySelector('.flexClock__slider')
-          .classList.add('flexClock__slider--left');
-        document.querySelector('.flexClock')
-          .classList.add('flexClock--left');
-        document.querySelector('.flexClock__slider__button')
-          .classList.add('flexClock__slider__button--left');
-      }
+      /*  if (Config.clocklocation === 'left') {
+          let classes = ['flexClock__slider', 'flexClock'];
+          document.querySelector('.flexClock__slider')
+            .classList.add('flexClock__slider--left');
+          document.querySelector('.flexClock')
+            .classList.add('flexClock--left');
+          document.querySelector('.flexClock__slider__button')
+            .classList.add('flexClock__slider__button--left');
+        } */
       //restart countdown
     },
     //off
     function () {
+
       anime({
-        targets  : '.flexClock__sub--A .flexClock__step',
+        targets   : '.flexClock__sub--A .flexClock__step',
         translateY: 0,
-        duration : anime.stagger(100, {direction : 'reverse'}),
-        complete : ()=>{
+        duration  : anime.stagger(100, {direction: 'reverse'}),
+        complete  : () => {
           $('#flexClock').hide();
         }
       });

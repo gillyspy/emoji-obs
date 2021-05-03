@@ -155,7 +155,10 @@ class Animation {
  * reset & restart
  */
 
-
+const _TimerCountDown = {
+  sliderNode : {},
+  clock : {}
+}
 class TimerCountDown {
   #onCB;
   #offCB;
@@ -169,6 +172,7 @@ class TimerCountDown {
   constructor(triggerNode, valueNode, targetNode, opts, onCB, offCB) {
     this.triggerNode = triggerNode;
     this.targetNode = targetNode;
+    _TimerCountDown.clock = this.targetNode;
     this.valueNode = valueNode;
     this.#onCB = onCB;
     this.#offCB = offCB;
@@ -212,6 +216,10 @@ class TimerCountDown {
     return (this.#_.doMins ? t * 60 : t) * 1000;
   }
 
+  static getClock() {
+    return _TimerCountDown.clock;
+  }
+
   #getStep(height, txt) {
     let borderFudge = 2; //TODO:
     let el = document.createElement('div');
@@ -219,7 +227,7 @@ class TimerCountDown {
     el.classList.add('flexClock__step');
     el.style.height = (height - borderFudge) + 'px';
 
-    if((height - borderFudge)<20){
+    if ((height - borderFudge) < 20) {
       txt = '';
     }
 
@@ -430,6 +438,10 @@ class TimerCountDown {
       this.#offCB();
   } // #cancel
 
+  static getSlider() {
+     return _TimerCountDown.sliderNode
+  }
+
   static #resetSlider() {
     anime({
       targets   : this.sliderNode,
@@ -444,17 +456,21 @@ class TimerCountDown {
 
   #registerCallbacks(cbs) {
     const _cbs = [];
-    cbs.forEach((cb, i) => {
-      if (!Array.isArray(cb.times)) {
-        cb.times = [cb.times]
+    cbs.forEach((cbo, i) => {
+      if (!Array.isArray(cbo.times)) {
+        cbo.times = [cbo.times]
       }
-      cb.times.forEach(t => {
+      cbo.times.forEach(t => {
         //index this callback for each time
-        _cbs[t] = cb;
-      })
-      //flag to track its use
-      cb.isDone = false;
-      cb.firedOn = 0;
+        _cbs[t] = {
+          cb : cbo.cb,
+          //minute it will fire
+          times : t,
+          //flag to track its use
+          isDone : false,
+          firedOn : null,
+        }
+      });
     });
     return _cbs;
   }
@@ -504,8 +520,13 @@ class TimerCountDown {
     this.start();
   }
 
+  #setSliderNode(node){
+    this.sliderNode = node;
+    _TimerCountDown.sliderNode = node;
+  }
+
   init() {
-    this.sliderNode = document.querySelector('.' + this.#_.sliderClass);
+    this.#setSliderNode(document.querySelector('.' + this.#_.sliderClass));
 
     //add click handler to the triggerNode that will initiate
     this.triggerNode.addEventListener('click', function () {
@@ -633,7 +654,7 @@ class TimerCountDown {
     );
 
     const _interval = setTimeout(() => {
-
+      const sliderBtn = document.querySelector('.flexClock__slider__button');
       const N = [...document.querySelectorAll('.flexClock__sub--A .flexClock__step .flexClock__span--super')];
       if (!N.length) {
         return;
@@ -650,6 +671,7 @@ class TimerCountDown {
           t: (h / pxTotal * duration)
         }
       });
+      let hMult = -1;
       T = N[0].data.t;
       //anime as a time controller
       anime({
@@ -660,6 +682,10 @@ class TimerCountDown {
           //console.log(O[0])
           //        delay   : anime.stagger(T1, {start: T0}),
           if (a.currentTime > T) {
+            hMult=-1
+            if(sliderNode.firstChild.classList.contains('flexClock__slider__button--left'))
+              hMult = 1;
+
             if (!N.length) {
               return;
             }
@@ -672,12 +698,15 @@ class TimerCountDown {
             let h = n.data ? n.data.h : 40;
             if (N[0])
               T += N[0].data.t;
-            const canProximity = Trash.calcDiffXY(n, Trash.getCanNode());
             //if the can is near on the X-axis then drop it in the can
-            if (canProximity.diff.centerX >-100  && canProximity.diff.centerX <0) {
-              putInCan = true;
-              distance = canProximity.diff.centerY;// + 40;
-            }
+            putInCan = Trash.isAwithinB(n ,Trash.getCanNode(), {
+               //adjust for falling X trajectory which, here, affects left and right co-ordinates
+              left : (hMult * 50),
+              right : (hMult * 50)
+            },true, ['centerX']);
+            if( putInCan )
+              distance = Trash.calcDiffXY(n,Trash.getCanNode()).diff.centerY;
+
             anime.timeline({
               targets: n
             })
@@ -696,12 +725,12 @@ class TimerCountDown {
                 ],
                 translateX: [
                   {
-                    value   : -40,
+                    value   : hMult * 40,
                     duration: 100,
                     delay   : 100
                   },
                   {
-                    value   : -60,
+                    value   : hMult * 60,
                     duration: 1000,
                     easing  : 'easeInQuad'
                   }
@@ -735,18 +764,30 @@ class TimerCountDown {
                   //put it IN the trashCan if it is near by
                   try {
                     if(putInCan){
-                      document.querySelector('.trashCan__bottom').append(n.firstElementChild);
-                      anime.set(n, {translateX: '', translateY : ''});
+                      //put it in the can
+                      Trash.getCanNode().querySelector('.trashCan__bottom').append(n.firstElementChild);
+                      anime.set(n, {translateX: 0, translateY : 0});
+                    } else {
+                 //     const n = n.firstElementChild;
+                      //leave it on the floor
+                      n.classList.add('floor__trash');
+                      n.firstElementChild.textContent = '💭';
+                      anime.set( n, Object.assign({},
+                        Trash.getXY(n), {
+                        translateX : 0, translateY : 0, border :0, opacity : 1, 'font-size' : '2em'
+                      }) );
+                      document.getElementById('floor').append(n);
+                      //anime.set(subn, {translateX: '', translateY : ''});
                     }
                   } catch (e) {
                     console.log(e);
                   }
                   //  a.remove();
                 }
-              }).add({
+              }); /*.add({
               opacity : 0,
               duration: (duration - a.currentTime)
-            }); //anime (inner)
+            }); */ //anime (inner)
             H -= n.data.h;
           }
         }
@@ -817,11 +858,9 @@ class TimerCountDown {
         try {
           //pass in TimerCountDown instance
           let cb = cbOpts.cb.bind(that);
-          cbOpts.firedOn || cb(Math.ceil(minsLeft));
-          cbOpts.isDone = true;
+          cbOpts.isDone || cb(Math.ceil(minsLeft),cbOpts);
           cbOpts.firedOn = cbOpts.firedOn || milliPassed;
         } catch (e) {
-          cbOpts.isDone = false;
           console.log('callback failed', e);
         }
 
@@ -1291,15 +1330,102 @@ class Trash {
     }
   } //processQueue
 
+  /*
+  * use the co-ordinates of A and B to determine if they overlap
+  *
+  * fudge --> provide negative numbers to have a better chance of fitting
+  * { left : -100p}
+  *
+  * fudge --> positive number to make it harder
+  * { left : 100}
+  *
+  * fudge --> ratio (positive or negative) for similar effect
+  *
+   */
+  static isAwithinB(A, B, fudge,doCenterOnly = false, ignore=['left','right','top','bottom']) {
 
-  static getXY(node) {
+    let isWithin = false;
+    const diff ={};
+    //thresholds
+    const compare = {
+      left  : 0,
+      top   : 0,
+      bottom: 0,
+      right : 0,
+      centerX : 0,
+      centerY : 0
+    }
+    if (typeof fudge === 'object') {
+      //TODO: support ratios in fudge
 
-    return (({top, left, height, width}) => ({
+      for (let f in fudge) {
+        //make xy narrower to have a better chance of "fitting"
+        compare[f] = 0 + fudge[f];
+      }
+    } else if (!fudge) {
+      fudge = {};
+    }
+
+    // get XY for the A object / node
+    const xyA = Trash.getXY(A);
+
+    //update XY based upon what is in the fudge adjustments. defaults are 0 fudge
+    Object.assign(compare, fudge);
+    for( let c in compare){
+      xyA[c] += compare[c];
+    }
+    Object.assign(diff, Trash.calcDiffXY(B,xyA));
+
+    if( !doCenterOnly) {
+      isWithin = true;
+      ignore.forEach(side => {
+        if (isWithin) {
+          if (side === 'left' || side === 'top')
+            isWithin = (diff.diff[side] >= 0)
+          if (side === 'right' || side === 'bottom')
+            isWithin = (diff.diff[side] <= 0)
+        }
+      })
+      return isWithin;
+    }else if( doCenterOnly && !isNaN(diff.diff.centerX) && !isNaN(diff.diff.centerY) ){
+      isWithin = true;
+      if( ignore.indexOf('centerX') || ignore.indexOf('centerY') ){
+        //ignore = ignore
+      } else{
+        //default for center behaviours
+       ignore = ['centerX','centerY']
+      }
+       ignore.forEach(side => {
+        if (isWithin) {
+          if (side === 'centerX')
+           //if the center X line differences are smaller than the width of the container then it's good
+            isWithin = (Math.abs(diff.diff[side]) <=  diff.start.width)
+          if (side === 'centerY')
+            //if the center Y line differences are smaller than the height of the container then it's good
+            isWithin = (Math.abs(diff.diff[side]) <= diff.start.height )
+        }
+      })
+      return isWithin;
+
+    } else {
+      isWithin = false;
+    }
+
+    return false;
+  }
+
+  static getXY(nodeXY) {
+    if(nodeXY instanceof Element){
+      nodeXY = nodeXY.getBoundingClientRect();
+    }
+    return (({top, left, height, width,bottom,right}) => ({
       top   : top,
       left  : left,
       height: height,
-      width : width
-    }))(node.getBoundingClientRect());
+      width : width,
+      bottom : bottom,
+      right : right
+    }))(nodeXY);
   }
 
   static getSpecificXY(XY, choices = ['left', 'top', 'width', 'height']) {

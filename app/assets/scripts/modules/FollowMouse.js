@@ -273,11 +273,19 @@ class MouseActions {
 
 MouseActions.makeDraggable =
   function (node, opts = {}, useButton = true) {
+    if(node.classList.contains('isDraggable')){
+      //already draggable..quit early
+      return;
+    }
     const target = node;
+
     let isDragging = false;
     const startXY = {};
 
+    target.classList.add('isDraggable');
+
     target.addEventListener('mousedown', function (ev) {
+      console.log('dragging',ev.target);
       if (ev.detail === 2) {
         //   target.dblclick();
         let ev2 = document.createEvent('MouseEvents')
@@ -315,8 +323,7 @@ MouseActions.makeDraggable =
         //positive lookahead https://regex101.com/r/6zRic1/1
         target.style.transform = oldTransform.replace(/(?<=translate[XY][(])([^()])* /g, '0px');
       }*/
-      //perform client callback
-      opts.mousedownCB && opts.mousedownCB(ev);
+
 
       startXY.X = ev.pageX;
       startXY.Y = ev.pageY;
@@ -326,28 +333,42 @@ MouseActions.makeDraggable =
       startXY.tX = startXY.tX ? +startXY.tX.replace('px', '') : 0
       startXY.tY = startXY.tY ? +startXY.tY.replace('px', '') : 0
 
-      // target.style.left = (ev.pageX - opts.left) + 'px';
-      //target.style.top = (ev.pageY - opts.top) + 'px';
+      log.browser('startXY',startXY);
+      //perform client callback
+      opts.mousedownCB && opts.mousedownCB.apply(this,[ev]);
+
       // return false;
     });
 
     target.addEventListener('mousemove', function (ev) {
       if (isDragging) {
-        log.browser(' draggin!', opts, ev.pageX, ev.pageY)
+        //in case ev was fired through a handler
+        if( !startXY.X){
+          startXY.X = ev.pageX;
+        }
+        if( !startXY.Y){
+          startXY.Y = ev.pageY;
+        }
 
-        anime.set(target, {
+       /* anime.set(target, {
           left: (startXY.tX + (ev.pageX - startXY.X)),
           top:( startXY.tY + (ev.pageY - startXY.Y))
-        });
-        //  target.style.left = (ev.pageX - pageX + 'px';
-        //  target.style.top = (ev.pageY- opts.top) + 'px';
+        });*/
+        target.style.left = (startXY.tX + (ev.pageX - startXY.X))+'px';
+        target.style.top =( startXY.tY + (ev.pageY - startXY.Y))+'px';
+        log.browser(target instanceof Element);
+        log.browser(' draggin!', startXY, target, ev.target, opts, ev.pageX, ev.pageY)
+        log.browser('left', (startXY.tX + (ev.pageX - startXY.X))+'px');
+        log.browser('top', ( startXY.tY + (ev.pageY - startXY.Y))+'px');
+
+        opts.mousemoveCB && opts.mousemoveCB.apply(this,[ev]);
       }
     });
 
     target.addEventListener('mouseup', function (ev) {
       log.browser('stop drag')
       isDragging = false;
-      opts.mouseupCB && opts.mouseupCB(ev);
+      opts.mouseupCB && opts.mouseupCB.apply(this,[ev]);
 
       //return false;
     });
