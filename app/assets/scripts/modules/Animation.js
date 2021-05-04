@@ -156,8 +156,9 @@ class Animation {
  */
 
 const _TimerCountDown = {
-  sliderNode : {},
-  clock : {}
+  sliderNode: {},
+  clock     : {},
+  finale    : null
 }
 class TimerCountDown {
   #onCB;
@@ -176,6 +177,7 @@ class TimerCountDown {
     this.valueNode = valueNode;
     this.#onCB = onCB;
     this.#offCB = offCB;
+    TimerCountDown.prepFinale();
     this.#timeStarted = 0;
     this.#_ = {
       timeLeft        : 3600000, // time remaining
@@ -195,7 +197,7 @@ class TimerCountDown {
       zoomWhen        : [600000, 300000] // time remaining threshold to zoom in at
     };
     this.#_ = Object.assign({}, this.#_, opts);
-    this.#callbacks = this.#registerCallbacks(this.#_.callbacks);
+    this.#registerCallbacks(this.#_.callbacks);
     this.init();
   }
 
@@ -472,7 +474,7 @@ class TimerCountDown {
         }
       });
     });
-    return _cbs;
+    this.#callbacks = _cbs;
   }
 
   #zoomIn() {
@@ -559,7 +561,7 @@ class TimerCountDown {
             valueNode.value = '';
           }
         }, 1000)
-
+        TimerCountDown.prepFinale();
       } else //turn on
       {
         this.triggerNode.classList.add('pressed');
@@ -852,13 +854,13 @@ class TimerCountDown {
       }
 
       //user's time-based callbacks
-      let cbOpts = cbs[Math.ceil(minsLeft)];
+      let cbOpts = cbs[Math.abs(Math.ceil(minsLeft))];
       if (cbOpts && !cbOpts.isDone && !cbOpts.firedOn) {
         //cb.firedOn !== Math.ceil(minsLeft) ) {
         try {
           //pass in TimerCountDown instance
           let cb = cbOpts.cb.bind(that);
-          cbOpts.isDone || cb(Math.ceil(minsLeft),cbOpts);
+          cbOpts.isDone || cb(Math.abs(Math.ceil(minsLeft)),cbOpts);
           cbOpts.firedOn = cbOpts.firedOn || milliPassed;
         } catch (e) {
           console.log('callback failed', e);
@@ -914,63 +916,128 @@ class TimerCountDown {
 
   }
 
-  static grandFinale() {
-    anime('#meetingOver').remove();
-    anime('#meetingOver *').remove();
+  static #getFinaleHTML() {
+    return `    
+        <h1 class="goodBye__header">
+          <div class="goodBye__wrapper">
+              <div class="goodBye__line goodBye__line--line1"></div>
+                <div class="goodBye__letters">
+                  <span class="goodBye__letter">M</span>
+                  <span class="goodBye__letter">e</span>
+                  <span class="goodBye__letter">e</span>
+                  <span class="goodBye__letter">t</span>
+                  <span class="goodBye__letter">i</span>
+                  <span class="goodBye__letter">n</span>
+                  <span class="goodBye__letter">g</span>
+                  <span class="goodBye__letter">&nbsp;</span>
+                  <span class="goodBye__letter">O</span>
+                  <span class="goodBye__letter">v</span>
+                  <span class="goodBye__letter">e</span>
+                  <span class="goodBye__letter">r</span>
+              </div>
+              <div class="goodBye__line goodBye__line--line2"></div>
+          </div>
+              <input class="goodBye__counter">&nbsp;</input>
+        </h1>`;
+  }
 
-    anime.timeline({loop: 1})
-      .add({
-        targets           : '#meetingOver',
-        'background-color': 'rgba(0,0,0,.8)',
-        opacity           : 1,
-        duration          : 100
-      })
-      .add({
-        targets   : '#meetingOver .goodBye__letter',
-        scale     : [0.3, 1],
-        opacity   : [0, 1],
-        translateZ: 0,
-        easing    : "easeOutExpo",
-        duration  : 600,
-        delay     : (el, i) => 70 * (i + 1),
-        complete  : () => {
-          try {
-            //find already promoted emoji
-            let emoji = document.querySelector('#gallery .dragTemp');
-            if (!emoji) {
-              //promote an emoji
-              let ev2 = document.createEvent('MouseEvents')
-              ev2.initEvent('dblclick', true, true);
-              emoji = document.getElementById('✌🏻');
-              emoji.dispatchEvent(ev2);
-              emoji = document.querySelector('#gallery .dragTemp');
+  /*
+  * typically called at shutdown in order to prepare for next meeting
+   */
+  static prepFinale() {
+    let meetingOver = document.getElementById('meetingOver');
+    if (meetingOver) {
+      meetingOver.remove();
+    }
+    meetingOver = document.createElement('div');
+    meetingOver.id = 'meetingOver'
+    meetingOver.classList.add('goodBye');
+    meetingOver.innerHTML = TimerCountDown.#getFinaleHTML();
+    document.body.prepend(meetingOver);
+    _TimerCountDown.finale = meetingOver;
+  }
+
+  static grandFinale() {
+    if (!_TimerCountDown.finale) {
+      TimerCountDown.prepFinale();
+    }
+    try {
+      anime('#meetingOver').remove();
+      anime('#meetingOver *').remove();
+
+      anime.timeline({loop: 1})
+        .add({
+          targets           : '#meetingOver',
+          'background-color': 'rgba(0,0,0,.8)',
+          opacity           : 1,
+          duration          : 100
+        })
+        .add({
+          targets   : '#meetingOver .goodBye__letter',
+          scale     : [0.3, 1],
+          opacity   : [0, 1],
+          translateZ: 0,
+          easing    : "easeOutExpo",
+          duration  : 600,
+          delay     : (el, i) => 70 * (i + 1),
+          complete  : () => {
+            try {
+              //find already promoted emoji
+              let emoji = document.querySelector('#gallery .dragTemp');
+              if (!emoji) {
+                //promote an emoji
+                let ev2 = document.createEvent('MouseEvents')
+                ev2.initEvent('dblclick', true, true);
+                emoji = document.getElementById('✌🏻');
+                emoji.dispatchEvent(ev2);
+                emoji = document.querySelector('#gallery .dragTemp');
+              }
+              const bannerXY = Trash.getXY(
+                _TimerCountDown.finale.querySelector('.goodBye__wrapper')
+              );
+              const emojiLeft = (
+                +bannerXY.right
+                - Trash.getXY(emoji).width
+                - 100
+              );
+              //move emoji to compatible spot
+              anime({
+                targets : emoji,
+                top     : bannerXY.bottom,
+                left    : emojiLeft,
+                opacity :
+                  [0, 1],
+                duration: 2000,
+                easing  : 'easeInSine'
+              });
+              anime({
+                targets    : document.querySelector('#gallery .dragTemp button'),
+                'font-size': 45
+              });
+            } catch (e) {
+              console.log(e)
             }
-            //move emoji to compatible spot
-            anime({
-              targets : emoji,
-              top     : 240,
-              left    : 700,
-              opacity : [0, 1],
-              duration: 2000,
-              easing  : 'easeInSine'
-            })
-            anime({
-              targets     : document.querySelector('#gallery .dragTemp button'),
-              'font-size' : 45
-            });
-          } catch (e) {
-            console.log(e)
+          } // complete
+        })
+        .add({
+          targets : '#meetingOver .line',
+          scaleX  : [0, 1],
+          opacity : [0.5, 1],
+          easing  : "easeOutExpo",
+          duration: 700,
+          offset  : '-=700'
+        })
+        .add({
+          opacity           : '#meetingOver',
+          'background-color': 'rgba(0,0,0,.2)',
+          duration          : 600000,
+          complete          : a => {
+            a.remove('*');
           }
-        }
-      })
-      .add({
-        targets : '#meetingOver .line',
-        scaleX  : [0, 1],
-        opacity : [0.5, 1],
-        easing  : "easeOutExpo",
-        duration: 700,
-        offset  : '-=700'
-      });
+        });
+    } catch (e) {
+      console.log('grand finale fail');
+    }
   } //grandFinale
 
 } //TimerCountDown
@@ -1019,6 +1086,7 @@ class Trash {
   constructor(emoji, trashCB) {
     this.#emoji = emoji
     this.#trashOffCB = trashCB;
+    _Broom.node = document.querySelector('.floor__broom');
   }
 
   #setType() {
@@ -1027,6 +1095,10 @@ class Trash {
     } else {
       this.#_.canSpan = '♻️'
     }
+  }
+
+  static getBroom() {
+    return _Broom.node;
   }
 
   static stopBroom() {
@@ -1060,8 +1132,8 @@ class Trash {
           direction: 'alternate',
           loop     : 2
         }).add({
-          top: Math.min(XY.top, 470),
-          zIndex : 24000
+          top   : Math.min(XY.top, 470),
+          zIndex: 24000
         }).add({
           translateX: [0, XY.left],
           duration  : 2000,
@@ -1079,7 +1151,7 @@ class Trash {
             cb && cb(a);
           }
         }).add({
-          zIndex:0
+          zIndex: 0
         });//anime
         _Broom.animationP = animation.finished;
       }
@@ -1469,18 +1541,18 @@ class Trash {
   * fudge --> ratio (positive or negative) for similar effect
   *
    */
-  static isAwithinB(A, B, fudge,doCenterOnly = false, ignore=['left','right','top','bottom']) {
+  static isAwithinB(A, B, fudge, doCenterOnly = false, ignore = ['left', 'right', 'top', 'bottom']) {
 
     let isWithin = false;
-    const diff ={};
+    const diff = {};
     //thresholds
     const compare = {
-      left  : 0,
-      top   : 0,
-      bottom: 0,
-      right : 0,
-      centerX : 0,
-      centerY : 0
+      left   : 0,
+      top    : 0,
+      bottom : 0,
+      right  : 0,
+      centerX: 0,
+      centerY: 0
     }
     if (typeof fudge === 'object') {
       //TODO: support ratios in fudge
@@ -1498,12 +1570,12 @@ class Trash {
 
     //update XY based upon what is in the fudge adjustments. defaults are 0 fudge
     Object.assign(compare, fudge);
-    for( let c in compare){
+    for (let c in compare) {
       xyA[c] += compare[c];
     }
-    Object.assign(diff, Trash.calcDiffXY(B,xyA,[2000,2000]));
+    Object.assign(diff, Trash.calcDiffXY(B, xyA, [2000, 2000]));
 
-    if( !doCenterOnly) {
+    if (!doCenterOnly) {
       isWithin = true;
       ignore.forEach(side => {
         if (isWithin) {
@@ -1514,22 +1586,22 @@ class Trash {
         }
       })
       return isWithin;
-    }else if( doCenterOnly && !isNaN(diff.diff.centerX) && !isNaN(diff.diff.centerY) ){
+    } else if (doCenterOnly && !isNaN(diff.diff.centerX) && !isNaN(diff.diff.centerY)) {
       isWithin = true;
-      if( ignore.indexOf('centerX') || ignore.indexOf('centerY') ){
+      if (ignore.indexOf('centerX') || ignore.indexOf('centerY')) {
         //ignore = ignore
-      } else{
+      } else {
         //default for center behaviours
-       ignore = ['centerX','centerY']
+        ignore = ['centerX', 'centerY']
       }
-       ignore.forEach(side => {
+      ignore.forEach(side => {
         if (isWithin) {
           if (side === 'centerX')
-           //if the center X line differences are smaller than the width of the container then it's good
-            isWithin = (Math.abs(diff.diff[side]) <=  diff.start.width)
+            //if the center X line differences are smaller than the width of the container then it's good
+            isWithin = (Math.abs(diff.diff[side]) <= diff.start.width)
           if (side === 'centerY')
             //if the center Y line differences are smaller than the height of the container then it's good
-            isWithin = (Math.abs(diff.diff[side]) <= diff.start.height )
+            isWithin = (Math.abs(diff.diff[side]) <= diff.start.height)
         }
       })
       return isWithin;
@@ -1542,18 +1614,31 @@ class Trash {
   }
 
   static getXY(nodeXY) {
-    if(nodeXY instanceof Element){
+    if (nodeXY instanceof Element) {
       nodeXY = nodeXY.getBoundingClientRect();
     }
-    return (({top, left, height, width,bottom,right}) => ({
-      top   : top,
-      left  : left,
-      height: height,
-      width : width,
-      bottom : bottom,
-      right : right
-    }))(nodeXY);
-  }
+    try {
+      return (({top, left, height, width, bottom, right}) => ({
+        top   : top,
+        left  : left,
+        height: height,
+        width : width,
+        bottom: bottom,
+        right : right
+      }))(nodeXY);
+
+    } catch (e) {
+      console.log('getXY', e);
+      return {
+        top   : 0,
+        bottom: 0,
+        left  : 0,
+        right : 0,
+        width : 0,
+        height: 0
+      };
+    }
+  } //getXY
 
   static getSpecificXY(XY, choices = ['left', 'top', 'width', 'height']) {
     const O = {}
@@ -1561,6 +1646,10 @@ class Trash {
       O[choice] = XY[choice];
     });
     return O;
+  }
+
+  static getSpecificDiffXY(start, end, choices = []) {
+    Trash.calcDiffXY(start, end, [2000, 2000]);
   }
 
   static calcDiffXY(
@@ -1776,8 +1865,8 @@ class Trash {
         //if the can is in it's original spot then we're fine
         putInCan = Trash.isAwithinB(_Can.xy, Trash.getXY(Trash.getCanNode()), {
           //no adjustment
-          left  : 0,
-          right : 0
+          left : 0,
+          right: 0
         }, true, ['centerX', 'centerY']);
 
         if (putInCan) {
@@ -2062,7 +2151,7 @@ class RocketPath {
       RP.target
         .getElementsByClassName('idleAnimation__span')[0].textContent
         = newTargetEmojiOrElement;
-    } else if( emoji instanceof HTMLElement ){
+    } else if (emoji instanceof HTMLElement) {
       RP.target = newTargetEmojiOrElement;
     }
     return RP.target
@@ -2078,7 +2167,7 @@ class RocketPath {
   }
 
   initAnimation(forceNew) {
-    let duration = (anime.random(1,20000) + _.adjustment);
+    let duration = (anime.random(1, 20000) + _.adjustment);
     if (RP.animation) {
       //  delete RP.animation;
       anime.remove(RP.target)
@@ -2115,7 +2204,7 @@ class RocketPath {
         _.began = false;
         //restart this animation with new random values
         RP.initAnimation(true);
-     //   RP.animation.play();
+        //   RP.animation.play();
       }
     })
   } // initAnimation
@@ -2141,7 +2230,7 @@ Animation.prototype.moveTarget = function (direction, pixels = 10, $el) {
   /* loop through both cuz they have different old and new values */
   $el.each(function () {
     let $this = $(this);
-    console.log('moving '+direction[0])
+    console.log('moving ' + direction[0])
     $this.css(
       direction[0],
       $this.css(direction[0]).match(/^[-]?\d*/)[0]++ + (pixels * direction[1]) //calculate from old

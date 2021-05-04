@@ -28,28 +28,11 @@ console.log()
 http://10.0.0.10:3000/?defEmoji=%E2%98%95&defPoint=%E2%9C%8C%F0%9F%8F%BB&rocketSpeed=20000&idleTimeout=300000&rotation=false
  */
 
-
 J$(document).ready(function ($) {
   var _x = cssConfig.getConfig();
   const Config = {};
   try {
     const urlParams = (new URL(window.location.href)).searchParams;
-  /*  const Config = Object.assign((({
-                      rocketspeedoffset,
-                      defaultidleemoji,
-                      defaultpointeremoji,
-                      idletimeout,
-                      idlerotation
-                    }) => ({
-          rocketspeedoffset,
-          defaultidleemoji,
-          defaultpointeremoji,
-          idletimeout,
-          idlerotation
-        })
-      )(Init)
-    ,urlParams)*/
-
 
     Object.assign(Config, Init, (function (U) {
       let a = Init.urlParams;
@@ -57,8 +40,6 @@ J$(document).ready(function ($) {
       U.searchParams.forEach((v, k) => o[a[a.indexOf(k)]] = v);
       return o;
     })(new URL(window.location.href)));
-    //$('textarea').val( JSON.stringify(Config));
-    //$('textarea').val(JSON.stringify(cssConfig.selectorList));
   } catch (e) {
      Object.assign(Config, Init);
   }
@@ -164,6 +145,7 @@ J$(document).ready(function ($) {
     }
   });
 
+  /* message console */
   $('#MessageSource').on('keyup click change', 'textarea, button', function (ev) {
     let $M = $('#MessageTarget');
     let $reset = $(this);
@@ -181,9 +163,6 @@ J$(document).ready(function ($) {
     let fontSize = 90;
     $M.css('font-size', fontSize);
 
-  //  let fontSize = +($M.css('-size').match(/\d*/)[0]);
-    //$M.width < $drawingTarget.width &&
-
     while (
       // if message target is too big
     ($M.height() /  $('#chromaKey').height() ) > .95
@@ -193,28 +172,6 @@ J$(document).ready(function ($) {
    //   ratio = $('#chromaKey').height() / $M.height();
 
     }
-    //  ratio =    $('#chromaKey').width() /  $M.width() ;
-    //fontSize *= ratio ;
-
-
-    /*
-    if ($M.height() < $('#chromaKey').height()) {
-      //scale back up
-       while ( $M.height() < $('#chromaKey').height() && fontSize<90) {
-        fontSize++;
-        //have to update the fontsize here so that the $M.width can be re-evaulated for the loop condition
-        $M.css('font-size', fontSize);
-      }
-       fontSize = 90;
-       $M.css('font-size', fontSize);
-    } else {
-
-      while ( $M.height() > $('#chromaKey').height() ) {
-        fontSize--;
-        //have to update the fontsize here so that the $M.width can be re-evaulated for the loop condition
-        $M.css('font-size', fontSize);
-      }
-    }*/
 
     return true;
   });
@@ -576,7 +533,7 @@ J$(document).ready(function ($) {
           //half the time (just to mix it up) do a trash animation here
           //there is no callback to throw it out though
 
-          if (Math.random() > .5) {
+          if (Math.random() > .8) {
             const parentNode = $this[0].parentElement;
             const emojiTrash = new TrashCan($this[0]);
             TrashCan.animateOnce(anime({
@@ -585,39 +542,43 @@ J$(document).ready(function ($) {
               duration: 2000
             }), true, 0).then(a => {
               emojiTrash.tossIt(true, $this[0]).then(() => {
-            //    parentNode.remove()
+                //    parentNode.remove()
                 $this
                   .appendTo($origin)
                   .removeClass('history--draggable')
                   .addClass('history__btn');
                 $temp.removeData('draggable').remove();
                 anime({
-                  targets : '.' + randomClass,
-                  scale   : 1,
-                  opacity : [0, 1],
-                  rotate  : 0,
-                  duration: 3000,
-                  translateY : 0,
-                  translateX : 0,
-                  delay   : 0,
-                  easing  : 'linear',
-                  complete: a => anime.remove('.' + randomClass)
+                  targets   : '.' + randomClass,
+                  scale     : 1,
+                  opacity   : [0, 1],
+                  rotate    : 0,
+                  duration  : 3000,
+                  translateY: 0,
+                  translateX: 0,
+                  delay     : 0,
+                  easing    : 'linear',
+                  complete  : a => anime.remove('.' + randomClass)
                 });
-                // document.querySelector('#trash'+emoji).remove();
               });
             });
             return;
           } //if
 
+          const {bottom: newY} = TrashCan.getXY(TrashCan.getBroom(), ['bottom'])['bottom'];
+
           myAnimation
             .timeline(randomClass + 'From', {loop: 1})
             .addToTimeline(randomClass + 'From', {
-                targets :  $this[0].parentElement,//$this[0],
-                scale   : .1,
-                opacity : 0,
-                duration: 2000,
-                easing  : "easeOutExpo",
-                complete: function () {
+                targets   : $this[0].parentElement,//$this[0],
+                scale     : .2,
+                opacity   : 0,
+                duration  : 2000,
+                top       : newY,
+                translateY: 0,
+                translateX: 0,
+                easing    : "easeOutExpo",
+                complete  : function () {
                   //put it back in history at "front"
                   $this
                     .appendTo($origin)
@@ -1050,7 +1011,7 @@ J$(document).ready(function ($) {
     let buttonModifiers = [
       'pressed'
     ];
-//⏯️↕️⏮️⏯️↕️↔️⏮️  ️⏬
+    //⏯️↕️⏮️⏯️↕️↔️⏮️  ️⏬
     let buttonContents = ['⏏️', '↕️', '↔️',
       '↖️', '↗️', '⬇️', '↙️', '↘️'];
     //determine which index currently have.
@@ -1071,11 +1032,9 @@ J$(document).ready(function ($) {
         $ms.addClass(targetModifiers[j]);
         btn.textContent = buttonContents[j];
 
-
         //trigger keyup for resize
         $('#Message').keyup();
         break;
-
       }
       continue;
     }
@@ -1384,7 +1343,8 @@ J$(document).ready(function ($) {
         //trigger the click that was already made
         clock.dispatchEvent(new Event('mousedown'));
 
-      });
+      }); //body mousedown
+
       /*************************
        * start broom
        *
@@ -1392,16 +1352,6 @@ J$(document).ready(function ($) {
        */
       TrashCan.goBroom('.floor__trash');
 
-      //control left vs ride side
-      /*  if (Config.clocklocation === 'left') {
-          let classes = ['flexClock__slider', 'flexClock'];
-          document.querySelector('.flexClock__slider')
-            .classList.add('flexClock__slider--left');
-          document.querySelector('.flexClock')
-            .classList.add('flexClock--left');
-          document.querySelector('.flexClock__slider__button')
-            .classList.add('flexClock__slider__button--left');
-        } */
       //restart countdown
     },
     //off
@@ -1437,8 +1387,13 @@ J$(document).ready(function ($) {
     }
   );
 
+  /* TODO: make the broom draggable.. similar problem to the  clock because it is
+  * buried in it z-index depth
+   */
+  const _TrashNothing = new TrashCan();
   document.body.addEventListener('click', function (ev) {
-    const broom = document.querySelector('.floor__broom');
+    const broom = TrashCan.getBroom();
+    var distanceTravelled = 0;
     const mouseLocation = {};
     //transpose mouselocation onto 1-dimensional rectangle co-ordinates
     (({pageX, pageY}, XY) => {
@@ -1450,22 +1405,64 @@ J$(document).ready(function ($) {
       });
     })(ev, mouseLocation)
     let isMouseOver = TrashCan.isAwithinB(mouseLocation, broom);
-    if(isMouseOver)
-      TrashCan.forceBroom();
-    return true;
-  })
+
+    if (!isMouseOver)
+      return true;
+
+    if (broom.classList.contains('isDraggable')) {
+      //trigger the click that was already made
+      broom.dispatchEvent(new Event('mousedown'));
+      //already draggable..quit early
+      return true;
+    } else {
+
+
+      MouseActions.makeDraggable(broom, {
+        mousedownCB: function (ev) {
+          console.log('zoomin', this);
+          anime.set(this, {
+            'z-index': 23000
+          });
+
+          this.classList.add('floor__broom--click');
+
+          //init flag to detect movement
+          distanceTravelled = 0;
+
+        },
+        mousemoveCB: function (ev) {
+          distanceTravelled++;
+
+        },
+        mouseupCB : function (ev) {
+          //send backward
+          console.log('send backward');
+          anime.set(this, {
+            'z-index': 0
+          });
+          this.classList.add('floor__broom--click');
+          if (distanceTravelled < 100) {
+            console.log(distanceTravelled);
+            //if it hasn't moved then a sweep was requested
+            TrashCan.forceBroom();
+            distanceTravelled = 0;
+          }
+        }
+      }, false);
+      //fired once
+      broom.dispatchEvent(new Event('mousedown'));
+    }
+
+  }); //mousedown
 
   /**************/
-  Window.anime = anime;
-  Window.mTimer = A.TimerCountDown;
-  Window.Trash = TrashCan;
-
-  $drawButton.click(); // default
+  //  $drawButton.click(); // default
 
   $history.find('.highlight').click();
 
-})
-;
+  Window.TimerCountDown = MeetingCountDown;
+  Window.Trash = TrashCan;
+}); //doc ready
 
 if (module.hot) {
   module.hot.accept();
