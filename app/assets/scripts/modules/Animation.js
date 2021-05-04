@@ -991,6 +991,13 @@ const
     hiddenBall    : null
   };
 
+const _Broom = {
+  node      : null,
+  interval  : null,
+  doExamine : false,
+  animationP: Promise.resolve(true)
+}
+
 class Trash {
   // #trashBall;
   #type;
@@ -1022,7 +1029,127 @@ class Trash {
     }
   }
 
-  static #setHiddenBall(emoji, innerNode) {
+  static stopBroom() {
+    _Broom.interval && clearTimeout(_Broom.interval);
+  }
+
+  static forceBroom(broom, XY = {
+    top : 450,
+    left: 800
+  }, cb) {
+    cb = cb || function (a) {
+      if (a.progress > 80 && !a.dust) {
+        a.dust = Trash.#getDustBunnies('.floor__trash');
+        a.dust.length &&
+        dustBunnies.forEach(el => {
+          el.remove();
+        })
+      }
+    };
+    const dustBunnies = Trash.#getDustBunnies('.floor__trash');
+
+    dustBunnies.length && Object.assign(XY, Trash.getXY(dustBunnies[0]));
+
+
+    broom = _Broom.node || document.querySelector('.floor__broom');
+    broom.style.top = XY.top || 0;
+    let animation;
+    _Broom.animationP.then(() => {
+        animation = anime.timeline({
+          targets  : broom,
+          direction: 'alternate',
+          loop     : 2
+        }).add({
+          top: Math.min(XY.top, 470),
+          zIndex : 24000
+        }).add({
+          translateX: [0, XY.left],
+          duration  : 2000,
+          begin     : a => {
+            anime({
+              targets  : broom.firstElementChild,
+              rotateZ  : [-45, -20],
+              duration : 500,
+              direction: 'aternate',
+              easing   : 'easeInOutQuad',
+              loop     : 6
+            });
+          },
+          update    : a => {
+            cb && cb(a);
+          }
+        }).add({
+          zIndex:0
+        });//anime
+        _Broom.animationP = animation.finished;
+      }
+    );
+  }
+
+  static
+  #getDustBunnies(nodes) {
+    let _nodes = [];
+    if (!Array.isArray(nodes) && typeof nodes === 'string') {
+      // is a selector
+      _nodes = [...document.querySelectorAll(nodes)];
+    } else if (nodes instanceof Element) {
+      //is element
+      _nodes = [...nodes.children];
+      //is neither
+    } else {
+      _nodes = [];
+    }
+    return _nodes;
+  }
+
+  /*
+  * every few minutes check if there is something to sweep up
+  * TODO: items thrown in the garbage can that miss will need to be clean up
+   */
+  static goBroom(nodesToClean, broom) {
+    _Broom.node = broom || _Broom.node || document.querySelector('.floor__broom');
+
+    const examineFloor = () => {
+      _Broom.interval = setTimeout(function () {
+        //timeout will automatically expire if not recreated YAY!
+        const dustBunnies = Trash.#getDustBunnies(nodesToClean);
+        const animationQ = [];
+        if (!dustBunnies.length) {
+          //flip
+          _Broom.animationP.then(() => {
+            const animation = anime.timeline({
+              targets  : _Broom.node,
+              direction: 'alternate',
+              loop     : 2
+            }).add({
+              rotateY : 180,
+              duration: 500
+            });
+            _Broom.animationP = animation.finished;
+            examineFloor();
+          });
+        } else {
+          //1. look at the XY location of the nodesToClean
+          const XY = Trash.getXY(dustBunnies[0]);
+          _Broom.animationP.then(() => {
+            Trash.forceBroom(_Broom.node, XY, function (a) {
+              if (a.progress > 80) {
+                dustBunnies.forEach(el => {
+                  el.remove();
+                })
+              }
+            });
+            examineFloor();
+          });
+        } // if
+
+      }, 10000); //interval
+    } // fn
+    examineFloor();
+  } //goBroom
+
+  static
+  #setHiddenBall(emoji, innerNode) {
     if (emoji instanceof Element) {
       innerNode = emoji;
     } else {
@@ -1034,10 +1161,10 @@ class Trash {
     if (innerNode) {
       node.append(innerNode);
       anime.set(node, {
-        translateX : 0,
-        translateY : 0,
-        width : '100%',
-        height : '100%'
+        translateX: 0,
+        translateY: 0,
+        width     : '100%',
+        height    : '100%'
       });
     } else if (typeof emoji === 'string') {
       node.textContent = emoji;
@@ -1053,14 +1180,14 @@ class Trash {
 
     if (xy) {
       Object.assign(_Can.xy, {
-        left: xy.left,
-        top : (anime.get(_Can.node, 'top') + '').replace('px', '')
+        left: +xy.left,
+        top : +(anime.get(_Can.node, 'top') + '').replace('px', '')
       });
     } else {
 
       Object.assign(_Can.xy, {
-        left: (anime.get(_Can.node, 'left') + '').replace('px', ''),
-        top : (anime.get(_Can.node, 'top') + '').replace('px', '')
+        left: +(anime.get(_Can.node, 'left') + '').replace('px', ''),
+        top : +(anime.get(_Can.node, 'top') + '').replace('px', '')
       });
     }
     // _Can.xy = _Can.node.getBoundingClientRect();
@@ -1374,7 +1501,7 @@ class Trash {
     for( let c in compare){
       xyA[c] += compare[c];
     }
-    Object.assign(diff, Trash.calcDiffXY(B,xyA));
+    Object.assign(diff, Trash.calcDiffXY(B,xyA,[2000,2000]));
 
     if( !doCenterOnly) {
       isWithin = true;
@@ -1642,7 +1769,45 @@ class Trash {
 
         //remove the real ball is done in the animation
         anime.set(hiddenBall, {rotate: Math.random() * 90});
-        _Can.node.querySelector('.trashCan__bottom').append(hiddenBall);
+
+        //if ball is near the can then put it in the can. otherwise leave it on the ground for cleanup
+        let putInCan = false;
+
+        //if the can is in it's original spot then we're fine
+        putInCan = Trash.isAwithinB(_Can.xy, Trash.getXY(Trash.getCanNode()), {
+          //no adjustment
+          left  : 0,
+          right : 0
+        }, true, ['centerX', 'centerY']);
+
+        if (putInCan) {
+          _Can.node.querySelector('.trashCan__bottom').append(hiddenBall);
+        } else {
+          //lay it on the floor cuz Can is elsewhere
+          const dust = document.createElement('div');
+          dust.classList.add('floor__trash');
+          document.getElementById('floor').append(dust);
+          anime.set(dust, Object.assign(
+            {},
+            (({top, left}) => ({
+              top : +top,//+ (Math.random()*50-25),
+              left: +left + (Math.random() * 100 - 50)
+            }))(Object.assign(
+              {},
+              _Can.xy,
+              {
+                translateY: 0,
+                translateX: 0,
+                rotateX   : 75,
+                rotateZ   : Math.random() * 90
+              }))
+          ));
+
+          hiddenBall.firstElementChild.classList.remove(
+            ...[...hiddenBall.firstElementChild.classList].filter(cl => /drag/i.test(cl))
+          )
+          dust.append(hiddenBall.firstElementChild);
+        }
         hiddenBall.classList.remove('trashCan__ball2--hide');
         trashBall.remove();
         resolve(true);
@@ -1822,7 +1987,6 @@ class Trash {
         });
       },
       update    : a => {
-
         let xy = trashBall.getBoundingClientRect();
         /*   console.log({
              left    : xy.left,
@@ -1985,6 +2149,7 @@ Animation.prototype.moveTarget = function (direction, pixels = 10, $el) {
   });
   return;
 }
+
 
 export default {
   Animation     : Animation,

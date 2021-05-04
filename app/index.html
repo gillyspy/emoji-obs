@@ -909,19 +909,41 @@ img {
 
 .floor__trash{
     position:absolute;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    transform : rotateX(70deg); /*flat-ish*/
     border : 0 !important;
     color : white;
-    font-size : 1.5em;
+    font-size : 2em !important;
     opacity : 1 !important;
+    width : 80px !important;
+    height : 80px !important;
+}
+
+.floor__trash > * {
+    border : 0 !important;
+    color : white;
+    font-size : 1em;
 }
 
 .floor__broom{
     position:absolute;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    transform : rotateZ(-45deg);
     background-color: rgba(0,0,0,0);
     font-size : 4em;
     border : 0;
     left : 0;
     top : 470px; /* get the height based upon position of the letters to clean up*/
+}
+
+.floor__broom span {
+    position:absolute;
+    left : 0;
+    top : 0;
 }
 
 /*
@@ -944,7 +966,7 @@ border : 0,
 </head>
 <body>
 <div id="floor" class="floor">
-<button class="floor__broom">🧹</button>
+    <button class="floor__broom"><span>🧹</span></button>
 </div>
 <div id="gallery" class="gallery"></div>
 <div id="targetWrapper" class="target">

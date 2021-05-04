@@ -597,6 +597,8 @@ J$(document).ready(function ($) {
                   opacity : [0, 1],
                   rotate  : 0,
                   duration: 3000,
+                  translateY : 0,
+                  translateX : 0,
                   delay   : 0,
                   easing  : 'linear',
                   complete: a => anime.remove('.' + randomClass)
@@ -1123,70 +1125,6 @@ J$(document).ready(function ($) {
     document.querySelector('.flexClock__steps'), //flexClock__steps
     {
       callbacks: [{
-        times    : (function (i, a) {
-          while (i--) {
-            if (i % 2 === 0 && i > 0) {
-              a.push(i)
-            }
-          }
-          return a;
-        })(100, []),
-        completed: [],
-        cb       : (minsLeft, obj) => {
-          if (obj.isDone) {
-            return
-          }
-          obj.isDone = true;
-          const XY = TrashCan.getXY(MeetingCountDown.getClock());
-          const broom = document.querySelector('.floor__broom');
-          let dust = [...document.querySelectorAll('.floor__trash')];
-          let dustItChk = 2000;
-          let dustItCt = 0;
-
-          if (!dust.length) {
-            //flip
-            anime.timeline({
-              targets  : broom,
-              direction: 'alternate',
-              loop     : 2
-            }).add({
-              rotateY : 180,
-              duration: 500
-            });
-            return;
-          } else {
-            broom.style.top = XY.top;
-            anime.timeline({
-              targets  : broom,
-              direction: 'alternate',
-              loop     : 2
-            }).add({
-              translateX: [0, XY.left],
-              rotateY   : {
-                value: [-25, 25],
-                duration: 500,
-                easing: 'linear',
-                loop : true
-              },
-              duration  : 3000,
-              update    : a => {
-                dustItCt++;
-                if ( dustItCt > dustItChk )
-                  dust.forEach(el => {
-                    dustItChk = 4000;
-                    el.remove();
-                    //update for next pass
-                    dust = [...document.querySelectorAll('.floor__trash')];
-                  });
-              },
-              complete  : a => {
-
-              }
-            }); //anime
-          } // if
-        }
-      },
-        {
           times    : [5, 10],
           completed: [],
           cb       : (minsLeft) => {
@@ -1447,6 +1385,13 @@ J$(document).ready(function ($) {
         clock.dispatchEvent(new Event('mousedown'));
 
       });
+      /*************************
+       * start broom
+       *
+       *
+       */
+      TrashCan.goBroom('.floor__trash');
+
       //control left vs ride side
       /*  if (Config.clocklocation === 'left') {
           let classes = ['flexClock__slider', 'flexClock'];
@@ -1486,8 +1431,29 @@ J$(document).ready(function ($) {
       });
       document.querySelector('.emojipreview__clocknum').value = '';
       anime.remove(document.getElementById('meetingOver').childNodes);
-    });
 
+      //turn off Broom
+      TrashCan.stopBroom();
+    }
+  );
+
+  document.body.addEventListener('click', function (ev) {
+    const broom = document.querySelector('.floor__broom');
+    const mouseLocation = {};
+    //transpose mouselocation onto 1-dimensional rectangle co-ordinates
+    (({pageX, pageY}, XY) => {
+      Object.assign(XY, {
+        left  : pageX,
+        top   : pageY,
+        bottom: pageY,
+        right : pageX
+      });
+    })(ev, mouseLocation)
+    let isMouseOver = TrashCan.isAwithinB(mouseLocation, broom);
+    if(isMouseOver)
+      TrashCan.forceBroom();
+    return true;
+  })
 
   /**************/
   Window.anime = anime;
