@@ -565,21 +565,61 @@ J$(document).ready(function ($) {
             return;
           } //if
 
-          const {bottom: newY} = TrashCan.getXY(TrashCan.getBroom(), ['bottom'])['bottom'];
+          //to fall to where the broom level already is
+          const newY =
+            (({top,height})=>top+height)(
+              TrashCan.getXY(TrashCan.getBroom(), ['top','height'])
+          );
+
+          //TODO : make a copy of them lie flat and wait to be "swept up"
 
           myAnimation
             .timeline(randomClass + 'From', {loop: 1})
             .addToTimeline(randomClass + 'From', {
                 targets   : $this[0].parentElement,//$this[0],
-                scale     : .2,
-                opacity   : 0,
-                duration  : 2000,
-                top       : newY,
-                translateY: 0,
+                scale     : .8,
+                opacity   : 1,
+                duration  : 500,
+              rotateY : [{value : 0, duration : 1500},{value : Math.random()*40-20}],
                 translateX: 0,
+                translateY: 0,
+                top       : [{
+                  value: newY  - Math.random()*100,
+                  duration: 1600,
+                  delay : 400
+                }],
+                rotateX   : [{
+                  value: 70,
+                  duration: 500
+                }, {
+                  value: 70,
+                  duration: 1500
+                }],
                 easing    : "easeOutExpo",
-                complete  : function () {
-                  //put it back in history at "front"
+                complete  : a => {
+                  //put a "copy" on the floor as splat
+                  if ($this[0].parentElement) {
+                    const splat = $this[0].parentElement.cloneNode(true);
+                    splat.classList.add('floor__trash');
+                    //remove draggable classes
+                    splat.classList.remove(...
+                      [...splat.classList].filter(cl=> /drag/i.test(cl))
+                    );
+                    if(TrashCan.addDust(splat)){
+                      console.log('dust added');
+                    }
+                    //if landed in the trash that's great
+                    if(TrashCan.isAwithinB(splat ,TrashCan.getCanNode(), {},true)){
+                      TrashCan.putInCan(splat);
+                      splat.style.top = null;
+                      splat.style.left = null;
+                    } else {
+                      TrashCan.addDust(splat) && console.log('dust added');
+                    }
+
+                  }
+
+                  //put the original back in history at "front"
                   $this
                     .appendTo($origin)
                     .removeClass('history--draggable')
@@ -1391,7 +1431,7 @@ J$(document).ready(function ($) {
   * buried in it z-index depth
    */
   const _TrashNothing = new TrashCan();
-  document.body.addEventListener('click', function (ev) {
+  document.body.addEventListener('mousedown', function (ev) {
     const broom = TrashCan.getBroom();
     var distanceTravelled = 0;
     const mouseLocation = {};
@@ -1420,37 +1460,40 @@ J$(document).ready(function ($) {
       MouseActions.makeDraggable(broom, {
         mousedownCB: function (ev) {
           console.log('zoomin', this);
-          anime.set(this, {
+          anime.set(broom, {
             'z-index': 23000
           });
 
-          this.classList.add('floor__broom--click');
-
+          broom.classList.add('floor__broom--click');
           //init flag to detect movement
           distanceTravelled = 0;
+          return true;
 
         },
         mousemoveCB: function (ev) {
+          console.log('dragging the broom');
           distanceTravelled++;
+          return true;
 
         },
         mouseupCB : function (ev) {
           //send backward
           console.log('send backward');
-          anime.set(this, {
+          anime.set(broom, {
             'z-index': 0
           });
-          this.classList.add('floor__broom--click');
+          broom.classList.remove('floor__broom--click');
           if (distanceTravelled < 100) {
             console.log(distanceTravelled);
             //if it hasn't moved then a sweep was requested
-            TrashCan.forceBroom();
+
             distanceTravelled = 0;
+            TrashCan.forceBroom();
           }
+          return true;
         }
       }, false);
       //fired once
-      broom.dispatchEvent(new Event('mousedown'));
     }
 
   }); //mousedown

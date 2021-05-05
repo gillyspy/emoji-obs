@@ -1105,57 +1105,68 @@ class Trash {
     _Broom.interval && clearTimeout(_Broom.interval);
   }
 
-  static forceBroom(broom, XY = {
-    top : 450,
-    left: 800
-  }, cb) {
+  static forceBroom(broom, dustBunnies = [], cb) {
     cb = cb || function (a) {
       if (a.progress > 80 && !a.dust) {
         a.dust = Trash.#getDustBunnies('.floor__trash');
         a.dust.length &&
-        dustBunnies.forEach(el => {
-          el.remove();
+        dustBunnies.forEach((el, i) => {
+          i === 0 && el.remove();
         })
       }
     };
-    const dustBunnies = Trash.#getDustBunnies('.floor__trash');
 
-    dustBunnies.length && Object.assign(XY, Trash.getXY(dustBunnies[0]));
-
-
+    if (!dustBunnies.length) {
+      dustBunnies = Trash.#getDustBunnies('.floor__trash');
+    }
     broom = _Broom.node || document.querySelector('.floor__broom');
-    broom.style.top = XY.top || 0;
+    //inherit XY properties from first dust bunny
+    const XY = {};
+    if (dustBunnies.length)
+      Object.assign(XY, Trash.getXY(dustBunnies.shift()));
+
+    //make the broom target the dust bunny
+    const broomXY = Trash.getXY(broom);
+    XY.top = XY.top - broomXY.height;
+    // XY.left = XY.left;
+
     let animation;
     _Broom.animationP.then(() => {
-        animation = anime.timeline({
-          targets  : broom,
-          direction: 'alternate',
-          loop     : 2
-        }).add({
-          top   : Math.min(XY.top, 470),
-          zIndex: 24000
-        }).add({
-          translateX: [0, XY.left],
-          duration  : 2000,
-          begin     : a => {
-            anime({
-              targets  : broom.firstElementChild,
-              rotateZ  : [-45, -20],
-              duration : 500,
-              direction: 'aternate',
-              easing   : 'easeInOutQuad',
-              loop     : 6
-            });
-          },
-          update    : a => {
-            cb && cb(a);
-          }
-        }).add({
-          zIndex: 0
-        });//anime
-        _Broom.animationP = animation.finished;
-      }
-    );
+      animation = anime.timeline({
+        targets  : broom,
+        direction: 'alternate',
+        loop     : 2
+      }).add({
+        top       : XY.top,
+        translateX: 0,
+        zIndex    : 24000
+      }).add({
+        translateX: [0, XY.left],
+        duration  : 2000,
+        begin     : a => {
+          //animate the broom emoji
+          anime({
+            targets  : broom.firstElementChild,
+            rotateZ  : [-45, -20],
+            duration : 500,
+            direction: 'aternate',
+            easing   : 'easeInOutQuad',
+            loop     : 6
+          });
+        },
+        update    : a => {
+          cb && cb(a);
+        },
+        complete : a=>{
+          //TODO perhaps fire the next sweep if there is more dust?
+        }
+      }).add({
+        zIndex: 0
+      });//anime
+
+      _Broom.animationP = animation.finished;
+
+    }); //then
   }
 
   static
@@ -1172,6 +1183,16 @@ class Trash {
       _nodes = [];
     }
     return _nodes;
+  }
+
+  static addDust(nodes) {
+    try {
+      document.getElementById('floor').append(nodes);
+      return true;
+    } catch (e) {
+      console.log('addDust', e);
+      return false
+    }
   }
 
   /*
@@ -1202,15 +1223,9 @@ class Trash {
           });
         } else {
           //1. look at the XY location of the nodesToClean
-          const XY = Trash.getXY(dustBunnies[0]);
+
           _Broom.animationP.then(() => {
-            Trash.forceBroom(_Broom.node, XY, function (a) {
-              if (a.progress > 80) {
-                dustBunnies.forEach(el => {
-                  el.remove();
-                })
-              }
-            });
+            Trash.forceBroom(_Broom.node, dustBunnies);
             examineFloor();
           });
         } // if
@@ -1529,6 +1544,15 @@ class Trash {
     }
   } //processQueue
 
+  static putInCan(nodes) {
+    try {
+
+      Trash.getCanNode().querySelector('.trashCan__bottom').append(nodes);
+    } catch (e) {
+      console.log('putinCan', e);
+    }
+  }
+
   /*
   * use the co-ordinates of A and B to determine if they overlap
   *
@@ -1588,7 +1612,7 @@ class Trash {
       return isWithin;
     } else if (doCenterOnly && !isNaN(diff.diff.centerX) && !isNaN(diff.diff.centerY)) {
       isWithin = true;
-      if (ignore.indexOf('centerX') || ignore.indexOf('centerY')) {
+      if (ignore.indexOf('centerX') >= 0 || ignore.indexOf('centerY') >= 0) {
         //ignore = ignore
       } else {
         //default for center behaviours
@@ -1676,10 +1700,15 @@ class Trash {
           bottom: endB,
           right : endR
         }) => {
-        const centerY = top - height / 2;
+        const centerY = bottom - height / 2;
         const centerX = right - width / 2;
         const endCY = endB - endH / 2;
         const endCX = endR - endW / 2;
+        //end
+        Object.assign(end, {
+          centerX: endCY,
+          centerY: endCY
+        });
         //calc the center difference
         Object.assign(_start, {
           top    : top,
@@ -1708,6 +1737,7 @@ class Trash {
       })(start, end);
       return {
         start: _start,
+        end  : end,
         diff : diff
       };
     } catch (e) {
