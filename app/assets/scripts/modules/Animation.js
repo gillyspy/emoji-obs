@@ -1106,13 +1106,10 @@ class Trash {
   }
 
   static forceBroom(broom, dustBunnies = [], cb) {
-    cb = cb || function (a) {
+    cb = cb || function (a,next) {
       if (a.progress > 80 && !a.dust) {
-        a.dust = Trash.#getDustBunnies('.floor__trash');
-        a.dust.length &&
-        dustBunnies.forEach((el, i) => {
-          i === 0 && el.remove();
-        })
+        a.dust=true;
+        next && next.remove();
       }
     };
 
@@ -1121,27 +1118,30 @@ class Trash {
     }
     broom = _Broom.node || document.querySelector('.floor__broom');
     //inherit XY properties from first dust bunny
-    const XY = {};
-    if (dustBunnies.length)
-      Object.assign(XY, Trash.getXY(dustBunnies.shift()));
+    const dustXY = {};
+    if (dustBunnies.length){
+      _Broom.nextDust = dustBunnies.shift();
+      Object.assign(dustXY, Trash.getXY(_Broom.nextDust));
+    }
 
     //make the broom target the dust bunny
     const broomXY = Trash.getXY(broom);
-    XY.top = XY.top - broomXY.height;
+    const newY = dustXY.top - broomXY.height;
     // XY.left = XY.left;
 
     let animation;
     _Broom.animationP.then(() => {
+      anime.remove(broom);
       animation = anime.timeline({
         targets  : broom,
         direction: 'alternate',
         loop     : 2
       }).add({
-        top       : XY.top,
+        top       : newY,
         translateX: 0,
         zIndex    : 24000
       }).add({
-        translateX: [0, XY.left],
+        translateX: [0, dustXY.left],
         duration  : 2000,
         begin     : a => {
           //animate the broom emoji
@@ -1155,7 +1155,7 @@ class Trash {
           });
         },
         update    : a => {
-          cb && cb(a);
+          cb && cb(a,_Broom.nextDust);
         },
         complete : a=>{
           //TODO perhaps fire the next sweep if there is more dust?
@@ -1230,7 +1230,7 @@ class Trash {
           });
         } // if
 
-      }, 10000); //interval
+      }, 20000); //interval
     } // fn
     examineFloor();
   } //goBroom
