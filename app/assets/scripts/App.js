@@ -1,3 +1,4 @@
+import '../styles/styles.css'
 import anime from "animejs";
 //anime.suspendWhenDocumentHidden = false; // default true
 const J$ = require("jquery").noConflict();

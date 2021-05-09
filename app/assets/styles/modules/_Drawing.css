@@ -9,9 +9,8 @@
 }
 
 #drawing {
-    border-top: 0px;
+    border-top: 0;
 }
-
 
 .drawing__grid {
     z-index: 9000;

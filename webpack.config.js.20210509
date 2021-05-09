@@ -6,13 +6,26 @@ const path = require('path');
 const fse = require('fs-extra');
 const log = {}
 
-
+const postcssplugins = [
+    require('postcss-import'),
+    require('postcss-mixins'),
+    require('postcss-simple-vars'),
+    require('postcss-hexrgba'),
+    require('postcss-nested'),
+    require('autoprefixer')
+];
 
 let cssConfig = {
-    test : /[.]css$/i,
+    test: /[.]css$/i,
     use : [
-        //'style-loader',
-        'css-loader?url=false'
+        {loader: 'style-loader'},
+        {loader: 'css-loader?url=false'},
+        {
+            loader : 'postcss-loader',
+            options: {
+                plugins: postcssplugins
+            }
+        }
     ]
 }
 
@@ -36,7 +49,9 @@ let pages = fse.readdirSync('./app').filter(function (f) {
 let config = {
     entry       : './app/assets/scripts/App.js',
     cache       : false,
-    plugins     : pages ,
+    plugins     : [pages
+
+    ],
     module      : {
         rules: [ //
             cssConfig,
@@ -71,12 +86,13 @@ let config = {
     },
     optimization: {
         runtimeChunk: "multiple"
-    }
+    },
+    plugins     : pages
 }
 
 if (currentTask == 'dev') {
     config.output = {
-        filename : 'bundled.[chunkhash].js',
+        filename : 'bundled.js',
         path : path.resolve( __dirname, '/app' ) //multiplatform friendly
     };
     config.devServer = {
@@ -112,7 +128,7 @@ if (currentTask == 'dev') {
     }); */
     config.output = {
         filename     : '[name].[chunkhash].js',
-      //  chunkFilename: '[name].[chunkhash].js',
+        chunkFilename: '[name].[chunkhash].js',
         path         : path.resolve(__dirname, 'docs') //multiplatform friendly
     };
     config.mode = 'production';
@@ -124,7 +140,7 @@ if (currentTask == 'dev') {
     config.plugins.push(
       new CleanWebpackPlugin(),
       new MiniCssExtractPlugin({
-          filename     : 'stylesX.[chunkhash].css',
+          filename     : 'styles.[chunkhash].css',
           chunkFilename: "[id].css"
       }),
       new RunAfterCompile()
@@ -148,6 +164,7 @@ if (currentTask == 'dev') {
          rules : [ cssConfig ]
      }*/
     //  cssConfig.use.unshift(MiniCssExtractPlugin.loader)
+    postcssplugins.push(require('cssnano'))
 
 }
 
