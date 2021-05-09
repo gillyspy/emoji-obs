@@ -1,0 +1,28 @@
+.emoji_preview-name {
+    font-size: 2em;
+    flex-grow : 1;
+    flex-shrink: 0;
+    width : unset !important;
+}
+
+.emoji_preview-emoji {
+    font-size: 5em;
+}
+
+.emojipreview__clocknum {
+    font-size: 1.5em;
+
+}
+#emojipreview {
+    font-size: 2em;
+
+}
+
+    #picker {
+        z-index : 8050;
+        position : relative;
+
+    }
+    .emoji-picker__wrapper {
+        z-index: 10000;
+    }

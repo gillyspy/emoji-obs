@@ -1,15 +1,18 @@
 const Init = {
-  init             : ['💩', '🔇', '🏳️', '👍🏻', '🔥', '❌', '👂🏻', '🧠', '🦈', '☁️', '⛈️', '🌮', '🛠️',
-    '🧲', '📅', '💤', '⁉️', '‍️⚠️', '🔫',
-    '👋🏻', '💡', '✌🏻'],
+  init             : [
+    '💩', '🔇', '🏳️', '👍🏻', '🔥', '❌', '👂🏻', '🧠', '🦈', '☁️', '⛈️', '🌮',
+    '🛠️', '🧲', '📅', '💤', '⁉️', '‍️⚠️', '🔫','🤬', '😰', '👿', '💣', '👋🏻',
+    '💡', '✌🏻'
+  ],
   stickyInit       : {
     "🔇" : true,
     '💤' : true,
-    '✌🏻': true
+    '✌🏻': true,
+    '💣' : true
   },
   historySize      : 50,
   idlespeedoffset: 20000,
-   defaultpointeremoji: '✌🏻',
+  defaultpointeremoji: '✌🏻',
   defaultidleemoji : '☕',
   idletimeout : 100000,
   idlerotation : false,
@@ -31,7 +34,7 @@ const Init = {
     strokeColor    : "orange",
     strokeWeight   : 10
   },
-  visibleHeight    : 575,
+  visibleHeight    : 540,
   closeHandler     : {
     render: function (picker) {
       const button = document.createElement('button');
@@ -40,7 +43,7 @@ const Init = {
 
         button.addEventListener('click', () => {
           //close the picker
-          document.getElementById('drawingPane').click();
+          document.getElementById('screen').click();
         });
         return button;
       }

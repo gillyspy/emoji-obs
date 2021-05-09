@@ -3,99 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <title>home</title>
-<style title="appRules">
-/*
-    rocketpathspeedoffset--20000 {}
-    defaultpointeremoji--✌🏻 {}
-    defaultidleemoji--🧲 {}
-    idletimeout--300000 {}
-    idlerotation--false {}
-*/
-    body {
-        background-color: rgba(100, 100, 100, 1);
-        margin: 0px auto;
-        overflow: hidden;
-        cursor: pointer;
-    }
+    <link rel="stylesheet" type="text/css" href="./assets/styles/Drawing.css">
+    <link rel="stylesheet" type="text/css" href="./assets/styles/FollowMouse.css">
+    <link rel="stylesheet" type="text/css" href="./assets/styles/Trash.css">
+    <link rel="stylesheet" type="text/css" href="./assets/styles/FlexClock.css">
+    <link rel="stylesheet" type="text/css" href="./assets/styles/gallery.css">
+    <link rel="stylesheet" type="text/css" href="./assets/styles/emojiPreview.css">
+    <link rel="stylesheet" type="text/css" href="./assets/styles/index.css">
 
-    #chromaKey {
-        background-color: rgba(0, 0, 0, 0);
-        position: fixed;
-        /*   z-index: 20000;*/
-        width: 100%;
-        height: 540px;
-        /* width: 960px;*/
-        /* display : none; */
-    }
-    #tableTop{
-       /* margin-bottom: 50px; */
-        height:540px;
-        width:960px;
-    }
+    <style title="appRules">
+        /*
+            rocketpathspeedoffset--20000 {}
+            defaultpointeremoji--✌🏻 {}
+            defaultidleemoji--🧲 {}
+            idletimeout--300000 {}
+            idlerotation--false {}
+            1920/2 = 960
+            1080/2 = 540
+        */
+        body {
+            background-color: rgba(100, 100, 100, 1);
+            margin: 0px auto;
+            overflow: hidden;
+            cursor: pointer;
 
-       #MessageWrapper span{
-        color: whitesmoke;
-        font-weight: bold;
-        opacity: .9;
-        background-color: rgba(129,129,129,.6);
-        border-bottom: 4px solid rgba(129,129,129,.1);
-        font-size: 90px;
-        z-index: 8000;
-       /* padding: 20px; */
-    }
+        }
+
+
+        #tableTop {
+            /* margin-bottom: 50px; */
+            height: 540px;
+            width: 100%;
+        }
+
+
+        #MessageWrapper span {
+            color: whitesmoke;
+            font-weight: bold;
+            opacity: .9;
+            background-color: rgba(129, 129, 129, .6);
+            border-bottom: 4px solid rgba(129, 129, 129, .1);
+            font-size: 90px;
+            z-index: 8000;
+            /* padding: 20px; */
+        }
 
     #MessageSource {
         vertical-align: top;
     }
 
+        #MessageWrapper {
 
-    #drawing {
-        z-index: 10000;
-    }
+        }
 
-    #drawing, #Grid, #MessageWrapper {
-        border-top: 0;
-        position: fixed;
-        top: 0;
-        left: 0;
-    }
-
-    #draing, #Grid {
-        width: 100%;
-        height: 300px;
-    }
 
     .messageSource {
         /* see #MessageWrapper */
     }
 
-    #drawingPane {
-        border: 1px solid white;
-        border-top: 0px;
-
-    }
-
     .messageTarget {
+        border-top: 0;
+        position: absolute;
+        left: 0;
+        box-sizing: border-box;
         z-index: 8000;
-        position: fixed;
-        text-align: justify;
-       width: 95%;
-        padding: 20px;
-        height: 600px;
+        /*  text-align: justify;*/
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        /* flex-wrap : nowrap; */
+
     }
 
-    .messageTarget__pre {
-        color: whitesmoke;
-        font-weight: bold;
-        opacity: .9;
-        background-color: rgba(0, 0, 0, .6);
-        font-size: 90px;
-        z-index: 8000;
-        margin-top: -20px;
-        word-wrap: break-word;
-        white-space: pre-wrap;
-        /* padding: 20px; */
-    }
+        .messageTarget--top {
+            top: 0;
+        }
+
+        .messageTarget--bottom {
+            bottom: 0;
+        }
+
+
+        .messageTarget__pre {
+            text-align: justify;
+            color: whitesmoke;
+            font-weight: bold;
+            opacity: .9;
+            background-color: rgba(0, 0, 0, .6);
+            font-size: 90px;
+            z-index: 8000;
+            /* margin-top: -20px; */
+            word-wrap: break-word;
+            word-break: break-all;
+            white-space: pre-wrap;
+            padding: 20px;
+            /* display: inline; */
+            height: 100%;
+            box-sizing: border-box;
+            margin: 0;
+            align-content: flex-start;
+
+            /* color: whitesmoke;
+             font-weight: bold;
+             opacity: .9;
+             background-color: rgba(0, 0, 0, .6);
+             font-size: 90px;
+             z-index: 8000;
+             margin-top: -20px;
+             word-wrap: break-word;
+             white-space: pre-wrap;
+             /* padding: 20px; */
+        }
 
 
 .messageTarget__pre--off {
@@ -104,69 +122,33 @@
 
 .messageTarget__pre--narrow {
     margin-left: 20%;
-    width: 60%;
-}
-
-
-.messageTarget__pre--full,
-.messageTarget__pre--fullBottom {
-    margin-left: 0px;
+    margin-right: 20%;
     width: 100%;
+    height: 100%;
 }
 
-.messageTarget__pre--left,
-.messageTarget__pre--leftBottom {
-    margin-left: 0%;
-    width: 40%;
-}
 
-.messageTarget__pre--right,
-.messageTarget__pre--rightBottom {
-    margin-left: 60%;
-    width: 40%;
-}
+        .messageTarget__pre--full {
+            margin-left: 0px;
+            width: 100%;
+        }
+
+        .messageTarget__pre--left {
+            margin-left: 0%;
+            width: 40%;
+        }
+
+        .messageTarget__pre--right {
+            margin-left: 60%;
+            width: 40%;
+        }
 
 .messageTarget__pre--fullBottom,
 .messageTarget__pre--leftBottom,
 .messageTarget__pre--rightBottom {
-    bottom: 0;
-    position :absolute
+    /* bottom: 0;*/
 }
 
-
-#Grid {
-    display: none;
-    z-index: 9000;
-    position: fixed;
-}
-
-.grid {
-    display: flex; /* establish flex container */
-    flex-wrap: wrap; /* enable flex items to wrap */
-        justify-content: space-around;
-    }
-
-    .cell {
-        flex: 1 1 32%; /* don't grow, don't shrink, width */
-        border: 1px dashed white;
-    }
-
-
-    .buffer {
-    }
-
-    table {
-        margin-bottom: 0px;
-    }
-
-    div#col0 {
-        width: 0px;
-        height: 500px;
-        padding: 0px;
-        border: 1px;
-        z-index: -10000;
-
-    }
 
     .target {
         font-size: 60px;
@@ -209,29 +191,13 @@
             line-height: 1em;
         } */
 
-    div#col1a {
-        font-size: 20px;
-        z-index: 3000;
-        height: 500px;
-        display: block;
-        width: 90px;
-        overflow: hidden;
-        padding-left: 0px;
-        padding-top: 0px;
-        position: relative;
-       margin: 0px;
-    }
+
 
     button.big {
-        font-size : 40px;
+        font-size: 20px;
         vertical-align: top;
     }
-        .highlight {
-        /* text-decoration: underline solid red ; */
-        opacity: 1.0 !important;
-        font-size: 1.5em ; /* !important;*/
-        border: 1px dashed white !important;
-    }
+
 
     .history {
         /*  opacity: .5; */
@@ -242,30 +208,14 @@
 
     }
 
-    #history {
-        top: 800px;
-        left: 0;
-        z-index: 8000; /**/
-        position: absolute
-    }
 
-    .history--hidden {
+        .history--hidden {
         display: none !important;
 
     }
 
-    .history__btn {
-        opacity: .8;
-        border: none;
-        cursor: pointer;
-        padding: 0;
-        width: 1.5em;
-        height: 1.5em;
-        font-size : 32px;
-    }
 
-
-.history, .aniLetter {
+        .history, .aniLetter {
     color: red;
     font-weight: bold;
 }
@@ -312,44 +262,7 @@
 }
 
 
-    #col1b {
-        margin: 0px;
-        height: 80px;
-        padding-right: 200px;
-        display: inline-block;
-    }
-    .together {
-        z-index: 5000;
-        margin-left: 0px;
-        margin-right: 0px;
-        width: 650px;
-        margin-top: 105px;
-    }
-    div.drawing{
-        padding-left: 4px;
-    }
-
-    #picker {
-        z-index : 8050;
-        position : absolute;
-    }
-    .emoji-picker__wrapper {
-        z-index: 10000;
-    }
-    button {
-        color: white;
-        border-radius: 14px;
-       padding: 0;
-    /*   dding: 0px 6px 0px 6px ;*/
-        width : 1.5em;
-        height: 1.5em;
-      /*  margin: 6px 0px 0px 0px;*/
-         border: 2px dashed white;
-        background: rgba(255, 255, 255, .1);
-        /* margin:0px */
-    }
-
-    input, textarea {
+        input, textarea {
         font-weight: bold;
         color : white  ;
         background-color: darkgray;
@@ -374,7 +287,8 @@
     background-color: lightgrey;
 }
 
-#gallery button.pressed {
+
+        #gallery button.pressed {
     background-color: unset;
 }
 
@@ -404,46 +318,14 @@ img {
     box-shadow: 0 0 5px 10px #555;
 }
 
-#emojipreview {
-    font-size: 2em;
-}
 
-.emoji_preview-name {
-    font-size: 2em;
-    margin-left: 50px;
 
-}
-
-.emoji_preview-emoji {
-    font-size: 5em;
-}
-
-.emojipreview__clocknum {
-    font-size: 1.5em;
-
-}
-
-.together__col1 {
-    width: 40%;
-    vertical-align: top;
-}
-    .together__col2 {
-        width: 60%;
-        text-decoration: white;
-        vertical-align: top;
-    }
-    #buttons {
-        margin-top: 0px;
-        top: 535px;
-        z-index: 8001;
-        position: fixed; /*relative;*/
-    }
 
     .ml1 {
-  font-weight: 900;
-        margin-top: 0px;
-        margin-left: 20px;
-        width: 80%;
+        font-weight: 900;
+        margin-top: 0;
+        margin-left: 0;
+        width: 100%;
         /*  text-align: center */
     }
 
@@ -494,462 +376,13 @@ img {
         left: 0;
         top: 0;
     }
-
-    .followMouse {
-        size : 10px;
-        border : 0;
-        position : absolute;
-
-    }
-
-    .followMouse--idle{
-        display: none
-    }
-
-    .followMouse--active{
-        background-color: rgba(255,255,255,.1);
-        border-radius: 5px;
-    }
-
     .pageHelp {
         display: inline;
     }
 
-    .gallery {
-        height: 100%;
-        width: 100%;
-    }
-
-    #idleAnimation {
-        height: 10px;
-        position: absolute;
-       /* display : none; */
-    }
-
-.idleAnimation__button {
-    background-color: rgba(0, 0, 0, 0);
-    border: 0;
-    transform: rotate(45deg);
-}
-
-.motion-path {
-    /* margin: 20% 20%;*/
-    width: 100%;
-    /*margin-left:-100px;*/
-    height: 600px;
-    text-align: center;
-}
-
-.motion-path svg {
-    opacity: 1;
-    z-index: 0;
-}
-
-#mousePath {
-    fill: rgba(0, 0, 0, 0)
-}
-
-.flexClock {
-    width: 50px;
-    left:  70%;
-    height: 525px; /*568px; */
-    position: absolute;
-    z-index: 0;
-}
-
-.flexClock--hide{
-    display:none;
-}
-
-.flexClock--left {
-    margin-left: 20%;
-}
-
-.flexClock__progress {
-    position: absolute
-}
-
-.flexClock__progress--drain {
-    /*  border: 4px red double;*/
-    position: absolute;
-    top: 0;
-    width: 100%;
-    height: 525px; /* 1%; */
-    /* background-color: red;*/
-    background-color: rgba(0, 0, 0, 1); /* green */
-    margin-top: 2px;
-    opacity: 0.3;
-    transform : scale(1) scale(0);
-    transform-origin: 0 0;
-}
-
-.flexClock__progress--fill {
-    height: 525px;
-    width: 100%;
-    background-color: rgba(255, 0, 0, 1); /* green */
-    position: absolute;
-    opacity: 0;
-    transform-origin: 0 0;
-    top: 0;
-}
-.flexClock__step {
-    /*display: flex;*/
-    justify-content: center;
-    position: absolute;
-    width: 100%;
-    transform: scaleX(1.5);
-}
-
-.flexClock__sub--A .flexClock__step {
-    border: rgba(255, 255, 255, .7) dashed;
-    border-width: 0 0 1px 0;
-    display: flex;
-    font-weight: bolder;
-}
-
-.flexClock__sub--A .flexClock__step span {
-    color : white;
-    flex-wrap: wrap;
-    align-self: flex-start;
-
-}
-.flexClock__span--super {
-    font-size: 1.5em;
-}
-
-.flexClock__steps {
-        width: 100%;
-    top : 2px;
-    margin-left : 0px;
-}
-.flexClock__sub {
-    width : 100%;
-}
-.flexClock__steps,
-.flexClock__sub
-{
-    position: absolute;
-    height: 525px;
-}
-.flexClock__slider{
-    margin-right : -30px;
-    background-color : rgba(255,0,0,0.1);
-    position:relative;
-    display: flex;
-   /* z-index:0; */
-}
-
-.flexClock__slider--left{
-   margin-left : -60px;
-    margin-right : 0;
-    position:relative;
-    display: flex;
-}
-
-.flexClock__slider__button {
-    text-align: right;
-    align-self: flex-end;
-    border-radius: 0;
-    border-top-right-radius: 20px;
-    border-width: 4px 4px 0 0;
-    padding-left: 70px;
-    margin-top: auto;
-    width :3em;
-}
-
-.flexClock__slider__button--left2 {
-    text-align: left;
-    border-radius: 0;
-    border-top-left-radius: 20px;
-    border-width: 4px 0 0 4px;
-    padding-left: 0;
-    padding-right: 70px;
-    margin-top: auto;
-}
-
-.flexClock__slider__button--left{
-    transform : rotateY(-.5turn) translateX(65px);
-}
-
-.flexClock__spotlight {
-    border-radius : 100%;
-    border: .2em solid rgba(255,255,255,.8);
-    background-color: rgba(0,0,0,.8);
-    color : rgba( 255,255,255, .9);
-    padding: 0;
-    width : 100%;
-    height : 100%;
-    font-weight: bold;
-    position :absolute;
-    transform-origin: center;
-}
-
-.flexClock__warnWrap{
-    position: absolute;
-    display : flex;
-    justify-content: center;
-    align-items: center;
-    top:35px;
-    opacity:0;
-    width: 2em;
-    height: 2em;
-}
-
-.flexClock__spotlight--left {
-    left: 2em;
-}
-
-.flexClock__shadow {
-    border-radius : 100%;
-    width: 100%;
-    height: 100%;
-    background-color : rgba( 255,255,255,.3);
-    border: .2em solid rgba(255,255,255,0);
-    position :absolute;
-    transform-origin: center;
-
-}
-.flexClock__shadow--left {
-  /* left : 2em*/
-}
-
-.flexClock__spotlight--hide{
-    display: none;
-}
-
-#meetingOver {
-    position: fixed;
-    background-color: rgba(0, 0, 0, 0);
-    width: 100%;
-    height: 640px;
-    font-size: 3em;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    opacity : 0;
-    z-index: 1;
-}
-.goodBye__wrapper {
-    display:block;
-    background-color : rgba(150,150,150,0);
-    padding : 10px
-}
-
-.goodBye__letter {
-    color: white;
-}
-.goodBye__counter {
-    color: white;
-    opacity: 0;
-    border: 0;
-    font-weight: normal;
-    background-color: rgba(0, 0, 0, 0);
-    border-radius: 14px;
-    margin: 0;
-    text-align: center;
-    font-size: .8em;
-}
-
-.goodBye__header{
-    text-align: center;
-}
-
-.goodBye__line {
-    width: 100%;
-    opacity: 1;
-    left: 0;
-    height: 3px;
-    background-color: #fff;
-    transform-origin: 0 0;
-}
-
-.goodBye__line--line1 {
-    top: 0;
-}
-
-.goodBye__line--line2 {
-    bottom: 0;
-}
-
-.trashCan__dragWrap{
-    position : absolute;
-    display:flex;
-    justify-content: center;
-    align-items: center;
-    opacity : 1;
-    border : 2px dashed white; /* debugging */
-}
-
-.trashCan {
-    position: absolute;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    top: 500px;
-    left: 35px;
-    width : 88px;
-    height : 88px;
-    opacity: .7;
-    z-index: 19999;
-    transform-origin: center;
-;
-}
-
-.trashCan__sleeve {
-    position : absolute;
-    width: 10px;
-    opacity: 0;
-    margin-left : -50px;
-    background-color: rgba(0,0,255,.9);
-    transform-origin: 0 0;
-}
-
-.trashCan__emoji {
-    font-size: 4em;
-    position: absolute;
-    bottom: 0;
-    opacity : .8;
-}
-
-.trashCan__hand {
-    font-size: 4em;
-    margin-left : -50px;
-    position:absolute;
-    /* transform-origin: 0 0; */
-    bottom: 0;
-}
-.trashCan__bottom{
-    display: flex;
-    justify-content: center;
-    position : absolute;
-    font-size : 1.5em;
-    opacity : .6;
-    color: white;
-}
-
-.trashCan__bottom > * {
-    position:absolute;
-}
-
-.trashCan__clickFace{
-    display: flex;
-    width: 100%;
-    height: 100%;
-    justify-content: center;
-    position : absolute;
-    font-size : 1.5em;
-    opacity : 1;
-}
 
 
-.trashCan__ball2 {
-    /* transform-origin: 0 0; */
-    position: absolute;
-    display:flex;
-    justify-content: center;
-    align-items: center;
-   /* margin-left: 45px;
-    margin-bottom: 15px;
-    transform: rotate(50deg); */
-    transform: rotate(50deg);
-    opacity: 1;
-}
 
-.trashCan__ball2 > * {
-      font-size: 1em !important;
-}
-
-.trashCan__ball2--hide {
-    /* transform-origin: 0 0; */
-    display: none;
-}
-
-.trashCan__ball {
-    position: absolute;
-    display: flex;
-    margin: auto;
-    z-index: 20000;
-    opacity : .8;
-    /* these needs to be  unset for flex */
-   /* top: 0;   /*/
-  /*  left: 0; */
-    transform-origin: center;
-    justify-content: center;
-    align-items: center;
-    border : 0 !important;
-}
-
-.trashCan__ball__wrapper {
-    position: absolute;
-    z-index: 20000;
-    /* top: 0;
-    left: 0; */
-    transform-origin: center;
-
-}
-
-.trashCan__ballMask{
-    position: absolute;
-    z-index:20001;
-    opacity : 0;
-    font-size : 20px;
-    transform-origin: center;
-}
-
-
-.floor {
-    position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-    height: 560px;
-    display:flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.floor__trash{
-    position:absolute;
-    display:flex;
-    justify-content: center;
-    align-items: center;
-    transform : rotateX(70deg); /*flat-ish*/
-    border : 0 !important;
-    color : white;
-    font-size : 2em !important;
-    opacity : 1 !important;
-   /* width : 80px !important;
-    height : 80px !important;*/
-}
-
-.floor__trash > * {
-    border : 0 !important;
-    color : white;
-    font-size : 1em;
-}
-
-.floor__broom{
-    position:absolute;
-    display:flex;
-    justify-content: center;
-    align-items: center;
-    transform : rotateZ(-45deg);
-    background-color: rgba(0,0,0,0);
-    font-size : 4em;
-    border : 0;
-    left : 0;
-    top : 470px; /* get the height based upon position of the letters to clean up*/
-}
-.floor__broom--click {
-    border-radius: 14px;
-    background: rgba(255, 255, 255, .1);
-}
-
-.floor__broom span {
-    position:absolute;
-    left : 0;
-    top : 0;
-}
 
 /*
 Window.anime({
@@ -970,163 +403,151 @@ border : 0,
 
 </head>
 <body>
-<div id="floor" class="floor">
-    <button class="floor__broom"><span>🧹</span></button>
-</div>
-<div id="gallery" class="gallery"></div>
-<div id="targetWrapper" class="target">
-    <div class="targetWrapper__emoji">
-        <span id="emoji" class="target__aniLetter target__aniLetter--emoji">✌🏻</span>
-        <span id="pin" class="target__aniLetter target__aniLetter--pin">📌</span>
-    </div>
-</div>
-<div id="fakeMouse" class="fakeMouse">
-    <button class="fakeMouse__button"><span class="fakeMouse__span">🚀</span></button>
-</div>
-<div id="chromaKey">
-    <div class="motion-path">
-        <div id="idleAnimation" class="idleAnimation">
-            <button class="idleAnimation__button"><span class="idleAnimation__span">🚀</span></button>
-        </div>
-        <svg width="1000px" height="600px" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink">
-                <path id="mousePath" d="M 9 299 C 9 138.2 81.6 8 171.3 8 C 261 8 333.7 138.2 333.7 299 C 333.7 459.8 406.3 560.9 496 560.9 C 585.7 560.9 746 513 763 290 C 752 103 650 9 493 6 C 326 9 185 124 209 291 C 196 484 406.3 560.9 496 560.9 C 601.5 568.2 658.3 459 658.3 299 C 658.3 138.2 731 8 820.7 8 C 910.4 8 983 138.2 983 299 C 983 459.8 910.4 590 820.7 590 L 171.3 590 C 81.6 590 9 459.8 9 299 Z"/>
-</svg>
-
-    </div>
-</div>
-<div id="afkImages">
-    <div id="afk1" class="afkImages afkImages--hide">
-        <img width="100%" src="assets/img/afk.gif">
-    </div>
-    <div id="afk2" class="afkImages afkImages--hide">
-        <img width="100%" src="assets/img/afk2.gif">
-    </div>
-    <div id="afk3" class="afkImages afkImages--hide">
-        <img width="100%" src="assets/img/afk3.gif">
-    </div>
-</div>
-<div id="flexClock" class="flexClock">
-
-    <div class="flexClock__progress flexClock__progress--drain"></div>
-    <div class="flexClock__progress flexClock__progress--fill"></div>
-    <div class="flexClock__steps">
-        <div class="flexClock__sub flexClock__sub--A">
-            &nbsp;
-
+<div class="web__draggable web__draggable--hide">
+    <div class="web__relative">
+        <div class="web">
+            <div class="web__cob">🕸️</div>
+            <div class="web__spider__wheel">
+                <span class="web__thread"></span>
+                <span class="web__spider">️🕷️</span>
+            </div>
         </div>
     </div>
-    <div class="flexClock__slider"><button class="big flexClock__slider__button">⏳</button></div>
 </div>
+<section id="everything" class="everything">
+    <section class="everything__top">
+        <div class="buffer"></div>
+    </section>
+    <section id="screen" class="everything__screen">
+        <div id="MessageWrapper" class="messageTarget messageTarget--nothing">
+            <pre id="MessageTarget" class="messageTarget__pre messageTarget__pre--narrow messageTarget__pre--off"></pre>
+        </div>
 
-<table id="tableTop">
-    <tr>
-        <td id="td0">
-            <div id="col1a" class="column">
+        <div id="floor" class="floor">
+            <button class="floor__broom"><span>🧹</span></button>
+        </div>
+        <div id="gallery" class="gallery"></div>
+        <div id="targetWrapper" class="target">
+            <div class="targetWrapper__emoji">
+                <span id="emoji" class="target__aniLetter target__aniLetter--emoji">✌🏻</span>
+                <span id="pin" class="target__aniLetter target__aniLetter--pin">📌</span>
             </div>
-        </td>
-        <td>
-
-        </td>
-        <td>
-            <div id="col0">
-            </div>
-        </td>
-    </tr>
-</table>
-<div id="picker">
-
-</div>
-<table id="buttons">
-    <!-- <tr>
-         <td colspan="2">
-             <div id="col1b">
-
-             </div>
-         </td>
-     </tr> -->
-    <tr>
-        <td class="together__col1">
-            <div class="together">
-                <button class="draw big" title="Toggle Drawing Pad">✍🏻</button>
-                <button class="AFK big" title="Toggle Away From Keyboard">💤</button>
-                <button class="trigger big" title="Pick an Emoji!">🔎</button>
-                <button id="stickybutton" class="stopFade big pressed" title="Toggle the pin">📌</button>
-                <button id="hideEmoji" class="hideEmoji big" title="Toggle Hiding the Emoji">⛔</button>
-                <button id="moveHistory" class="big" title="Toggle Location of History">📜</button>
-                <button id="scrollUp" class="big up" title="Scroll <- Through Recents">◀️</button>
-                <button id="scrollDown" class="big down" title="Scroll -> Through Recents">▶️</button>
-                <button id="trashEmoji" class="big trash" title="Trash Active Emoji">🗑️</button>
-            </div>
-            <div id="MessageSource" class="messageSource">
-                <form>
-                    <button type="reset" class="big messageSource__reset" title="Reset On-Screen Message">🧽</button>
-                    <textarea id="Message" rows="4" cols="45" placeholder="  Type an on-screen message here"></textarea>
-                    <button title="change width: output" class="messageSource__changeW big">⏏️</button>
-                </form>
+        </div>
+        <div id="fakeMouse" class="fakeMouse">
+            <button class="fakeMouse__button"><span class="fakeMouse__span">🚀</span></button>
+        </div>
+        <div id="chromaKey">
+            <div class="motion-path">
+                <div id="idleAnimation" class="idleAnimation">
+                    <button class="idleAnimation__button"><span class="idleAnimation__span">🚀</span></button>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" version="1.1"
+                     xmlns:xlink="http://www.w3.org/1999/xlink">
+                    <path id="mousePath"
+                          d="M 9 299 C 9 138.2 81.6 8 171.3 8 C 261 8 333.7 138.2 333.7 299 C 333.7 459.8 406.3 560.9 496 560.9 C 585.7 560.9 746 513 763 290 C 752 103 650 9 493 6 C 326 9 185 124 209 291 C 196 484 406.3 560.9 496 560.9 C 601.5 568.2 658.3 459 658.3 299 C 658.3 138.2 731 8 820.7 8 C 910.4 8 983 138.2 983 299 C 983 459.8 910.4 590 820.7 590 L 171.3 590 C 81.6 590 9 459.8 9 299 Z"/>
+                </svg>
 
             </div>
-        </td>
-        <td class="together__col2">
-            <div id="emojipreview" class="together">
-                <button class="emoji_preview__emoji big" title="Preview of on-deck emoji">😎</button>
-                <button class="sticky big emojipreview__pin" title="Activate on-deck with a pin">📌*</button>
+        </div>
+        <div id="afkImages">
+            <div id="afk1" class="afkImages afkImages--hide">
+                <img width="100%" src="assets/img/afk.gif">
+            </div>
+            <div id="afk2" class="afkImages afkImages--hide">
+                <img width="100%" src="assets/img/afk2.gif">
+            </div>
+            <div id="afk3" class="afkImages afkImages--hide">
+                <img width="100%" src="assets/img/afk3.gif">
+            </div>
+        </div>
+        <div id="flexClock" class="flexClock">
+
+            <div class="flexClock__progress flexClock__progress--drain"></div>
+            <div class="flexClock__progress flexClock__progress--fill"></div>
+            <div class="flexClock__steps">
+                <div class="flexClock__sub flexClock__sub--A"></div>
+            </div>
+            <div class="flexClock__slider">
+                <button class="big flexClock__slider__button">
+                    <span>🦥</span>
+                </button>
+            </div>
+        </div>
+        <div id="drawing">
+            <!-- instantiated by code -->
+        </div>
+    </section>
+    <section id="controls" class="everything__controls controls">
+
+        <div id="drawingButtons" class="controls__drawing controls--btnrow">
+            <div id="PageHelp" class="pageHelp">
+                <button class="pageHelp__button controls__button big" title="Help">❔</button>
+            </div>
+            <button class="emoji_preview-name" title="Preview emoji's name">…</button>
+        </div>
+        <!--   -->
+        <div id="picker">
+        </div>
+
+        <div class="controls__primary controls--row">
+            <div class="together controls__left controls--col">
+                <div class="controls__basic controls--btnrow">
+                    <button class="controls__btn__draw controls__button big" title="Toggle Drawing Pad">✍🏻</button>
+                    <button class="controls__btn__AFK  controls__button big" title="Toggle Away From Keyboard">💤
+                    </button>
+                    <button class="trigger  controls__button big" title="Pick an Emoji!">🔎</button>
+                    <button id="stickybutton" class="stopFade controls__button big pressed" title="Toggle the pin">📌
+                    </button>
+                    <button id="hideEmoji" class="hideEmoji big controls__button" title="Toggle Hiding the Emoji">⛔
+                    </button>
+                    <button id="moveHistory" class="big controls__button" title="Toggle Location of History">📜</button>
+                    <button id="scrollUp" class="big up controls__button" title="Scroll <- Through Recents">◀️</button>
+                    <button id="scrollDown" class="big down controls__button" title="Scroll -> Through Recents">▶️
+                    </button>
+                    <button id="trashEmoji" class="big trash controls__button" title="Trash Active Emoji">🗑️</button>
+                    <button  class="big controls__button controls__spiderAnimations web__trigger" title="SpiderWeb">🕸️</button>
+                </div>
+                <div id="MessageSource" class="messageSource controls__message controls--btnrow">
+                    <form>
+                        <button type="reset" class="big controls__button messageSource__reset"
+                                title="Reset On-Screen Message">
+                            🧽
+                        </button>
+                        <textarea id="Message" rows="3" cols="45"
+                                  placeholder="  Type an on-screen message here"></textarea>
+                        <button title="change width: output" class="messageSource__changeW controls__button big">⏏️
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div id="emojipreview" class="together controls--btnrow controls__right controls__preview">
+                <button class="emoji_preview__emoji controls__button big" title="Preview of on-deck emoji">😎</button>
+                <button class="sticky big emojipreview__pin controls__button" title="Activate on-deck with a pin">📌*
+                </button>
                 <br/>
-                <button class="sticky big emojipreview__follow pressed" title="Use as mouse follower">🐁</button>
-                <button class="big emojipreview__clock">⏳</button>
-                <input placeholder="XXYYh" class="emojipreview__clocknum" type="text" size="5" />
+                <button class="sticky big emojipreview__follow pressed controls__button" title="Use as mouse follower">
+                    🐁
+                </button>
+                <button class="big emojipreview__clock controls__button">⏳</button>
+                <input placeholder="XXYYh" class="emojipreview__clocknum" type="text" size="5"/>
                 <br/>
             </div>
+        </div>
 
-
-        </td>
-    </tr><tr><td colspan="2">
-
-
-</td></tr>
-</table>
-<div id="drawing">
-    <div id="drawingPane"></div>
-<div class="drawing">
-    <button class="reset big drawing" title="Wipe drawing">🧽</button>
-    <button class="stop big drawing" title="Close Drawing Panel">🛑</button>
-    <button class="nogrid big drawing" title="Close Drawing grid">📉</button>
-    <button class="redDraw pens big drawing" title="Red Pen">🟥</button>
-    <button class="blueDraw pens big drawing" title="Blue Pen">🟦</button>
-    <button class="orangeDraw pens big pressed drawing" title="Orange Pen">🟧</button>
-    <button class="greenDraw pens big drawing" title="Green Pen">🟩</button>
-    <button class="purpleDraw pens big drawing" title="Purple Pen">🟪</button>
-    <div id="PageHelp" class="pageHelp">
-        <button class="pageHelp__button big" title="Help">❔</button>
-    </div>
-
-    <button class="emoji_preview-name" title="Preview emoji's name">…</button>
-</div>
-</div>
-<div id="MessageWrapper" class="messageTarget">
-    <pre id="MessageTarget" class="messageTarget__pre messageTarget__pre--narrow"></pre>
-</div>
-<div id="Grid">
-    <div class="grid">
-        <div class="cell"></div>
-        <div class="cell"></div>
-        <div class="cell"></div>
-        <div class="cell"></div>
-        <div class="cell"></div>
-        <div class="cell"></div>
-        <div class="cell"></div>
-        <div class="cell"></div>
-        <div class="cell"></div>
-    </div>
-</div>
-<div id="history">
-     <h1 class="ml1">
+    </section>
+    <section class="everything__history">
+        <div id="history">
+            <h1 class="ml1">
     <span class="text-wrapper">
     <span class="line line1"></span>
     <span id="letters" class="letters"></span>
     <span class="line line2"></span>
   </span>
-                </h1>
-</div>
+            </h1>
+        </div>
+
+    </section>
+</section>
 
 <p>&nbsp;</p>
 <p>&nbsp;</p>

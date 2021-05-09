@@ -1,0 +1,180 @@
+
+.trashCan__dragWrap{
+    position : absolute;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    opacity : 1;
+    border : 2px dashed white; /* debugging */
+}
+
+.trashCan {
+    position: absolute;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    top: 452px;
+    left: 35px;
+    width: 88px;
+    height: 88px;
+    opacity: .7;
+    z-index: 19999;
+    transform-origin: center;;
+}
+
+.trashCan__sleeve {
+    position : absolute;
+    width: 10px;
+    opacity: 0;
+    margin-left : -50px;
+    background-color: rgba(0,0,255,.9);
+    transform-origin: 0 0;
+}
+
+.trashCan__emoji {
+    font-size: 4em;
+    position: absolute;
+    bottom: 0;
+    opacity : .8;
+}
+
+.trashCan__hand {
+    font-size: 4em;
+    margin-left : -50px;
+    position:absolute;
+    /* transform-origin: 0 0; */
+    bottom: 0;
+}
+.trashCan__bottom{
+    display: flex;
+    justify-content: center;
+    position : absolute;
+    font-size : 1.5em;
+    opacity : .6;
+    color: white;
+}
+
+.trashCan__bottom > * {
+    position:absolute;
+}
+
+.trashCan__clickFace{
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    position : absolute;
+    font-size : 1.5em;
+    opacity : 1;
+}
+
+
+.trashCan__ball2 {
+    /* transform-origin: 0 0; */
+    position: absolute;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+   /* margin-left: 45px;
+    margin-bottom: 15px;
+    transform: rotate(50deg); */
+    transform: rotate(50deg);
+    opacity: 1;
+}
+
+.trashCan__ball2 > * {
+      font-size: 1em !important;
+}
+
+.trashCan__ball2--hide {
+    /* transform-origin: 0 0; */
+    display: none;
+}
+
+.trashCan__ball {
+    position: absolute;
+    display: flex;
+    margin: auto;
+    z-index: 20000;
+    opacity : .8;
+    /* these needs to be  unset for flex */
+   /* top: 0;   /*/
+  /*  left: 0; */
+    transform-origin: center;
+    justify-content: center;
+    align-items: center;
+    border : 0 !important;
+}
+
+.trashCan__ball__wrapper {
+    position: absolute;
+    z-index: 20000;
+    /* top: 0;
+    left: 0; */
+    transform-origin: center;
+
+}
+
+.trashCan__ballMask{
+    position: absolute;
+    z-index:20001;
+    opacity : 0;
+    font-size : 20px;
+    transform-origin: center;
+}
+
+
+.floor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 540px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.floor__trash{
+    position:absolute;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    transform : rotateX(70deg); /*flat-ish*/
+    border : 0 !important;
+    color : white;
+    font-size : 2em !important;
+    opacity : 1 !important;
+   /* width : 80px !important;
+    height : 80px !important;*/
+}
+
+.floor__trash > * {
+    border : 0 !important;
+    color : white;
+    font-size : 1em;
+}
+
+.floor__broom{
+    position:absolute;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    transform : rotateZ(-45deg);
+    background-color: rgba(0,0,0,0);
+    font-size : 4em;
+    border : 0;
+    left : 0;
+    padding:0;
+   /* get the height based upon position of the letters to clean up*/
+}
+.floor__broom--click {
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .1);
+}
+
+.floor__broom span {
+    position:relative;
+    left : 0;
+    top : 0;
+}

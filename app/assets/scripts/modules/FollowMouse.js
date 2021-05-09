@@ -1,14 +1,15 @@
 import Log from './Log.js';
 import anime from "animejs";
-
+//anime.suspendWhenDocumentHidden = false; // default true
 const log = new Log(('disabled' == 'on'));
 //const log = new Log(('enabled' === 'enabled'));
-var $;
 var FM;
 const m = {
   createContainer: function (id) {
     let el = document.createElement('div');
     el.id = id || 'container' + Math.floor(Math.random() * 10000);
+    let subEl = document.createElement('span');
+    el.append(subEl);
     return el;
   },
   makeFollow() {
@@ -37,9 +38,7 @@ const _ = {
     activeClass : 'followMouse--active',
     neutralClass: 'followMouse',
     startIdle   : false,
-    idleTodo    : function () {
-      return;
-    }
+    idleTodo    : function () {}
   },
   container     : m.createContainer(),
   mousemoveCB: function (ev) {
@@ -130,16 +129,17 @@ class MouseActions {
   }
 
   setContent(node) {
+
     if (node instanceof HTMLElement) {
       _.node = node;
-      _.container.textContent = _.node.textContent;
     } else if (typeof node === 'string') {
       _.node = {
         textContent: node,
         type       : 'unknown'
       };
-      _.container.textContent = node;
     }
+    let c = _.container.firstElementChild || _.container;
+    c.textContent = _.node.textContent;
     return true;
   }
 
@@ -150,7 +150,7 @@ class MouseActions {
     _.container.classList.remove(_.options.activeClass);
     _.container.classList.remove(_.options.idleClass);
     //empty the container
-    _.container.textContent = '';
+    _.container.firstElementChild.textContent = '';
   }
 
   follower() {
@@ -390,7 +390,6 @@ class FollowMouse {
     this.$el = this.$(selector);
     this.timeout;
     this.impatientMax = 10000; //5 minutes
-    this.impatientCtDown = 5000;
     this.impatientAnimation;
     this.config = {};
     this.anime;
@@ -399,7 +398,6 @@ class FollowMouse {
 
   startTracking() {
     let $el = this.$el;
-    let iA = this.impatientAnimation;
     let _this = this;
     let $div = $el.closest('div');
 
@@ -513,99 +511,6 @@ class FollowMouse {
     return this.impatientAnimation;
   };
 
-  initImpatientAction(anime, svgPathSelector, animateSelector) {
-    this.anime = anime;
-    let _this = this;
-    let $el = this.$el;
-    let $div = this.$(animateSelector);
-    _this.genImpatientAnimation('restart',svgPathSelector, animateSelector);
-
-    /*
-    * begin a clock...
-    * update the countdown with the clock
-    *
-    * if the countdown expires then the mouse animation is launched
-     */
-    setInterval(function () {
-        log.browser('ctdown', _this.impatientCtDown);
-
-        //if the countdown expires AND ONLY If it has just expired
-        if (_this.impatientCtDown <= 0 && _this.impatientCtDown > -5000) {
-          //setting this to -10000 will make sure it fires once per idle
-          _this.impatientCtDown = -10000;
-
-          //remove the css offsets from the mouse
-          $el.css({
-            left: 0,
-            top : 0
-          });
-
-          //resume idle animation
-          if (!$el.hasClass('fakeMouse__button--flight')) {
-            //     $div.attr('style', _this.config.impatientAnimation.style);
-            $el.addClass('fakeMouse__button--flight');
-            _this.genImpatientAnimation('restart');
-          }
-        } else if (_this.impatientCtDown > 0) {
-          _this.impatientCtDown -= 100;
-        }
-      }, //tick the clock
-      100
-    );
-  }//initImpatientAction
-
-  makeDraggableOLD(adjustments = {
-    left: 0,
-    top : 0
-  }) {
-    let $el = this.$el;
-    Object.assign({
-      left: 0,
-      top : 0
-    }, adjustments);
-    let isDragging = false;
-    let $that = this.$(this.outerSelector);
-
-    this.$(this.outerSelector).on('mousedown', function (ev) {
-      if (ev.detail === 2) {
-        $that.trigger('dblclick');
-        return false;
-      }
-      log.browser('begin drag', ev)
-      isDragging = true;
-
-
-      if (adjustments.mousedown) {
-        adjustments.mousedown()
-      }
-      // return false;
-    });
-
-    this.$(this.outerSelector).on('mousemove', function (ev) {
-      if (isDragging) {
-        log.browser(' draggin!');
-
-        $el.css({
-          transform: oldTransform.replaceAll(/(translate[XY][(][^()]*[)][ ]?)/g, ''),
-          left     : ev.pageX - adjustments.left,// -($el.width()/2) - adjustments.left,
-          top      : ev.pageY - adjustments.top // - ($el.height()/2) - adjustments.top
-        });
-      }
-    });
-
-    this.$(this.outerSelector).on('mouseup', function (ev) {
-      log.browser('stop drag')
-      isDragging = false;
-      //return false;
-    });
-
-    this.$(this.outerSelector).on('mouseout', function (ev) {
-      isDragging = false;
-      return false;
-    });
-    log.browser('draggable now!')
-    // return this;
-  }
 
 }
 

@@ -1,4 +1,5 @@
 import anime from 'animejs';
+//anime.suspendWhenDocumentHidden = false; // default true
 import Log from './Log.js';
 const log = new Log(false);
 
@@ -21,7 +22,7 @@ class Animation {
     //el must be jQuery object
   }
 
-  removeAnimation(sticky) {
+  removeAnimation() {
     this.pin.show();
     this.$el.stop().fadeIn(100)
       .show();
@@ -77,7 +78,7 @@ class Animation {
     } else
       //new or updated timeline
     if (typeof opts === 'object') {
-      let c = this.animationCache;
+      // let c = this.animationCache;
       if (!!addDestroy) {
         let d = this.destroyTimeline.bind(this);
         let cb = opts.complete;
@@ -100,7 +101,6 @@ class Animation {
       this.animationCache[name].remove();
        delete this.animationCache[name];
     }catch(e){}
-    return
   }
 
   addToTimeline(name, opts, addDestroy = false) {
@@ -120,7 +120,6 @@ class Animation {
       tl.animationCache[name].add(opts);
       return this;
     }
-    return;
   }
 
   doTimeline(name, event) {
@@ -158,8 +157,11 @@ class Animation {
 const _TimerCountDown = {
   sliderNode: {},
   clock     : {},
-  finale    : null
+  finale    : null,
+  container : null,
+  xy        : {}
 }
+
 class TimerCountDown {
   #onCB;
   #offCB;
@@ -170,7 +172,8 @@ class TimerCountDown {
   #scaleAnimation = [];
   #callbacks = []; //timebased callbacks that fire on times
 
-  constructor(triggerNode, valueNode, targetNode, opts, onCB, offCB) {
+  constructor(containerNode, triggerNode, valueNode, targetNode, opts, onCB, offCB) {
+    _TimerCountDown.container = containerNode;  // typically document.body
     this.triggerNode = triggerNode;
     this.targetNode = targetNode;
     _TimerCountDown.clock = this.targetNode;
@@ -210,7 +213,7 @@ class TimerCountDown {
     warning.textContent = text;
     warningWrap.append(warning);
     node && warning.append(node);
-    document.body.append(warningWrap);
+    _TimerCountDown.append(warningWrap);
     return warningWrap;
   }
 
@@ -222,8 +225,8 @@ class TimerCountDown {
     return _TimerCountDown.clock;
   }
 
-  #getStep(height, txt) {
-    let borderFudge = 2; //TODO:
+  static #getStep(height, txt) {
+    let borderFudge = 0; //TODO:
     let el = document.createElement('div');
     //add class
     el.classList.add('flexClock__step');
@@ -284,8 +287,6 @@ class TimerCountDown {
    */
 
   refresh() {
-    let steps = [];
-    let step;
     let stepsNeeded;
     let stepHeight;
     let stepText = '';
@@ -346,10 +347,11 @@ class TimerCountDown {
     for (let i = 0; i < stepsNeeded; i++) {
       //first step height is different
       if (i === 0 && this.#_.delayFudge > 0) {
-        stepsA = [this.#getStep(firstStepH, '~' + Math.round(dur))]
+        stepsA = [TimerCountDown.#getStep(firstStepH, '~' + Math.round(dur))]
       } else {
         stepText = adjustedDuration - (i * this.#_.stepSize); //
-        stepsA = [this.#getStep(stepHeight, stepText)];
+        //  stepText = remainingDuration  - (i * this.#_.stepSize);
+        stepsA = [TimerCountDown.#getStep(stepHeight, stepText)];
       }
       // 0 = B, 1=A
       document.getElementsByClassName(this.#_.subClass)[0]
@@ -374,7 +376,7 @@ class TimerCountDown {
 
   translateInput(timeRequest) {
     /*parse text input such as 1430h into a time */
-    let t, h, m, s, duration, future;
+    let h, m, s, duration, future;
     const now = new Date();
     if (timeRequest instanceof Date) {
       future = timeRequest;
@@ -454,20 +456,23 @@ class TimerCountDown {
         a.remove(this.sliderNode);
       }
     });
+    if(this.sliderNode)
+      this.sliderNode.firstElementChild.textContent = '🦥';
+  //  this.sliderNode.firstElementChild.textContent = '️⏳';
   }
 
   #registerCallbacks(cbs) {
     const _cbs = [];
-    cbs.forEach((cbo, i) => {
+    cbs.forEach((cbo) => {
       if (!Array.isArray(cbo.times)) {
         cbo.times = [cbo.times]
       }
       cbo.times.forEach(t => {
         //index this callback for each time
         _cbs[t] = {
-          cb : cbo.cb,
+          cb      : cbo.cb,
           //minute it will fire
-          times : t,
+          times   : t,
           //flag to track its use
           isDone : false,
           firedOn : null,
@@ -528,6 +533,8 @@ class TimerCountDown {
   }
 
   init() {
+    _TimerCountDown.xy = Trash.getXY(_TimerCountDown.container);
+
     this.#setSliderNode(document.querySelector('.' + this.#_.sliderClass));
 
     //add click handler to the triggerNode that will initiate
@@ -589,27 +596,22 @@ class TimerCountDown {
   }
 
 //TODO: is this needed?
-  #timePassed() {
+  /*#timePassed() {
     let now = new Date()
     let dif = now - this.#timeStarted;
     return Math.abs(dif / 1000);
-  }
+  }*/
 
   #animateDrain() {
     let duration = this.durationJS();
     let delayFudge = this.durationJS(this.#_.delayFudge);
-    let secondsPast = 0;
-    let stagger = duration / (this.#_.steps * 6); //(this.#_.timeOnEach * .5)/6;
-    let stepsTime = 'steps(' + (this.#_.duration * .5) / 6 + ')';
+
     let sliderNode = this.sliderNode;
     let valueNode = this.valueNode;
     let zoomIn = this.#zoomIn.bind(this);
     let zoomInCt = duration <= 600000 ? 1 : 0;
     let updateTimeLeft = function (t) {
       this.#_.minutesRemaining = t;
-    }.bind(this);
-    let getMinsRemaining = function () {
-      return this.#_.minsRemaining;
     }.bind(this);
     const that = this;
     const cbs = this.#callbacks;
@@ -623,10 +625,10 @@ class TimerCountDown {
       //  scaleX : '*=1.5',
         translateY: (e, i) => {
           if (i === 0) {
-            h.push(+e.style.height.match(/[^p]*/)[0]) + 3;
-            return 3;
+            h.push(+e.style.height.match(/[^p]*/)[0]);// + 3;
+            return 0;
           } else {
-            return (i - 1) * (+e.style.height.match(/[^p]*/)[0] + 1) + (h[0]) + 2;
+            return (i - 1) * (+e.style.height.match(/[^p]*/)[0]) + (h[0]);// + 2;
           }
         },
         duration  : anime.stagger(100)
@@ -656,7 +658,6 @@ class TimerCountDown {
     );
 
     const _interval = setTimeout(() => {
-      const sliderBtn = document.querySelector('.flexClock__slider__button');
       const N = [...document.querySelectorAll('.flexClock__sub--A .flexClock__step .flexClock__span--super')];
       if (!N.length) {
         return;
@@ -664,15 +665,15 @@ class TimerCountDown {
       clearInterval(_interval);
 
       let T = 0;
-      let H = 525;
-      const pxTotal = 525;
-      N.forEach((n, i) => {
+      let H = _TimerCountDown.xy.height; //540
+      const pxTotal = H; // 525;
+      N.forEach(n => {
         let h = +n.parentElement.style.height.replace('px', '');
         n.data = {
           h: h,
           t: (h / pxTotal * duration)
         }
-      });
+      })
       let hMult = -1;
       T = N[0].data.t;
       //anime as a time controller
@@ -685,8 +686,6 @@ class TimerCountDown {
           //        delay   : anime.stagger(T1, {start: T0}),
           if (a.currentTime > T) {
             hMult=-1
-            if(sliderNode.firstChild.classList.contains('flexClock__slider__button--left'))
-              hMult = 1;
 
             if (!N.length) {
               return;
@@ -701,13 +700,16 @@ class TimerCountDown {
             if (N[0])
               T += N[0].data.t;
             //if the can is near on the X-axis then drop it in the can
-            putInCan = Trash.isAwithinB(n ,Trash.getCanNode(), {
-               //adjust for falling X trajectory which, here, affects left and right co-ordinates
+            putInCan = Trash.isAwithinB(n, Trash.getCanNode(), {
+              //adjust for falling X trajectory which, here, affects left and right co-ordinates
               left : (hMult * 50),
-              right : (hMult * 50)
-            },true, ['centerX']);
-            if( putInCan )
-              distance = Trash.calcDiffXY(n,Trash.getCanNode()).diff.centerY;
+              right: (hMult * 50)
+            }, true, ['centerX']);
+            if (putInCan)
+              distance = Trash.calcDiffXY(n, Trash.getCanNode()).diff.centerY;
+            if (sliderNode.firstChild.classList &&
+              sliderNode.firstChild.classList.contains('flexClock__slider__button--left'))
+              hMult = 1;
 
             anime.timeline({
               targets: n
@@ -830,20 +832,19 @@ class TimerCountDown {
       ** compared against the real-seconds left
        */
       let milliDelay = 0; //(50 / 568 * duration);
-      let secsDuration = duration / 1000;
-      let pxDistance = 525;
+      let pxDistance = _TimerCountDown.xy.height; //525;
       let keepGoing = true;
-      let translateY = pxDistance / secsDuration;
+//      let translateY = pxDistance / secsDuration;
       let ratioTimePassed = milliPassed / duration;
       let curY = 0;
       that.#_.timeLeft = (duration - milliPassed);
       let minsLeft = that.#_.timeLeft / 60000;
       updateTimeLeft(minsLeft);
-      let overRun = 5000;
+      let overRun = 600000; //10minutes
 
       try {
         let h = that.#endTime.getHours();
-        let m = that.#endTime.getMinutes() +1;
+        let m = that.#endTime.getMinutes();// +1;
         [h, m] = m === 60 ? [h + 1, 0] : [h, m];
 
         m = m < 10 ? '0' + m : m;
@@ -854,14 +855,19 @@ class TimerCountDown {
       }
 
       //user's time-based callbacks
-      let cbOpts = cbs[Math.abs(Math.ceil(minsLeft))];
+      let idx = Math.ceil(minsLeft);
+      if (idx === 0) {
+        idx = 0;
+      }
+      let cbOpts = cbs[idx];
       if (cbOpts && !cbOpts.isDone && !cbOpts.firedOn) {
         //cb.firedOn !== Math.ceil(minsLeft) ) {
         try {
           //pass in TimerCountDown instance
           let cb = cbOpts.cb.bind(that);
-          cbOpts.isDone || cb(Math.abs(Math.ceil(minsLeft)),cbOpts);
+          cbOpts.isDone || cb(idx, cbOpts);
           cbOpts.firedOn = cbOpts.firedOn || milliPassed;
+          cbOpts.isDone = true;
         } catch (e) {
           console.log('callback failed', e);
         }
@@ -874,7 +880,7 @@ class TimerCountDown {
         keepGoing = true;
       } else {
         curY = pxDistance
-        //allow overrun
+        //allow overrun becuase there are post-timer flows
         let now = new Date();
         if ((now - that.#endTime) > overRun) {
           keepGoing = false;
@@ -902,11 +908,13 @@ class TimerCountDown {
         && that.#_.zoomOn) {
         //ZOOM in the animation;
         that.#isRunning = false;
+        sliderNode.firstElementChild.classList.add('flexClock__slider__button--red')
+        sliderNode.firstElementChild.textContent('️⏳');
         return zoomIn;
       }
 
       //slide the guide down via transform
-      sliderNode.style.transform = `translateY(${curY}px)`;
+      sliderNode.style.transform = `translateY(${curY}px) rotateZ(-45deg)`;
       return keepGoing;
     });
 
@@ -953,7 +961,7 @@ class TimerCountDown {
     meetingOver.id = 'meetingOver'
     meetingOver.classList.add('goodBye');
     meetingOver.innerHTML = TimerCountDown.#getFinaleHTML();
-    document.body.prepend(meetingOver);
+    _TimerCountDown.container.prepend(meetingOver);
     _TimerCountDown.finale = meetingOver;
   }
 
@@ -1028,9 +1036,9 @@ class TimerCountDown {
           offset  : '-=700'
         })
         .add({
-          opacity           : '#meetingOver',
+          targets           : '#meetingOver',
           'background-color': 'rgba(0,0,0,.2)',
-          duration          : 600000,
+          duration          : 600000, //10 minutes
           complete          : a => {
             a.remove('*');
           }
@@ -1062,14 +1070,14 @@ const _Broom = {
   node      : null,
   interval  : null,
   doExamine : false,
-  animationP: Promise.resolve(true)
+  animationP: Promise.resolve(true),
+  xy        : null
 }
 
 class Trash {
   // #trashBall;
   #type;
   #_ = {};
-  #canEmoji;
   #trashOffCB;
   #cl = {
     trashable: 'history--draggable2'
@@ -1083,19 +1091,25 @@ class Trash {
   You choose what to throw into it
   When it's discarded the callback will be called
    */
-  constructor(emoji, trashCB) {
+  constructor(container, emoji, trashCB) {
     this.#emoji = emoji
     this.#trashOffCB = trashCB;
-    _Broom.node = document.querySelector('.floor__broom');
+    _Broom.node = _Broom.node || document.querySelector('.floor__broom');
+    if (!_Broom.xy) {
+      let h = Trash.getXY(container).height - Trash.getXY(_Broom.node).height - 40;
+      _Broom.node.style.top = h + 'px'
+    }
+
   }
 
-  #setType() {
-    if (this.#type === 'trash') {
-      this.#_.canSpan = '🗑️'
-    } else {
-      this.#_.canSpan = '♻️'
-    }
-  }
+  /*
+    #setType() {
+      if (this.#type === 'trash') {
+        this.#_.canSpan = '🗑️'
+      } else {
+        this.#_.canSpan = '♻️'
+      }
+    }*/
 
   static getBroom() {
     return _Broom.node;
@@ -1119,14 +1133,19 @@ class Trash {
     broom = _Broom.node || document.querySelector('.floor__broom');
     //inherit XY properties from first dust bunny
     const dustXY = {};
-    if (dustBunnies.length){
+    let newY;
+
+    if (dustBunnies.length) {
       _Broom.nextDust = dustBunnies.shift();
-      Object.assign(dustXY, Trash.getXY(_Broom.nextDust));
+      //   Object.assign(dustXY, Trash.getXY(_Broom.nextDust));
+      Object.assign(dustXY, Trash.calcDiffXY(broom, _Broom.nextDust,).diff);
     }
 
     //make the broom target the dust bunny
-    const broomXY = Trash.getXY(broom);
-    const newY = dustXY.top - broomXY.height;
+    //const broomXY = Trash.getXY(broom);
+
+
+    //  dustXY.bottom - (broomXY.height ** 2 + broomXY.width **2 ) ** .5;
     // XY.left = XY.left;
 
     let animation;
@@ -1137,7 +1156,7 @@ class Trash {
         direction: 'alternate',
         loop     : 2
       }).add({
-        top       : newY,
+        translateY: dustXY.bottom,
         translateX: 0,
         zIndex    : 24000
       }).add({
@@ -1171,7 +1190,7 @@ class Trash {
 
   static
   #getDustBunnies(nodes) {
-    let _nodes = [];
+    let _nodes;
     if (!Array.isArray(nodes) && typeof nodes === 'string') {
       // is a selector
       _nodes = [...document.querySelectorAll(nodes)];
@@ -1206,14 +1225,13 @@ class Trash {
       _Broom.interval = setTimeout(function () {
         //timeout will automatically expire if not recreated YAY!
         const dustBunnies = Trash.#getDustBunnies(nodesToClean);
-        const animationQ = [];
         if (!dustBunnies.length) {
           //flip
           _Broom.animationP.then(() => {
             const animation = anime.timeline({
               targets  : _Broom.node,
               direction: 'alternate',
-              loop     : 2
+              loop: 1
             }).add({
               rotateY : 180,
               duration: 500
@@ -1362,7 +1380,6 @@ class Trash {
     translateX = _Can.pushTranslateX,
     duration = _Can.pushDuration
   ) {
-    let canPromise;
     //can itself is a singleton;
     //if multiple items are tossIt they are queued up
     if (_Can.node === null) {
@@ -1399,34 +1416,6 @@ class Trash {
     }
   } //initCan
 
-  /*
-  * TODO... as soon as pulling the can back we need to take back the promise on the
-  * "pushed" can.
-   */
-  #pullCan2() {
-    console.log('pullCan.  is it in use?', _Can.inUse);
-
-    //make sure is ready for pulled direction
-    if (_Can.animateCan.direction !== 'reverse') {
-      _Can.animateCan.reverse();
-    }
-
-    _Can.pullCan = new Promise((resolve, reject) => {
-      _Can.animateCan.finished.then(x => {
-        //normalize for the next animation
-        _Can.animateCan.reverse();
-
-        //set as available
-        _Can.inUse = false;
-
-        resolve(_Can.animateCan);
-      });
-
-      //pull the can out
-      _Can.animateCan.play();
-    });
-  } //pullCan2
-
 
   //pull = reverse;  push =normal
   #pullCan() {
@@ -1438,7 +1427,7 @@ class Trash {
 
     _Can.pullCan = new Promise((resolve, reject) => {
       let P = function (a) {
-        a.finished.then(x => {
+        a.finished.then(() => {
           /* as soon as we enter this. _Can.animateCan has a new promise
           so if we don't like this promise we can start over with a new one
           */
@@ -1489,7 +1478,7 @@ class Trash {
       _Can.pushCan = new Promise((resolve, reject) => {
         // Promise.all([_Can.pullCan, _Can.animateCan.finished]).then(x => {
         let P = function (a) {
-          a.finished.then(x => {
+          a.finished.then(() => {
             if (!a.reversed) {
               _Can.inUse = true
               // animation finished => resolve
@@ -1530,7 +1519,7 @@ class Trash {
       _Can.inUse = true;
 
       //do next
-      Promise.all([_Can.pushCan, next]).then(values => {
+      Promise.all([_Can.pushCan, next]).then(() => {
         //recursively check queue when this toss resolves and do the next toss
         this.#processQueue();
       });
@@ -1757,13 +1746,6 @@ class Trash {
     return trashBall;
   } //getBall
 
-  /*
-  * this ball is a co-hort to the emoji.
-  * it will copy its content. it already sits in the trash can
-   */
-  #revealBall2() {
-
-  }
 
   /*
   * App will call toss when it has something to throw out.
@@ -1890,7 +1872,7 @@ class Trash {
         anime.set(hiddenBall, {rotate: Math.random() * 90});
 
         //if ball is near the can then put it in the can. otherwise leave it on the ground for cleanup
-        let putInCan = false;
+        let putInCan;
 
         //if the can is in it's original spot then we're fine
         putInCan = Trash.isAwithinB(_Can.xy, Trash.getXY(Trash.getCanNode()), {
