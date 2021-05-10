@@ -380,8 +380,12 @@ class TimerCountDown {
     this.#_.delayFudge = (dur % this.#_.stepSize);
     let firstStepH = pixelsPerMin * this.#_.delayFudge;
     //this.#_.duration = dur - this.#_.delayFudge;
-    let adjustedDuration = dur - this.#_.delayFudge
-      + this.#_.stepSize; //added a whole step
+    let adjustedDuration = dur;
+    if (this.#_.delayFudge > 0) {
+      //added a whole step
+      adjustedDuration = dur - this.#_.delayFudge + this.#_.stepSize;
+    }
+
     let remainingDuration = dur - this.#_.delayFudge
     let remainingPixels = pixels - firstStepH;
 
@@ -602,7 +606,7 @@ class TimerCountDown {
     _TimerCountDown.xy = Trash.getXY(_TimerCountDown.container);
 
     this.#setSliderNode(document.querySelector('.' + this.#_.sliderClass));
-    _TimerCountDown.sliderNode.firstElementChild.classList.add('flexClock__slider__button--green');
+
 
     //add click handler to the triggerNode that will initiate
     this.triggerNode.addEventListener('click', function () {
@@ -638,6 +642,7 @@ class TimerCountDown {
         TimerCountDown.prepFinale();
       } else //turn on
       {
+
         this.triggerNode.classList.add('pressed');
         document.querySelector('.' + this.#_.showClass)
           .classList.remove(this.#_.hideClass)
@@ -738,19 +743,37 @@ class TimerCountDown {
         let h = +(Trash.getSpecificXY(n.parentElement, 'height',).height);
         let h2 = +(Trash.getSpecificXY(n, 'height').height)
         N[i].data = {
-          h: h,
-          h2 : h2,
-          t: (h / pxTotal * duration)
+          h : h,
+          h2: h2,
+          t : (h / pxTotal * duration)
         }
       });
       let hMult = -1;
       T = N[0].data.t;
+      let durationMinus5 = duration - (10 * 60 * 1000);
+      let ratioTarget = (durationMinus5 / duration) * 100
+      let i = 0;
+      let newR;
+      let newG;
+      let doColorChange = false;
+
+      if (duration > 610000 ) {
+        doColorChange=true;
+      }
       //anime as a time controller
       anime({
         targets : {ct: 0},
         ct      : duration,
         duration: duration,
         update  : a => {
+          if (doColorChange) {
+            //all way  up red
+            newR = (a.progress *2 / ratioTarget) * 255;
+            //then down on yellow
+            newG = newR > 240 ? 510 - newR  : 255;
+            sliderNode.firstElementChild.style.backgroundColor = `rgba(${newR},${newG},0,.1)`;
+            sliderNode.firstElementChild.style.borderColor = `rgba(${newR},${newG},0,1)`;
+          }
           //console.log(O[0])
           //        delay   : anime.stagger(T1, {start: T0}),
           if (a.currentTime > T) {
@@ -913,6 +936,7 @@ class TimerCountDown {
       let keepGoing = true;
 //      let translateY = pxDistance / secsDuration;
       let ratioTimePassed = milliPassed / duration;
+      let ratioTimePassedFor5 = milliPassed / (duration - 5 * 60 * 1000);
       let curY = 0;
       that.#_.timeLeft = (duration - milliPassed);
       let minsLeft = that.#_.timeLeft / 60000;
@@ -986,7 +1010,7 @@ class TimerCountDown {
         //ZOOM in the animation;
         that.#isRunning = false;
         sliderNode.firstElementChild
-        && sliderNode.firstElementChild.classList.add('flexClock__slider__button--red')
+//        && sliderNode.firstElementChild.classList.add('flexClock__slider__button--red')
         && (sliderNode.firstElementChild.textContent = '️⏳')
         return zoomIn;
       }

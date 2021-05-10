@@ -11,7 +11,7 @@ const log = {}
 let cssConfig = {
     test : /[.]css$/i,
     use : [
-        //'style-loader',
+        'style-loader',
         'css-loader?url=false'
     ]
 }
@@ -77,7 +77,7 @@ let config = {
 }
 
  config.plugins.push(
-      new CleanWebpackPlugin(),
+      //new CleanWebpackPlugin(),
       new MiniCssExtractPlugin({
           filename     : 'styles.[chunkhash].css',
           chunkFilename: "[id].css"
@@ -150,28 +150,6 @@ if (currentTask == 'dev') {
             chunks: 'all'
         }
     }
-    config.plugins.push(
-      new CleanWebpackPlugin(),
-      new MiniCssExtractPlugin({
-          filename     : 'stylesX.[chunkhash].css',
-          chunkFilename: "[id].css"
-      }),
-      new RunAfterCompile()
-    );
-
-    config.module.rules.push({
-        test: /\.css$/i,
-        use : [
-            {
-                loader : MiniCssExtractPlugin.loader,
-                options: {
-                    publicPath: '../app/styles/'
-                }
-            }, {
-                loader: 'css-loader'
-            }
-        ]
-    });
 
     /* config.module = {
          rules : [ cssConfig ]

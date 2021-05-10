@@ -33,7 +33,9 @@ try {
     const Config = {};
     const App = {};
     App.Fn = {};
-    const Nodes = {};
+    const Nodes = {
+      spiderTrigger : document.querySelector('.web__trigger')
+    };
     try {
 
       Object.assign(Config, Init, (function (U) {
@@ -1088,7 +1090,13 @@ try {
       document.querySelector('.flexClock__steps'), //flexClock__steps
       {
         callbacks: [{
-          times: [-1, -2, -3, -4, -5, -6, -7, -8, -9, -10],
+          times: [-3],
+          cb: (minsLeft,opts)=>{
+            Nodes.spiderTrigger.click();
+          }
+        },
+          {
+          times: [-1, -2,  -4, -5, -6, -7, -8, -9, -10],
           cb   : (minsLeft, opts) => {
 
             let randomIdx = Math.floor(Math.random() * 4.99);
@@ -1102,8 +1110,9 @@ try {
               spam.dispatchEvent(ev2);
             }
           }
-        }, { /* spotlight & shadow */
-          times    : [1, 2, 3, 4, 5, 6, 7, 8, 9],
+        },
+          { /* spotlight & shadow */
+          times    : [1, 2, 3, 4, 5, 6, 7, 8, 9,20,30,40,50,60],
           completed: [],
           cb       : (minsLeft) => {
             const shadow = MeetingCountDown.makeWarning(' ', 'flexClock__shadow');
@@ -1176,7 +1185,7 @@ try {
             const spotlightToss = new TrashCan(Nodes.screenNode, spotlight);
 
             //resolve early
-            TrashCan.animateOnce(spotlightAnimation, spotlightAnimation, 2000)
+            TrashCan.animateOnce(spotlightAnimation, spotlightAnimation, 3000)
               .then(a => {
                   //spotlight is actually wrapped so we want it's first child
                   spotlightToss.tossIt(false, spotlight, spotlightAnimation).then(x => {
@@ -1184,7 +1193,7 @@ try {
                     //more visible in the trash
                     spotlight.style.overflow = 'visible';
                    // spotlight.remove();//dont remove it cuz we like seeing it in the trash
-                    spotlightAnimation.remove();
+                  //  spotlightAnimation.remove();
                   });
                 }
               );
@@ -1202,6 +1211,14 @@ try {
           {
             times: [0], //essentially on expiry
             cb   : function (/*minsLeft*/) {
+              let sliderBtn = MeetingCountDown.getSlider().firstElementChild;
+
+              if(sliderBtn) {
+                sliderBtn.style.borderColor = '';
+                sliderBtn.style.backgroundColor='';
+                sliderBtn.classList.remove('flexClock__slider__button--green', 'flexClock__slider__button--red');
+              }
+
               let triggerNode = this.triggerNode;
               MeetingCountDown.grandFinale();
               let oneClick = function (ev) {
@@ -1264,7 +1281,8 @@ try {
         //show
         const clock = document.getElementById('flexClock');
         clock.classList.remove('flexClock--hide');
-
+        const sliderBtn = MeetingCountDown.getSlider().firstElementChild;
+        sliderBtn && sliderBtn.classList.add('flexClock__slider__button--green');
         /* 1. create a body trigger to get mouse
         * 2. check on position of the clock v mouse
         * 3. determine if the mouse is over the clock
@@ -1704,7 +1722,7 @@ try {
     }
 
     //trigger spider stuff
-    document.querySelector('.web__trigger').addEventListener('click', function () {
+    Nodes.spiderTrigger.addEventListener('click', function () {
       const web = document.querySelector('.web__draggable');
 
       if (this.classList.contains('controls__button--pressed')) {

@@ -15,7 +15,6 @@
 }
 #emojipreview {
     font-size: 2em;
-
 }
 
 #picker {
@@ -29,9 +28,9 @@
 }
 
 .emoji-picker__plugin-container button {
-/*    color: var(--dark-text-color); */
-/*    background-color: var(--dark-background-color); */
+    color: var(--dark-text-color);
+    background-color: var(--dark-background-color);
 /* / rgba(0, 0, 0, 0); */
     border: 1px solid;
-/*    border-color: var(--dark-border-color); */
+    border-color: var(--dark-border-color);
 }

@@ -124,14 +124,13 @@
     padding:0 16px 16px 0;
 }
 .flexClock__slider__button--green {
-    background-color: rgba(0, 255, 0, .1) !important;
-    border-color: green !important;
+    background-color: rgba(0, 255, 0, .1);
+    border-color: green;
 }
 
 .flexClock__slider__button--red {
-    border-color: red !important;
-    background-color: rgba(255,0,0,.1) !important;
-
+    border-color: red;
+    background-color: rgba(255,0,0,.1);
 }
 
 
