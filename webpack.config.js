@@ -16,6 +16,8 @@ let cssConfig = {
     ]
 }
 
+
+
 class RunAfterCompile {
     apply(compiler) {
         compiler.hooks.done.tap('Copy images', function () {
@@ -39,7 +41,7 @@ let config = {
     plugins     : pages ,
     module      : {
         rules: [ //
-            cssConfig,
+           // cssConfig,
             {
                 test   : /\.(js)$/,
                 exclude: /node_modules/,
@@ -74,11 +76,38 @@ let config = {
     }
 }
 
+ config.plugins.push(
+      new CleanWebpackPlugin(),
+      new MiniCssExtractPlugin({
+          filename     : 'styles.[chunkhash].css',
+          chunkFilename: "[id].css"
+      }),
+      new RunAfterCompile()
+    );
+
+    config.module.rules.push({
+        test: /\.css$/i,
+        use : [
+            {
+                loader : MiniCssExtractPlugin.loader ,
+                options: {
+                    publicPath: '../app/styles/'
+                }
+            }, {
+                loader: 'css-loader'
+            }
+        ]
+    });
+
+
+
 if (currentTask == 'dev') {
     config.output = {
-        filename : 'bundled.[chunkhash].js',
+        filename : 'name.[chunkhash].js',
         path : path.resolve( __dirname, '/app' ) //multiplatform friendly
     };
+
+
     config.devServer = {
         before          : function (app, server) {
             server._watch('./app/**/*.html')
@@ -112,7 +141,7 @@ if (currentTask == 'dev') {
     }); */
     config.output = {
         filename     : '[name].[chunkhash].js',
-      //  chunkFilename: '[name].[chunkhash].js',
+        chunkFilename: '[name]Y.[chunkhash].js',
         path         : path.resolve(__dirname, 'docs') //multiplatform friendly
     };
     config.mode = 'production';

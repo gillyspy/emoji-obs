@@ -271,6 +271,10 @@ class MouseActions {
 
 } //class MouseActions
 
+MouseActions.isDraggable = function(node){
+  return node.classList.contains('isDraggable');
+}
+
 MouseActions.makeDraggable =
   function (node, opts = {}, useButton = true) {
     if(node.classList.contains('isDraggable')){
@@ -312,19 +316,6 @@ MouseActions.makeDraggable =
 
       isDragging = true;
 
-      //removeAny anime animations which might impact its position, especially transformations
-
-      //TODO: restore this? and fix the resulting Can's animation issue?
-      //anime.remove(target);
-
-      //remove any XY translations that might interfere
-      /*if (target.style.transform) {
-        let oldTransform = target.style.transform;
-        //positive lookahead https://regex101.com/r/6zRic1/1
-        target.style.transform = oldTransform.replace(/(?<=translate[XY][(])([^()])* /g, '0px');
-      }*/
-
-
       startXY.X = ev.pageX;
       startXY.Y = ev.pageY;
       startXY.tX = anime.get(target, 'left');
@@ -350,10 +341,6 @@ MouseActions.makeDraggable =
           startXY.Y = ev.pageY;
         }
 
-       /* anime.set(target, {
-          left: (startXY.tX + (ev.pageX - startXY.X)),
-          top:( startXY.tY + (ev.pageY - startXY.Y))
-        });*/
         target.style.left = (startXY.tX + (ev.pageX - startXY.X))+'px';
         target.style.top =( startXY.tY + (ev.pageY - startXY.Y))+'px';
         log.browser(target instanceof Element);
@@ -494,20 +481,7 @@ class FollowMouse {
         });
       this.impatientAnimation.play();
       this.config.impatientAnimation.running = true;
-      /*.add({
-          targets   : animateSelector,
-          translateX: path('x'),
-          translateY: path('y'),
-          scale     : [old.scale, 1],
-          rotate    : path('angle'),
-          //rotateX : 90,
-          easing    : 'linear',
-          opacity   : [old.opacity, 1],
-          duration  : (Math.random() * 20000 + 10000),
-          loop      : true
-        });*/
     }
-
     return this.impatientAnimation;
   };
 

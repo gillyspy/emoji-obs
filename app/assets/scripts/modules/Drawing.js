@@ -108,6 +108,20 @@ class Drawing {
   #location; /* node containing all */
   #grid;
   #pens;
+  #nodes = {};
+  #controls = {
+    nodes    : {
+      /* hide : Element */
+    },
+    callbacks: {
+      hide: ()=>{},
+      pen: ()=>{},
+      setup: ()=>{},
+      grid :  ()=>{},
+      wipe : ()=>{}
+      /* hide : ()=>{} */
+    }
+  };
 
   constructor(/* Element $drawingTarget[ */ canvasWrapper,
               /* Element */ buttonsWrapper,
@@ -137,7 +151,41 @@ class Drawing {
     if (this.#_.showControls) {
       this.showControls();
     }
+    this.#initFinish();
+    this.drawing = this;
   }
+
+  hide() {
+    return this.#toggleHide(null, true);
+  }
+
+  #toggleHide(ev,forceHide) {
+    let classes = this.#cl;
+    let cb = this.#controls.callbacks.hide;
+    let button = this.#controls.nodes.hide;
+    let easel = this.#getEasel();
+    if (easel.classList.contains(classes.easelOff) && !forceHide) {
+      //turn on
+      Drawing.#swapClass(easel, classes.easelOff, classes.easelOn);
+      Drawing.#swapClass(button, classes.hideOn, classes.hideOff);
+    } else {
+      //turn off
+      Drawing.#swapClass(easel, classes.easelOn, classes.easelOff);
+      Drawing.#swapClass(button, classes.hideOff, classes.hideOn);
+    }
+    cb();
+    return true;
+  } //toggle
+
+  #initFinish() {
+    Object.assign(this.#nodes , {
+      wrapper: this.#location,
+      buttons: this.#buttons,
+      trigger: this.#buttonTrigger
+    });
+
+    this.#_.setupCB.apply(this);
+  } //initFinish
 
   #getDrawingNode() {
     return this.#location;
@@ -300,8 +348,16 @@ class Drawing {
     }
   }//initCanvas
 
-  #viewDrawingProperties() {
-    const props = (({strokeColor, strokeWeight, width,height})=>({color :strokeColor, weight : strokeWeight, width, height}))(this.#drawing);
+  getProps() {
+    const props = (({strokeColor, strokeWeight, width, height},{nodes},n,{callbacks}) => ({
+      color : strokeColor,
+      weight: strokeWeight,
+      controls : nodes,
+      nodes : n,
+      callbacks,
+      width,
+      height
+    }))(this.#drawing, this.#controls, this.#nodes, this.#controls);
     let d = this.#easel;
     props.isVisible = !!d.getClientRects().length
 
@@ -341,6 +397,8 @@ class Drawing {
   #initColorTrigger(trigger, color) {
     const cl = this.#cl;
     const that = this;
+    this.#controls.callbacks.pen = this.#_.penCB.bind(that);  //TODO: move this to earlier init stage
+    const cb = this.#controls.callbacks.pen;
 
     if (trigger !== null) {
       //bind click
@@ -348,14 +406,15 @@ class Drawing {
         //remove the class that inidicates selection from all pens
         Drawing.#swapClass(
           that.#getPens(),
-          [cl.selectedColor,cl.pensOn],
+          [cl.selectedColor, cl.pensOn],
           cl.pensOff
         );
 
-        that.#setDrawingColor( color );
+        that.#setDrawingColor(color);
         //for this specific trigger Node only.... add the class that modifies the selected color
-        Drawing.#swapClass(trigger, cl.pensOff, [cl.selectedColor,cl.pensOn]);
-        that.#_.penCB(trigger,that.#viewDrawingProperties() );
+        Drawing.#swapClass(trigger, cl.pensOff, [cl.selectedColor, cl.pensOn]);
+        cb();
+        return true;
       });
     }
   } // initColorTriggers
@@ -388,6 +447,10 @@ class Drawing {
     const that = this;
     const hideCB = this.#_.hideCB.bind(this);
 
+    this.#controls.nodes[control] = button;
+    let cb = this.#_[`${control}CB`];
+    this.#controls.callbacks[control] = cb ? cb.bind(this) : ()=>{};
+
     switch (control) {
       case 'grid':
         button.addEventListener('click', () => {
@@ -407,19 +470,7 @@ class Drawing {
         });
         break;
       case 'hide':
-        button.addEventListener('click', () => {
-          let easel = getEasel();
-          if (easel.classList.contains(classes.easelOff)) {
-            //turn on
-            Drawing.#swapClass(easel, classes.easelOff, classes.easelOn);
-            Drawing.#swapClass(button, classes.hideOn, classes.hideOff);
-          } else {
-            //turn off
-            Drawing.#swapClass(easel, classes.easelOn, classes.easelOff);
-            Drawing.#swapClass(button, classes.hideOff, classes.hideOn);
-          }
-          hideCB(button,that.#viewDrawingProperties() );
-        });
+        button.addEventListener('click', this.#toggleHide.bind(this) );
         break;
 
       case 'wipe':

@@ -2,10 +2,10 @@ import '../styles/styles.css'
 import anime from "animejs";
 //anime.suspendWhenDocumentHidden = false; // default true
 const J$ = require("jquery").noConflict();
-import {EmojiButton} from '@joeattardi/emoji-button';
 import Favorites from "./modules/Favorites";
 import A from './modules/Animation';
 
+import pickerHelper from './helpers/picker.js';
 
 import Init from './modules/Init.js';
 
@@ -31,6 +31,9 @@ try {
   J$(document).ready(function ($) {
 
     const Config = {};
+    const App = {};
+    App.Fn = {};
+    const Nodes = {};
     try {
 
       Object.assign(Config, Init, (function (U) {
@@ -62,38 +65,11 @@ try {
     );
     RP.setTarget(Config.defaultidleemoji)
 
-    console.log('ready');
-
-    const screen = document.getElementById('screen');
-    const stickyButton = $('#stickybutton');
+    Nodes.screenNode = document.getElementById('screen');
+    Nodes.stickyButton = $('#stickybutton');
     const $picker = $('#picker');
-    const picker = new EmojiButton({
-      rootElement    : $picker[0],
-      theme          : 'dark',
-      rows           : 2,
-      emojisPerRow   : 25,
-      showRecents    : true,
-      initialCategory: 'recents',
-      showVariants   : true,
-      /* position: {
-         top: '100',
-         left: '0'
-       },*/
-      position       : 'bottom-start',
-      emojiSize      : '20px',
-      showPreview    : false,
-      recentsCount   : Init.historySize,
-      zIndex         : 10000,
-      plugins        : [Init.stickyHandler, Init.closeHandler], //
-      stickyHandler  : {
-        element: stickyButton,
-        event  : 'click'
-      }, //
-      kwijibo        : 'did my property get set?'
 
-    });
-
-    const trigger = document.querySelector('.trigger');
+    Nodes.emojiPickerTrigger = document.getElementsByClassName('controls__emojiPicker')[0];
     //var $highlight = [];
     const $target = $('#emoji');
     const $pin = $('#pin');
@@ -256,7 +232,7 @@ try {
           let draggableClassesToRemove =
             [...(parent.classList)].filter(c => /draggable\d/.test(c));
 
-          const emojiTrash = new TrashCan(screen, emoji);
+          const emojiTrash = new TrashCan(Nodes.screenNode, emoji);
           emojiTrash.tossIt(false).then(() => {
 
             if (1 /* delete the elements now */) {
@@ -285,18 +261,18 @@ try {
 
     });
 
-    stickyButton.on('click', function (ev) {
+    Nodes.stickyButton.on('click', function (ev) {
       //make the current emoji sticky
       var fav = myFavs.recallFave($target.text());
       if (fav) {
         fav.sticky = !fav.sticky;
         if (fav.sticky) {
           myAnimation.removeAnimation();
-          stickyButton.addClass('pressed');
+          Nodes.stickyButton.addClass('pressed');
 
         } else {
           myAnimation.restartAnimation();
-          stickyButton.removeClass('pressed');
+          Nodes.stickyButton.removeClass('pressed');
         }
         highlightFave($target.text(), fav.sticky);
       }
@@ -366,30 +342,23 @@ try {
 
     //stickyButton.click(); //initialize sticky  for the last emoji
 
-    const injectSelection = function (selection) {
+    App.Fn.injectSelection = function (selection) {
       //a highlighted one means we have nothing to archive
       var fave = myFavs.stashIt(selection);
 
       myAnimation.addAnimation();
       if (fave.sticky) {
         myAnimation.removeAnimation();
-        stickyButton.addClass('pressed');
+        Nodes.stickyButton.addClass('pressed');
       } else {
-        stickyButton.removeClass('pressed');
+        Nodes.stickyButton.removeClass('pressed');
       }
       $target.text(fave.emoji);
       archiveFave(fave.sticky, fave.emoji);
       //try to highlight in history
       highlightFave($target.text(), fave.sticky);
       return false;
-    }
-    /*******************/
-    picker.on('emoji', selection => {
-      // reset animation on every new emoji
-      injectSelection(selection);
-      $('#' + selection.emoji).dblclick();
-
-    });
+    } //injectSelection
 
     var switchEmoji = function (direction) {
       var lastFave = myFavs.recallIt(direction);
@@ -405,9 +374,9 @@ try {
 
       if (lastFave.sticky) {
         myAnimation.removeAnimation();
-        stickyButton.addClass('pressed');
+        Nodes.stickyButton.addClass('pressed');
       } else {
-        stickyButton.removeClass('pressed');
+        Nodes.stickyButton.removeClass('pressed');
         myAnimation.restartAnimation();
       }
     } //switchEmoji
@@ -477,7 +446,7 @@ try {
 
             if (Math.random() > .8) {
               const parentNode = $this[0].parentElement;
-              const emojiTrash = new TrashCan(screen, $this[0]);
+              const emojiTrash = new TrashCan(Nodes.screenNode, $this[0]);
               TrashCan.animateOnce(anime({
                 targets : parentNode,
                 scale   : 1,
@@ -590,7 +559,7 @@ try {
               );
             /* from: https://tobiasahlin.com/moving-letters/#2 */
 
-            //injectSelection(emoji);
+            //App.Fn.injectSelection(emoji);
             return false;
           });
 
@@ -726,9 +695,9 @@ try {
             myAnimation.addAnimation();
             if (fave.sticky) {
               myAnimation.removeAnimation();
-              stickyButton.addClass('pressed');
+              Nodes.stickyButton.addClass('pressed');
             } else {
-              stickyButton.removeClass('pressed');
+              Nodes.stickyButton.removeClass('pressed');
             }
             return;
           } else //is draggable
@@ -784,20 +753,6 @@ try {
       // $target.show().fadeIn(1000);
     });
 
-    trigger.addEventListener('click', (ev) => {
-      ev.preventDefault();
-      picker.togglePicker(document.getElementById('picker')); //trigger);
-      //  picker.togglePicker($('#col1b')[0]); //trigger);
-      $('.emoji-picker__wrapper')
-        // $('.emoji-picker__container')
-        .on('mouseover', 'button.emoji-picker__emoji', function () {
-          $('#emojipreview > .emoji_preview-emoji').text($(this).text());
-          $('.emoji_preview-name').text($(this).attr('title'))
-        });
-
-      return false;
-    });
-
     /*
     *  whatever most recent emoji from the dock is in the gallery is what the emojipreview works on
     *
@@ -842,11 +797,11 @@ try {
     }); //preview pin
 
     $('.emoji_preview__emoji').on('click', function () {
-      injectSelection({
+      App.Fn.injectSelection({
         emoji: $emojipreview.find('.emoji_preview-emoji').text()
       })
       if ($(this).hasClass('sticky')) {
-        stickyButton.click();
+        Nodes.stickyButton.click();
       }
     });
 
@@ -932,30 +887,37 @@ try {
       document.getElementById('controls').querySelector('.controls__btn__draw'),
       {},
       {
-        hideCB: (hideBtn, properties) => {
+        setupCB: function () {
+          //turn off by default
+          this.hide();
+        },
+        hideCB : function () {
+          let properties = this.getProps();
           let pointer = document.body.querySelector('.followMouse');
-          if (!pointer) return true;
-          let borderColor = properties.isVisible ? properties.color : 'rgba(0,0,0,0)';
-          Object.assign(pointer.style, {
-              borderColor: borderColor
-            }
-          );
+          //let canvas = this
+          let borderColor = properties.isVisible ? properties.color : 'rgba(255,255,255,0.3)';
+          if (pointer) {
+            Object.assign(pointer.style, {
+                borderColor: borderColor
+              }
+            );
+          }
 
+          if (properties.nodes && properties.nodes.wrapper) {
+            Object.assign(
+              properties.nodes.wrapper.style, {
+                borderColor: borderColor,
+                borderWidth: '4px'
+              })
+          }
           return true;
         },
-        penCB : (pen, properties) => {
-          let pointer = document.body.querySelector('.followMouse');
-          if (!pointer) return true;
-          //TODO: if canvas is visible
-          let borderColor = properties.isVisible ? properties.color : 'rgba(0,0,0,0)';
-          Object.assign(pointer.style, {
-              borderColor: borderColor
-            }
-          );
-          return true;
+        penCB  : function () { // (pen, properties) => {
+          this.getProps().callbacks.hide();
         }
       }
     );
+
 
 
     $moveHistory.on('click', function () {
@@ -1120,7 +1082,7 @@ try {
      */
 
     new MeetingCountDown(
-      document.getElementById('screen'),
+      Nodes.screenNode,
       document.querySelector('.emojipreview__clock'),
       document.querySelector('.emojipreview__clocknum'),
       document.querySelector('.flexClock__steps'), //flexClock__steps
@@ -1140,8 +1102,8 @@ try {
               spam.dispatchEvent(ev2);
             }
           }
-        }, {
-          times    : [5, 10],
+        }, { /* spotlight & shadow */
+          times    : [1, 2, 3, 4, 5, 6, 7, 8, 9],
           completed: [],
           cb       : (minsLeft) => {
             const shadow = MeetingCountDown.makeWarning(' ', 'flexClock__shadow');
@@ -1149,28 +1111,24 @@ try {
             if (!spotlight || !shadow) {
               return;
             }
-            if (Config.clocklocation === 'left') {
-              shadow.classList.add('flexClock__shadow--left');
-              spotlight.classList.add('flexClock__spotlight--left');
+
+            const wrap = spotlight.parentElement;
+            //only do this the if its not draggable
+            if (!MouseActions.isDraggable(wrap)) {
+              MouseActions.makeDraggable(wrap, {}, false);
+
+              const slider = MeetingCountDown.getSlider();
+              const screen = Nodes.screenNode;
+
+              //using the difference of the slider position the wrap
+              const XY = TrashCan.calcDiffXY(slider, screen, [2000, 2000]);
+              const widthToSubtract = wrap.getBoundingClientRect().width / 2;
+              anime.set(wrap, {
+                left: Math.abs(XY.end.width - XY.start.centerX - widthToSubtract),
+                top : Math.abs(XY.end.height - XY.start.centerX - widthToSubtract)
+              });
+
             }
-
-            /*
-            * 1. get position of the slider
-            * 2. determine left of right
-            * 3.  do math so set the position of the new elements
-             */
-
-            //1.
-            const slider = document.getElementById('flexClock');
-            const startPosition = slider.getBoundingClientRect();
-            (({left}) => {
-
-              //2. 3.
-              left -= (Config.clocklocation === 'left' ? -100 : -50);
-              anime.set(shadow, {left: left});
-              anime.set(spotlight, {left: left});
-            })(startPosition)
-
 
             const spotlightAnimation = anime.timeline({
               autplay: false,
@@ -1185,15 +1143,14 @@ try {
               duration: 3000, //wait 3 seconds here
               easing  : 'easeInBounce',
             }).add({
-              scale     : .5,
+              scale     : 1,
               duration  : 1500,
               translateY: 0,
               easing    : 'easeOutQuint',
               complete  : a => {
-
-                console.log(a.progress, spotlight.getBoundingClientRect())
+                // console.log(a.progress, spotlight.getBoundingClientRect())
               }
-            });
+            }); /**/
 
             const shadowAnimation = anime.timeline({
               autoplay: false,
@@ -1212,21 +1169,25 @@ try {
               opacity : 0,
               duration: 1500,
               easing  : 'easeOutQuint'
-            });
+            }); /**/
 
             //using the child will strip off all the animation transformations
-            const spotlightToss = new TrashCan(screen, spotlight.firstChild);
 
+            const spotlightToss = new TrashCan(Nodes.screenNode, spotlight);
+
+            //resolve early
             TrashCan.animateOnce(spotlightAnimation, spotlightAnimation, 2000)
               .then(a => {
-                //spotlight is actually wrapped so we want it's first child
-                  spotlightToss.tossIt(false, spotlight.firstChild, spotlightAnimation).then(x => {
-                    spotlight.remove();
+                  //spotlight is actually wrapped so we want it's first child
+                  spotlightToss.tossIt(false, spotlight, spotlightAnimation).then(x => {
+
+                    //more visible in the trash
+                    spotlight.style.overflow = 'visible';
+                   // spotlight.remove();//dont remove it cuz we like seeing it in the trash
                     spotlightAnimation.remove();
                   });
                 }
               );
-
 
             shadowAnimation.finished.then(() => {
               shadowAnimation.remove();
@@ -1312,7 +1273,7 @@ try {
         * 6. on mouse release lower the Z again
          */
         //1.
-        document.body.addEventListener('mousedown', function (ev) {
+        Nodes.screenNode.addEventListener('mousedown', function (ev) {
           const mouseLocation = {};
           //transpose mouselocation onto 1-dimensional rectangle co-ordinates
           (({pageX, pageY}, XY) => {
@@ -1367,15 +1328,24 @@ try {
                   right : innerWidth
                 }
               })(window);
-              const clockXY = TrashCan.calcDiffXY(clock, bodyXY, [2000, 2000]);
-              const sliderBtn = MeetingCountDown.getSlider().firstElementChild
-              if (clockXY.diff.centerX < 0) {
-                //right
-                sliderBtn.classList.remove('flexClock__slider__button--left');
-              } else {
-                //left
-                sliderBtn.classList.add('flexClock__slider__button--left');
-              }
+              MeetingCountDown.locate()
+              /*
+              sliderBtn.classList.add('flexClock__slider__button--left');
+            } else {
+              sliderBtn.classList.remove('flexClock__slider__button--left');
+            }
+            const clockXY = TrashCan.calcDiffXY(clock, bodyXY, [2000, 2000]);
+            const sliderBtn = MeetingCountDown.getSlider().firstElementChild
+            if (clockXY.diff.centerX < 0) {
+              //right
+
+              MeetingCountDown
+            } else {
+              //left
+
+            }
+
+               */
 
             },
             mouseupCB  : function (ev) {
@@ -1441,7 +1411,7 @@ try {
     /* TODO: make the broom draggable.. similar problem to the  clock because it is
     * buried in it z-index depth
      */
-    new TrashCan(screen);
+    new TrashCan(Nodes.screenNode);
     document.body.addEventListener('mousedown', function (ev) {
       const broom = TrashCan.getBroom();
       var distanceTravelled = 0;
@@ -1514,7 +1484,7 @@ try {
 
     $history.find('.highlight').click();
 
-    document.getElementById('screen').addEventListener('mousedown', function (ev) {
+    Nodes.screenNode.addEventListener('mousedown', function (ev) {
       const mouseLocation = {};
       const spiderWeb = document.querySelector('.web__draggable');
       const cobWeb = document.querySelector('.web__cob');
@@ -1767,12 +1737,53 @@ try {
           spiderAnimations.forEach(() => {
             a.restart();
             a.play();
-
           });
         })
       }
     });
 
+    Nodes.emojiPickerName = document.getElementsByClassName('emoji-picker__wrapper')[0];
+    Nodes.pickerWrapper = document.getElementById('picker');
+    App.myPicker = new pickerHelper(
+      Nodes.pickerWrapper,
+      Nodes.emojiPickerTrigger,
+      Nodes.emojiPickerName,
+      {
+        emojisPerRow: 31,
+        rows        : 5
+      });
+    App.myPicker.addPlugin('stickyHandler');
+    App.myPicker.addPlugin('closeHandler');
+    App.myPicker.launch();
+    App.myPicker.registerCB('emoji', function (p) {
+      const props = App.myPicker.getProps();
+      if (props.options.makeEmojiSticky) {
+        //click the pin button
+        Nodes.stickyButton.click();
+      }
+    });
+    /*******************/
+    App.myPicker.registerCB('emoji', selection => {
+      // reset animation on every new emoji
+      App.Fn.injectSelection(selection);
+      $('#' + selection.emoji).dblclick();
+    });
+    /*
+         if (picker.options.makeEmojiSticky) {
+              doHandlerOnHide = true;
+            } else {
+              //unset the temporary flag
+              doHandlerOnHide = false
+            }
+            return;
+          });
+
+
+          picker.on('hidden', function () {
+            if (doHandlerOnHide) {
+              picker.options.stickyHandler['element'].trigger(picker.options.stickyHandler['event']);
+
+*/
 
     Window.anime = anime;
     Window.TimerCountDown = MeetingCountDown;

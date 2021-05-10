@@ -15,6 +15,7 @@
     min-height: 540px;
     position:relative;
     min-width: 960px;
+    box-sizing: border-box;
 }
 
 .everything__controls {

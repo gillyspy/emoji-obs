@@ -18,11 +18,20 @@
 
 }
 
-    #picker {
-        z-index : 8050;
-        position : relative;
+#picker {
+    z-index: 8050;
+    position: relative;
 
-    }
-    .emoji-picker__wrapper {
-        z-index: 10000;
-    }
+}
+
+.emoji-picker__wrapper {
+    z-index: 10000;
+}
+
+.emoji-picker__plugin-container button {
+/*    color: var(--dark-text-color); */
+/*    background-color: var(--dark-background-color); */
+/* / rgba(0, 0, 0, 0); */
+    border: 1px solid;
+/*    border-color: var(--dark-border-color); */
+}

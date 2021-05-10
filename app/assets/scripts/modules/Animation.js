@@ -159,13 +159,35 @@ const _TimerCountDown = {
   clock     : {},
   finale    : null,
   container : null,
-  xy        : {}
+  xy        : {},
+  isLeft    : false
 }
 
+/*
+* currently this is a singleton. Wouldn't take much to change that
+ */
 class TimerCountDown {
+
   #onCB;
   #offCB;
-  #_;
+  #_ = {
+    timeLeft        : 3600000, // time remaining
+    minutesRemaining: (3600000 / 60 / 1000),
+    duration        : 3600000, // initial time (e.g. meeting length)
+    hideClass       : 'flexClock--hide',
+    showClass       : 'flexClock',
+    fillClass       : 'flexClock__progress--fill',
+    drainClass      : 'flexClock__progress--drain',
+    subClass        : 'flexClock__sub',
+    sliderClass     : 'flexClock__slider',
+    warnWrapClass   : 'flexClock__warnWrap',
+    steps           : 12,
+    doMins          : true,
+    delayFudge      : 0,
+    stepSize        : 5,
+    zoomOn          : true,
+    zoomWhen        : [600000, 300000] // time remaining threshold to zoom in at
+  };
   #timeStarted;
   #isRunning = false;
   #endTime;
@@ -182,39 +204,83 @@ class TimerCountDown {
     this.#offCB = offCB;
     TimerCountDown.prepFinale();
     this.#timeStarted = 0;
-    this.#_ = {
-      timeLeft        : 3600000, // time remaining
-      minutesRemaining: (3600000 / 60 / 1000),
-      duration        : 3600000, // initial time (e.g. meeting length)
-      hideClass       : 'flexClock--hide',
-      showClass       : 'flexClock',
-      fillClass       : 'flexClock__progress--fill',
-      drainClass      : 'flexClock__progress--drain',
-      subClass        : 'flexClock__sub',
-      sliderClass     : 'flexClock__slider',
-      steps           : 12,
-      doMins          : true,
-      delayFudge      : 0,
-      stepSize        : 5,
-      zoomOn          : true,
-      zoomWhen        : [600000, 300000] // time remaining threshold to zoom in at
-    };
-    this.#_ = Object.assign({}, this.#_, opts);
+
+    //apply options
+    Object.assign(this.#_, opts);
+
     this.#registerCallbacks(this.#_.callbacks);
     this.init();
   }
 
+  static #updateLeft(isLeft) {
+    isLeft = typeof isLeft === "boolean" ? isLeft : _TimerCountDown.isLeft;
+
+    let wrapClass = 'flexClock__warnWrap';
+    //update classes on nodes
+    let warningWrap = _TimerCountDown.container.getElementsByClassName(wrapClass);
+    if (warningWrap.length) {
+      warningWrap = warningWrap[0];
+    }
+
+    //TODO: do we need to update the slider or just the wrap?
+    if (isLeft) {
+      warningWrap.classList.add(wrapClass + '--left');
+    } else {
+      warningWrap.classList.remove(wrapClass + '--left');
+    }
+  }
+
+  static locate(doCalc = true) {
+    const XY = {};
+    const oldIsLeft = _TimerCountDown.isLeft;
+    if (doCalc) {
+      Object.assign(XY, Trash.calcDiffXY(_TimerCountDown.sliderNode, _TimerCountDown.container, [2000, 2000]));
+      //if slider-left is left of screen-center then we're left
+      _TimerCountDown.isLeft = (XY.end.centerX > XY.start.left);
+      _TimerCountDown.xy = XY.start;
+
+      if (oldIsLeft !== _TimerCountDown.isLeft) {
+        TimerCountDown.#updateLeft(_TimerCountDown.isLeft)
+      }
+    }
+    return (({xy, isLeft}) => ({
+      xy,
+      isLeft
+    }))(_TimerCountDown);
+  }
+
   static makeWarning(text, classList = [], node) {
-    const warningWrap = document.createElement('div');
-    warningWrap.classList.add('flexClock__warnWrap');
+    const wrapClass = 'flexClock__warnWrap';
+    let warningWrap =
+      //  flexClock__warningArea
+      _TimerCountDown.container.getElementsByClassName(wrapClass);
+
+    if (warningWrap.length) {
+      warningWrap = warningWrap[0];
+    } else {
+      warningWrap = document.createElement('div');
+      warningWrap.classList.add(wrapClass);
+    }
+
+    if (TimerCountDown.locate(false).isLeft) {
+      warningWrap.classList.add(wrapClass + '--left');
+    }
+
     const warning = document.createElement('button');
+    const subWarning = document.createElement('span');
     classList = Array.isArray(classList) ? classList : [classList];
     warning.classList.add(...classList);
-    warning.textContent = text;
+    subWarning.textContent = text;
+    warning.append(subWarning);
     warningWrap.append(warning);
+
     node && warning.append(node);
-    _TimerCountDown.append(warningWrap);
-    return warningWrap;
+
+    //append it to the same outer container (NOT inside the clock area)
+    _TimerCountDown.container.append(warningWrap);
+
+    //make the warning draggable
+    return warning;
   }
 
   durationJS(t = this.#_.duration) {
@@ -536,6 +602,7 @@ class TimerCountDown {
     _TimerCountDown.xy = Trash.getXY(_TimerCountDown.container);
 
     this.#setSliderNode(document.querySelector('.' + this.#_.sliderClass));
+    _TimerCountDown.sliderNode.firstElementChild.classList.add('flexClock__slider__button--green');
 
     //add click handler to the triggerNode that will initiate
     this.triggerNode.addEventListener('click', function () {
@@ -665,15 +732,17 @@ class TimerCountDown {
       clearInterval(_interval);
 
       let T = 0;
-      let H = _TimerCountDown.xy.height; //540
+      let H = _TimerCountDown.xy.height; //~540
       const pxTotal = H; // 525;
-      N.forEach(n => {
-        let h = +n.parentElement.style.height.replace('px', '');
-        n.data = {
+      N.forEach((n, i, N) => {
+        let h = +(Trash.getSpecificXY(n.parentElement, 'height',).height);
+        let h2 = +(Trash.getSpecificXY(n, 'height').height)
+        N[i].data = {
           h: h,
+          h2 : h2,
           t: (h / pxTotal * duration)
         }
-      })
+      });
       let hMult = -1;
       T = N[0].data.t;
       //anime as a time controller
@@ -685,44 +754,38 @@ class TimerCountDown {
           //console.log(O[0])
           //        delay   : anime.stagger(T1, {start: T0}),
           if (a.currentTime > T) {
-            hMult=-1
+            hMult = -1
 
             if (!N.length) {
               return;
             }
-            let n = N.shift();
+            let node = N.shift();
             let distance = H;
-            let putInCan =false;
-            if (!n) {
+            let putInCan = false;
+            if (!node) {
               return;
             }
-            let h = n.data ? n.data.h : 40;
+            let h = node.data ? node.data.h : 0;
             if (N[0])
               T += N[0].data.t;
-            //if the can is near on the X-axis then drop it in the can
-            putInCan = Trash.isAwithinB(n, Trash.getCanNode(), {
-              //adjust for falling X trajectory which, here, affects left and right co-ordinates
-              left : (hMult * 50),
-              right: (hMult * 50)
-            }, true, ['centerX']);
-            if (putInCan)
-              distance = Trash.calcDiffXY(n, Trash.getCanNode()).diff.centerY;
-            if (sliderNode.firstChild.classList &&
-              sliderNode.firstChild.classList.contains('flexClock__slider__button--left'))
+
+            //if slider is on the left then use positive offset to fall to X-positive
+            if (sliderNode.firstElementChild.classList &&
+              sliderNode.firstElementChild.classList.contains('flexClock__slider__button--left'))
               hMult = 1;
 
             anime.timeline({
-              targets: n
+              targets: node
             })
               .add({
                 translateY: [
                   {
-                    value   : n.data.h,
+                    value   : node.data.h,
                     duration: 200,
                     easing  : 'easeInQuad',
                   },
                   {
-                    value   : distance,
+                    value   : Math.abs(distance) - node.data.h2, //account for the height of your average number
                     duration: 1000,
                     easing  : 'easeInQuad'
                   }
@@ -765,34 +828,48 @@ class TimerCountDown {
                   }
                 ],
                 complete  : a => {
-                  //put it IN the trashCan if it is near by
+
                   try {
-                    if(putInCan){
+                    let oldText = node.firstElementChild.textContent;
+                    node.firstElementChild.textContent = '💭';
+                    //put it IN the trashCan if it is near by
+                    //if the can is near on the X-axis then drop it in the can
+                    putInCan = Trash.isAwithinB(node, Trash.getCanNode(), {
+                      //adjust for falling X trajectory which, here, affects left and right co-ordinates
+                      left : (hMult * 50),
+                      right: (hMult * 50)
+                    }, true, ['centerX']);
+                    if (putInCan || !!oldText ){
                       //put it in the can
-                      Trash.getCanNode().querySelector('.trashCan__bottom').append(n.firstElementChild);
-                      anime.set(n, {translateX: 0, translateY : 0});
-                    } else {
-                 //     const n = n.firstElementChild;
+                      Trash.getCanNode().querySelector('.trashCan__bottom').append(node.firstElementChild);
+                      anime.set(node, {
+                        translateX: 0,
+                        translateY: 0
+                      });
+                       node.firstElementChild.textContent = oldText;
+                    } // else leave the splat on the floor
+                    else {
+                      //     const n = n.firstElementChild;
                       //leave it on the floor
-                      n.classList.add('floor__trash');
-                      n.firstElementChild.textContent = '💭';
-                      anime.set( n, Object.assign({},
-                        Trash.getXY(n), {
-                        translateX : 0, translateY : 0, border :0, opacity : 1, 'font-size' : '2em'
-                      }) );
-                      document.getElementById('floor').append(n);
+                      node.classList.add('floor__trash');
+                   //   node.firstElementChild.textContent = '💭';
+                      anime.set(node, Object.assign({},
+                        Trash.getXY(node), {
+                          translateX : 0,
+                          translateY : 0,
+                          border     : 0,
+                          opacity    : 1,
+                          'font-size': '2em'
+                        }));
+                      document.getElementById('floor').append(node);
                       //anime.set(subn, {translateX: '', translateY : ''});
                     }
                   } catch (e) {
                     console.log(e);
                   }
-                  //  a.remove();
                 }
-              }); /*.add({
-              opacity : 0,
-              duration: (duration - a.currentTime)
-            }); */ //anime (inner)
-            H -= n.data.h;
+              });
+            H -= node.data.h;
           }
         }
       })
@@ -908,8 +985,9 @@ class TimerCountDown {
         && that.#_.zoomOn) {
         //ZOOM in the animation;
         that.#isRunning = false;
-        sliderNode.firstElementChild.classList.add('flexClock__slider__button--red')
-        sliderNode.firstElementChild.textContent('️⏳');
+        sliderNode.firstElementChild
+        && sliderNode.firstElementChild.classList.add('flexClock__slider__button--red')
+        && (sliderNode.firstElementChild.textContent = '️⏳')
         return zoomIn;
       }
 
@@ -1654,12 +1732,24 @@ class Trash {
   } //getXY
 
   static getSpecificXY(XY, choices = ['left', 'top', 'width', 'height']) {
-    const O = {}
-    choices.forEach(choice => {
-      O[choice] = XY[choice];
-    });
-    return O;
-  }
+    if (XY instanceof Element) {
+      XY = Object.assign({}, Trash.getXY(XY));
+    }
+    if (choices && typeof choices === 'string') {
+      choices = [choices];
+    }
+
+    const O = {};
+    if (Array.isArray(choices)) {
+
+      choices.forEach(choice => {
+        O[choice] = XY[choice];
+      });
+      return O;
+    } else {
+      return XY;
+    }
+  } //getSpecificXY
 
   static getSpecificDiffXY(start, end, choices = []) {
     Trash.calcDiffXY(start, end, [2000, 2000]);
