@@ -168,6 +168,14 @@ const _TimerCountDown = {
  */
 class TimerCountDown {
 
+  #goCB = {
+    cb         : () => {
+    },
+    times      : 'go',//minute it will fire
+    isDone     : false,//flag to track its use
+    firedOn    : null,
+    returnValue: undefined
+  };
   #onCB = {
     cb         : () => {
     },
@@ -207,28 +215,65 @@ class TimerCountDown {
   #endTime;
   #scaleAnimation = [];
   #callbacks = []; //timebased callbacks that fire on times
+  #durationRemaining;
+  #distance;
+  #distanceRemaining;
 
-  constructor(containerNode, triggerNode, valueNode, targetNode, opts, onCB, offCB) {
+  constructor(containerNode, triggerNode, valueNode, targetNode, opts, goCB, onCB, offCB) {
     _TimerCountDown.container = containerNode;  // typically document.body
     this.triggerNode = triggerNode;
     this.targetNode = targetNode;
     _TimerCountDown.clock = this.targetNode;
     this.valueNode = valueNode;
 
+    if (typeof goCB === 'function') {
+      this.#goCB.cb = goCB.bind(this)
+    }
     if (typeof onCB === 'function') {
       this.#onCB.cb = onCB.bind(this)
     }
     if (typeof offCB === 'function') {
       this.#offCB.cb = offCB.bind(this);
     }
+
     TimerCountDown.prepFinale();
     this.#timeStarted = 0;
 
     //apply options
     Object.assign(this.#_, opts);
-    this.#_.callbacks.push(this.#onCB, this.#offCB);
+    this.#_.callbacks.push(this.#onCB, this.#offCB, this.#goCB);
 
     this.#registerCallbacks(this.#_.callbacks);
+
+
+    Object.defineProperties(this, {
+      'duration'         : {
+        get: () => {
+          return this.durationJS(this.#_.duration)
+        }
+      },
+      'durationRemaining': {
+        get: () => {
+          return this.#durationRemaining
+        }
+      },
+      'distance'         : {
+        get: () => {
+          return this.#distance
+        }
+      },
+      'distanceRemaining': {
+        get: () => {
+          return this.#distanceRemaining
+        }
+      },
+      'speed'            : {
+        get: () => {
+          return this.distance / this.duration
+        }
+      },
+    });
+
     this.init();
   }
 
@@ -333,18 +378,21 @@ class TimerCountDown {
     return el;
   } //#getStep
 
-  queueFunc(fn, tick = 100) {
+  queueFunc(fn, tick = 1000) {
     let canPoll = true,
       now,
+      _sPassed = null,
       sPassed;
     const that = this;
     this.#isRunning = true;
 
     (function p() {
-      now = new Date()
+      now = new Date();
       sPassed = (now - that.#timeStarted);
-      let keepGoing = fn(sPassed);
 
+
+      let [keepGoing, _s] = fn(sPassed, _sPassed);
+      _sPassed = _s;
       if (typeof keepGoing === 'function') {
         keepGoing(); //zoomin
       } else if (!that.#isRunning) {
@@ -393,7 +441,9 @@ class TimerCountDown {
     this.#_.sunsetTriggered = false;
 
     //
-    let pixels = this.targetNode.getBoundingClientRect().height
+    let pixels = this.targetNode.getBoundingClientRect().height;
+    this.#distance = pixels;
+    console.log(this.distance);
     let pixelsPerMin = pixels / dur;
 
     //break it up into steps. e.g. 60 minutes into 12 5 minute steps
@@ -702,7 +752,12 @@ class TimerCountDown {
   }*/
 
   #animateDrain() {
+
+    this.#distanceRemaining = this.#distance;
+
     let duration = this.durationJS();
+    this.#durationRemaining = duration;
+
     let delayFudge = this.durationJS(this.#_.delayFudge);
 
     let sliderNode = this.sliderNode;
@@ -717,11 +772,15 @@ class TimerCountDown {
 
     console.log('duration', duration);
 
+    this.#callbacks['go'].forEach(cbo => {
+      cbo.returnValue = cbo.cb(cbo);
+    });
+
     let h = [];
     this.#scaleAnimation.push(
       anime({
         targets   : '.flexClock__sub--A .flexClock__step',
-      //  scaleX : '*=1.5',
+        //  scaleX : '*=1.5',
         translateY: (e, i) => {
           if (i === 0) {
             h.push(+e.style.height.match(/[^p]*/)[0]);// + 3;
@@ -746,13 +805,23 @@ class TimerCountDown {
       })
     );
 
+    const updateProperties = function (progress) {
+      let ratioRemaining = 1 - (progress * 0.01);
+      this.#durationRemaining = this.duration * ratioRemaining;
+      this.#distanceRemaining = this.distance * ratioRemaining;
+    }.bind(this);
+
+    //top-to-down fill bar
     this.#scaleAnimation.push(
       anime({
         targets : '.flexClock__progress--fill',
         scaleY  : [0, 1],
         opacity : [.8, .8],
         duration: duration,
-        easing  : 'linear'
+        easing  : 'linear',
+        update  : a => {
+          updateProperties(a.progress);
+        }
       })
     );
 
@@ -953,11 +1022,30 @@ class TimerCountDown {
     (false);
 
 
+    let accurateSlideParams;
+      const accurateSlideFn = function( Y ) {
+        let d = this.distance;
+        let nextY = Y + (this.speed * 30000);
+
+       return anime({
+          targets   : sliderNode,
+          translateY: nextY,
+          duration  :  30000,
+          easing  : 'linear',
+          complete: a => {
+            if(Y === d)
+              return;
+            accurateSlideFn( ...accurateSlideParams )
+          }
+        })
+      }.bind(this)
+
     /* this animation will be kicked off with the other */
-    this.queueFunc(function (milliPassed) {
+    this.queueFunc(function (milliPassed, previousMilli) {
       /* the Y translation will be based upon how pixel-far it needs to travel
       ** compared against the real-seconds left
        */
+
       let milliDelay = 0; //(50 / 568 * duration);
       let pxDistance = _TimerCountDown.xy.height; //525;
       let keepGoing = true;
@@ -969,6 +1057,11 @@ class TimerCountDown {
       let minsLeft = that.#_.timeLeft / 60000;
       updateTimeLeft(minsLeft);
       let overRun = 600000; //10minutes
+
+      if (previousMilli === null) {
+        //fire first time
+        accurateSlideFn( 0 )
+      }
 
       try {
         let h = that.#endTime.getHours();
@@ -1013,12 +1106,13 @@ class TimerCountDown {
         keepGoing = true;
       } else {
         curY = pxDistance
-        //allow overrun becuase there are post-timer flows
+        //allow overrun in time because there are post-timer flows
         let now = new Date();
         if ((now - that.#endTime) > overRun) {
           keepGoing = false;
         }
       }
+      accurateSlideParams = [ curY ];
 
       if (!that.#_.sunsetTriggered && minsLeft < 5) {
         //TODO:
@@ -1033,7 +1127,7 @@ class TimerCountDown {
         //ZOOM in the animation;
         that.#isRunning = false;
 
-        return zoomIn;
+        return [zoomIn, milliPassed];
       }
 
       //5mins
@@ -1044,12 +1138,24 @@ class TimerCountDown {
         sliderNode.firstElementChild
 //        && sliderNode.firstElementChild.classList.add('flexClock__slider__button--red')
 //        && (sliderNode.firstElementChild.textContent = '️⏳')
-        return zoomIn;
+        return [zoomIn, milliPassed];
       }
 
+
       //slide the guide down via transform
-      sliderNode.style.transform = `translateY(${curY}px) rotateZ(-45deg)`;
-      return keepGoing;
+      switch (true) {
+        case (previousMilli === null):
+        case  (curY !== pxDistance): //&& (milliPassed % 2000 !== previousMilli % 2000)):
+
+          let timeToNextAdjustment = that.#_.timeLeft % 2000
+          console.log(timeToNextAdjustment, that.#_.timeLeft, milliPassed);
+
+
+
+        // sliderNode.style.transform = `translateY(${curY}px)`;
+      }
+
+      return [keepGoing, milliPassed];
     });
 
   } //animateDrain

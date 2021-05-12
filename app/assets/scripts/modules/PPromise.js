@@ -30,7 +30,7 @@ class PPromise {
     var that = this;
 
     //prepare any custom return values
-    this.#setReturnValues(resolveRejectValues);
+    this.#setReturnValues(...resolveRejectValues);
 
     //deal with n number of external promises
     if (externalPromises && !Array.isArray(externalPromises.length)) {
@@ -77,12 +77,14 @@ class PPromise {
     //this.#isFulfilled =
   }
 
-  #setReturnValues(v) {
-    if (typeof v !== "undefined") {
-      //allow for undefined values;
-      if (v.length === 1) this.updateValue(v[0]);
-      if (v.length === 2) this.updateReason(v[1]);
-    }
+  #setReturnValues( v, r) {
+    //allow for undefined values;
+    if (arguments.length)
+      this.updateValue(v );
+
+    if( arguments.length === 2)
+      this.updateReason(r);
+
   } //setReturnValues
 
   #setState() {

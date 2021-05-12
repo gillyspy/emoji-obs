@@ -1230,7 +1230,9 @@ try {
 
               const slider = MeetingCountDown.getSlider();
               const sliderBtn = slider.firstElementChild;
-              const sliderAnimation = this.onReturnValue;
+              const sliderAnimation = this.goReturnValue;
+              const rotationDuration = 84.8528137423857 / (this.distance / 10000);
+              const secondStageDelay = 10000 - rotationDuration * 2;
 
               if (sliderBtn) {
                 sliderBtn.style.borderColor = '';
@@ -1238,17 +1240,34 @@ try {
                 sliderBtn.classList.remove('flexClock__slider__button--green', 'flexClock__slider__button--red');
               }
               //restore sloth rotation by quick-setting it
-              if( sliderAnimation ) {
+              if (sliderAnimation) {
                 sliderAnimation.then((v) => {
                   //kill other animations on it;
-                  anime.remove( slider );
-                  anime.set(slider, {
-                    rotateZ    : 0,
-                    marginTop  : 0,
-                    marginRight: 0
+                  anime.remove(slider);
+                  anime.remove(sliderBtn);
+                  //slide back up in 10 seconds ... while also rotating
+
+                  anime({
+                    targets: sliderBtn,
+                    rotateZ: [{
+                      value   : -45,
+                      easing  : 'linear',
+                      duration: rotationDuration
+                    }, {
+                      value   : 0,
+                      easing  : 'linear',
+                      duration: rotationDuration,
+                      delay   : secondStageDelay - 10
+                    }]
+                  });
+
+                  anime({
+                    targets   : slider,
+                    duration  : 10000,
+                    translateY: 0,
+                    easing    : 'linear'
                   });
                 });
-                sliderAnimation.resolve();
               }
               let triggerNode = this.triggerNode;
               MeetingCountDown.grandFinale();
@@ -1307,27 +1326,41 @@ try {
           }
         ]
       },
-      //on
+      //go
       function (opts) {
-        //show
         //rotate sloth
         const slider = MeetingCountDown.getSlider();
         const sliderBtn = slider.firstElementChild;
+        const rotationDuration = 84.8528137423857 / this.speed;
+        const secondStageDelay = this.duration - rotationDuration * 2;
+
         let returnValue;
 
         sliderBtn && sliderBtn.classList.add('flexClock__slider__button--green');
 
-        App.Animations.clockOn = anime({
-          targets  : slider,
-          rotateZ  : -45,
-          marginTop: '-3.9em',
-          duration : 1000,
-          autoplay : false
-        });
+        // 84.8528137423857 is distance from center point to corner of sliderBtn's boundingRect
 
+        App.Animations.clockOn =
+          anime({
+            targets: sliderBtn, //slider.firstElementChild,
+            rotateZ: [{
+              value   : -45,
+              easing  : 'linear',
+              duration: rotationDuration
+            }, {
+              value   : -90,
+              easing  : 'linear',
+              duration: rotationDuration,
+              delay   : secondStageDelay
+            }]
+          });
         //set a custom, adhoc property to carry forward to other callbacks
-        this.onReturnValue = new PP(App.Animations.clockOn.finished, [ App.Animations.clockOn, 'forcefailure'] );
-        App.Animations.clockOn.play();
+        this.goReturnValue = new PP(App.Animations.clockOn.finished, [App.Animations.clockOn, 'forcefailure']);
+
+      },
+      //on
+      function (opts) {
+        //show
 
         const clock = document.getElementById('flexClock');
         clock.classList.remove('flexClock--hide');

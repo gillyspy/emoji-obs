@@ -89,10 +89,12 @@
     /* transform :  rotateZ(0);*/
         min-height: max-content;
     min-width: max-content;
-    margin-left:24px;
+    margin:0;
+    left: 0;
+    transform-origin : top left;
    /* z-index:0; */
 }
-
+/*
 .flexClock__slider--square{
     margin-top : 0;
     transform :  rotateZ(0);
@@ -101,8 +103,8 @@
 .flexClock__slider--diamond{
     margin-right : -30px;
       margin-top : -3.9em;
-    transform :  rotateZ(-45deg);
-}
+     transform :  rotateZ(-45deg);
+}*/
 
 .flexClock__slider button{
  font-size : 40px !important;
@@ -133,6 +135,7 @@
     border-right-style: ridge;
     margin: 0;
     padding:0 16px 16px 0;
+    transform-origin: top left;
 }
 .flexClock__slider__button--green {
     background-color: rgba(0, 255, 0, .1);
@@ -227,9 +230,9 @@
     box-sizing: border-box;
     background-color : rgba(0,0,0,.04);
     z-index: 24000;
-     border: 1px;
+  /*   border: 1px;
     border-style : solid;
-    border-color:  rgba(0,0,0,.3);
+    border-color:  rgba(0,0,0,.3);*/
 }
 
 .flexClock__warnWrap--left{
