@@ -376,7 +376,7 @@ class Drawing {
       pen.setAttribute('title', `${color} Pen`);
       pen.style.color = color;
       pen.innerHTML = `
-        <span class="drawing__pens__color" style="background-color: ${color}"></span>`
+        <span class="drawing__pens__color" style="background-color: ${color}">&nbsp;</span>`
 
       //TODO: set color attributes somehow to match
       this.#initColorTrigger(pen, color)
