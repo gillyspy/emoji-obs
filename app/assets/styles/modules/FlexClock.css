@@ -83,16 +83,27 @@
     top : 0;
 }
 .flexClock__slider{
-    margin-right : -30px;
+
     position:relative;
     display: flex;
-    transform :  rotateZ(-45deg);
+    /* transform :  rotateZ(0);*/
         min-height: max-content;
     min-width: max-content;
     margin-left:24px;
-    margin-top : -3.9em
    /* z-index:0; */
 }
+
+.flexClock__slider--square{
+    margin-top : 0;
+    transform :  rotateZ(0);
+    margin-right : 0;
+}
+.flexClock__slider--diamond{
+    margin-right : -30px;
+      margin-top : -3.9em;
+    transform :  rotateZ(-45deg);
+}
+
 .flexClock__slider button{
  font-size : 40px !important;
 }
@@ -190,6 +201,11 @@
     font-size : 4.5em;
     text-align:center;
 }
+
+.flexClock__spotlight--doubledigit {
+    font-size: 3em
+}
+
 .flexClock__spotlight span {
     margin-left: -100%;
     margin-right: -100%;

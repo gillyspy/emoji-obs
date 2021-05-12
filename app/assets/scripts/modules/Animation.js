@@ -168,8 +168,22 @@ const _TimerCountDown = {
  */
 class TimerCountDown {
 
-  #onCB;
-  #offCB;
+  #onCB = {
+    cb         : () => {
+    },
+    times      : 'on',//minute it will fire
+    isDone     : false,//flag to track its use
+    firedOn    : null,
+    returnValue: undefined
+  };
+  #offCB = {
+    cb         : () => {
+    },
+    times      : 'off',
+    isDone     : false,
+    firedOn    : null,
+    returnValue: undefined
+  };
   #_ = {
     timeLeft        : 3600000, // time remaining
     minutesRemaining: (3600000 / 60 / 1000),
@@ -200,13 +214,19 @@ class TimerCountDown {
     this.targetNode = targetNode;
     _TimerCountDown.clock = this.targetNode;
     this.valueNode = valueNode;
-    this.#onCB = onCB;
-    this.#offCB = offCB;
+
+    if (typeof onCB === 'function') {
+      this.#onCB.cb = onCB.bind(this)
+    }
+    if (typeof offCB === 'function') {
+      this.#offCB.cb = offCB.bind(this);
+    }
     TimerCountDown.prepFinale();
     this.#timeStarted = 0;
 
     //apply options
     Object.assign(this.#_, opts);
+    this.#_.callbacks.push(this.#onCB, this.#offCB);
 
     this.#registerCallbacks(this.#_.callbacks);
     this.init();
@@ -509,7 +529,8 @@ class TimerCountDown {
 
   #cancel(doCallback) {
     if (!!doCallback)
-      this.#offCB();
+      this.#callbacks['off'].forEach(cbo => cbo.cb(cbo));
+
   } // #cancel
 
   static getSlider() {
@@ -532,21 +553,23 @@ class TimerCountDown {
   }
 
   #registerCallbacks(cbs) {
-    const _cbs = [];
+    const _cbs = {};
     cbs.forEach((cbo) => {
       if (!Array.isArray(cbo.times)) {
         cbo.times = [cbo.times]
       }
       cbo.times.forEach(t => {
         //index this callback for each time
-        _cbs[t] = {
-          cb      : cbo.cb,
-          //minute it will fire
-          times   : t,
-          //flag to track its use
-          isDone : false,
-          firedOn : null,
+        if (!_cbs[t]) {
+          _cbs[t] = [];
         }
+        _cbs[t].push({
+          cb         : cbo.cb.bind(this),
+          times      : t,//minute it will
+          isDone     : false,//flag to track its use
+          firedOn    : null,
+          returnValue: undefined
+        });
       });
     });
     this.#callbacks = _cbs;
@@ -655,7 +678,11 @@ class TimerCountDown {
         this.#registerCallbacks(this.#_.callbacks);
 
         this.#timeStarted = new Date();
-        this.#onCB();
+
+        this.#callbacks['on'].forEach(cbo => {
+          cbo.returnValue = cbo.cb(cbo);
+        });
+
         this.start();
       }
     }.bind(this));
@@ -960,20 +987,25 @@ class TimerCountDown {
       if (idx === 0) {
         idx = 0;
       }
-      let cbOpts = cbs[idx];
-      if (cbOpts && !cbOpts.isDone && !cbOpts.firedOn) {
-        //cb.firedOn !== Math.ceil(minsLeft) ) {
+
+
+      //iterate over all callbacks for this time index
+      cbs[idx] && cbs[idx].forEach(x => {
+
+        //run once by popping it off the array of callbacks
+        let cbo = cbs[idx].pop();
         try {
-          //pass in TimerCountDown instance
-          let cb = cbOpts.cb.bind(that);
-          cbOpts.isDone || cb(idx, cbOpts);
-          cbOpts.firedOn = cbOpts.firedOn || milliPassed;
-          cbOpts.isDone = true;
+          if (cbo && !cbo.isDone && !cbo.firedOn) {
+            //pass in TimerCountDown instance
+            let cb = cbo.cb.bind(that);
+            cbo.isDone || cb(idx, cbo);
+            cbo.firedOn = cbo.firedOn || milliPassed;
+            cbo.isDone = true;
+          }
         } catch (e) {
           console.log('callback failed', e);
         }
-
-      }
+      });
       if (milliPassed < milliDelay) {
         keepGoing = true;
       } else if (ratioTimePassed >= 0 && ratioTimePassed <= 1) {
@@ -1011,7 +1043,7 @@ class TimerCountDown {
         that.#isRunning = false;
         sliderNode.firstElementChild
 //        && sliderNode.firstElementChild.classList.add('flexClock__slider__button--red')
-        && (sliderNode.firstElementChild.textContent = '️⏳')
+//        && (sliderNode.firstElementChild.textContent = '️⏳')
         return zoomIn;
       }
 

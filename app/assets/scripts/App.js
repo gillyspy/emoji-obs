@@ -4,7 +4,8 @@ import anime from "animejs";
 const J$ = require("jquery").noConflict();
 import Favorites from "./modules/Favorites";
 import A from './modules/Animation';
-
+import P from './helpers/promiseFactory.js';
+import PP from './modules/PPromise.js'
 import pickerHelper from './helpers/picker.js';
 
 import Init from './modules/Init.js';
@@ -33,8 +34,11 @@ try {
     const Config = {};
     const App = {};
     App.Fn = {};
+    App.Animations = {};
+    App.Promises = {};
+
     const Nodes = {
-      spiderTrigger : document.querySelector('.web__trigger')
+      spiderTrigger: document.querySelector('.web__trigger')
     };
     try {
 
@@ -1112,32 +1116,41 @@ try {
           }
         },
           { /* spotlight & shadow */
-          times    : [1, 2, 3, 4, 5, 6, 7, 8, 9,20,30,40,50,60],
-          completed: [],
-          cb       : (minsLeft) => {
-            const shadow = MeetingCountDown.makeWarning(' ', 'flexClock__shadow');
-            const spotlight = MeetingCountDown.makeWarning(minsLeft, 'flexClock__spotlight');
-            if (!spotlight || !shadow) {
-              return;
-            }
+            times    : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60],
+            completed: [],
+            cb       : (minsLeft) => {
+              const shadow = MeetingCountDown.makeWarning(' ', 'flexClock__shadow');
+              const spotlight = MeetingCountDown.makeWarning(minsLeft, 'flexClock__spotlight');
+              if (!spotlight || !shadow) {
+                return;
+              }
 
-            const wrap = spotlight.parentElement;
-            //only do this the if its not draggable
-            if (!MouseActions.isDraggable(wrap)) {
-              MouseActions.makeDraggable(wrap, {}, false);
+              const wrap = spotlight.parentElement;
 
-              const slider = MeetingCountDown.getSlider();
-              const screen = Nodes.screenNode;
+              //if double digits then make the spotlight font smaller
+              if (minsLeft >= 9) {
+                spotlight.classList.add('flexClock__spotlight--doubledigit');
+              } else {
+                spotlight.classList.remove('flexClock__spotlight--doubledigit');
+              }
 
-              //using the difference of the slider position the wrap
-              const XY = TrashCan.calcDiffXY(slider, screen, [2000, 2000]);
-              const widthToSubtract = wrap.getBoundingClientRect().width / 2;
-              anime.set(wrap, {
-                left: Math.abs(XY.end.width - XY.start.centerX - widthToSubtract),
-                top : Math.abs(XY.end.height - XY.start.centerX - widthToSubtract)
-              });
 
-            }
+              //only do this the if its not draggable
+              if (!MouseActions.isDraggable(wrap)) {
+                MouseActions.makeDraggable(wrap, {}, false);
+
+                const slider = MeetingCountDown.getSlider();
+                const screen = Nodes.screenNode;
+
+                //using the difference of the slider position the wrap
+                const XY = TrashCan.calcDiffXY(slider, screen, [2000, 2000]);
+                const widthToSubtract = wrap.getBoundingClientRect().width / 2;
+                anime.set(wrap, {
+                  left: Math.abs(XY.end.width - XY.start.centerX - widthToSubtract),
+                  top : Math.abs(XY.end.height - XY.start.centerX - widthToSubtract)
+                });
+
+              }
 
             const spotlightAnimation = anime.timeline({
               autplay: false,
@@ -1210,15 +1223,33 @@ try {
         },
           {
             times: [0], //essentially on expiry
-            cb   : function (/*minsLeft*/) {
-              let sliderBtn = MeetingCountDown.getSlider().firstElementChild;
+            cb   : function (
+              /* integer */ minsLeft,
+              /* Object */ opts
+            ) {
 
-              if(sliderBtn) {
+              const slider = MeetingCountDown.getSlider();
+              const sliderBtn = slider.firstElementChild;
+              const sliderAnimation = this.onReturnValue;
+
+              if (sliderBtn) {
                 sliderBtn.style.borderColor = '';
-                sliderBtn.style.backgroundColor='';
+                sliderBtn.style.backgroundColor = '';
                 sliderBtn.classList.remove('flexClock__slider__button--green', 'flexClock__slider__button--red');
               }
-
+              //restore sloth rotation by quick-setting it
+              if( sliderAnimation ) {
+                sliderAnimation.then((v) => {
+                  //kill other animations on it;
+                  anime.remove( slider );
+                  anime.set(slider, {
+                    rotateZ    : 0,
+                    marginTop  : 0,
+                    marginRight: 0
+                  });
+                });
+                sliderAnimation.resolve();
+              }
               let triggerNode = this.triggerNode;
               MeetingCountDown.grandFinale();
               let oneClick = function (ev) {
@@ -1277,12 +1308,30 @@ try {
         ]
       },
       //on
-      function () {
+      function (opts) {
         //show
+        //rotate sloth
+        const slider = MeetingCountDown.getSlider();
+        const sliderBtn = slider.firstElementChild;
+        let returnValue;
+
+        sliderBtn && sliderBtn.classList.add('flexClock__slider__button--green');
+
+        App.Animations.clockOn = anime({
+          targets  : slider,
+          rotateZ  : -45,
+          marginTop: '-3.9em',
+          duration : 1000,
+          autoplay : false
+        });
+
+        //set a custom, adhoc property to carry forward to other callbacks
+        this.onReturnValue = new PP(App.Animations.clockOn.finished, [ App.Animations.clockOn, 'forcefailure'] );
+        App.Animations.clockOn.play();
+
         const clock = document.getElementById('flexClock');
         clock.classList.remove('flexClock--hide');
-        const sliderBtn = MeetingCountDown.getSlider().firstElementChild;
-        sliderBtn && sliderBtn.classList.add('flexClock__slider__button--green');
+
         /* 1. create a body trigger to get mouse
         * 2. check on position of the clock v mouse
         * 3. determine if the mouse is over the clock
@@ -1804,6 +1853,7 @@ try {
 */
 
     Window.anime = anime;
+    Window.App = App;
     Window.TimerCountDown = MeetingCountDown;
     Window.Trash = TrashCan;
   }); //doc ready
