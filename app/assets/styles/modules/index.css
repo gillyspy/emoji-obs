@@ -144,8 +144,10 @@ font-size: 25em;
 
 .web__spider__wheel {
         position: absolute;
-    top: 40px;
-    left: 30px;
+    /* top: 40px;
+    left: 30px;*/
+    left : -50px;
+    top: -50px;
     /* width: 600px; */
     display: flex;
     height: 100%;
