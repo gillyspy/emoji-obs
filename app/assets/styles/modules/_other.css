@@ -199,7 +199,15 @@
     border: none !important;
     cursor: pointer;
     font-size: 1.5em;
+    height: 1.5em;
+    width: 1.5em;
+    padding: 0;
+    overflow:visible;
 }
+.history--draggable  img {
+    box-shadow: none;
+}
+
 
         input, textarea {
         font-weight: bold;
@@ -217,6 +225,12 @@
     }
     input:-internal-autofill-previewed, ::placeholder{
         font-size : 1em;
+    }
+
+
+   #controls  img,
+   .web__draggable img {
+        box-shadow: none !important;
     }
 
 #history button.pressed,

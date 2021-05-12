@@ -54,7 +54,12 @@ class Favorites {
         this.stash.splice(position, 1)
 
         //update storage
+        try{
         this.doStorage(/* no arguments */);
+        }catch(e){
+          console.log('failure in trashFave', e);
+        }
+
 
         return true;
       } catch (e) {
@@ -116,7 +121,8 @@ class Favorites {
   }
 
   stashIt(emoji, addHistory = true) {
-    let name = (typeof emoji === 'object') ? emoji.emoji : emoji;
+    let name = (typeof emoji === 'object') ? emoji.name : emoji;
+    let url = (typeof emoji === 'object') ?  emoji.url : null;
     let fave = this.recallFave(name);
     //do we already have it stashed
     if (fave && typeof emoji === 'object') {
@@ -136,11 +142,13 @@ class Favorites {
           key     : emoji,
           name    : emoji,
           sticky  : false,
+          url  : url,
           position: this.nameIndex.length // this is correct at the time because index does not have it yet
         }
       } else { //object
         fave = emoji;
         fave.position = this.nameIndex.length;
+        fave.url = url;
       }
       //update stash and index
       this.stash.push(fave);
@@ -178,7 +186,11 @@ class Favorites {
     let to = 0;
     this.stash.move(from,to);
     this.nameIndex.move(from,to);
-    this.doStorage();
+    try{
+      this.doStorage();
+    }catch(e){
+      console.log('failure in promoteFave', e, fave);
+    }
   }
 
   recallIt(direction = 'backwards') {

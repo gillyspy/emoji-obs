@@ -19,6 +19,7 @@ const Init = {
   linger   : true,
   clocklocation : 'right',
   trashoffset : '600',
+  twemoji : false, // flag, true, false
   urlParams :  [
     'idlespeedoffset',
     'defaultidleemoji',
@@ -27,7 +28,8 @@ const Init = {
     'idlerotation',
     'linger',
     'clocklocation',
-    'trashoffset'
+    'trashoffset',
+    'twemoji'
   ],
   canvas           : {
     backgroundColor: "rgba(85,0,255,0)", //"#5500ff",

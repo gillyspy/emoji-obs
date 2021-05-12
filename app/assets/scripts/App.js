@@ -302,15 +302,28 @@ try {
     } // highlightFave
 
     //put the emoji in the "dock"
-    const archiveFave = function (sticky = false, emoji) {
+    const archiveFave = function (sticky = false, emoji, url, name) {
       var firstClass = sticky ? 'history pressed history__btn' : 'history history__btn';
       $('.highlight').removeClass('highlight');
       //$highlight = [];
       emoji = emoji || $target.text();
       //add unique entry to the history
       if ($('#' + emoji).length === 0) {
-        $history.find('#letters')
-          .prepend('<span class="letters"><button id="' + emoji + '" class="' + firstClass + '">' + emoji + '</button></span>');
+        if( Config.twemoji === 'flag'  ){
+          url = /^flag[:]/.test(name) ? url : undefined;
+        }
+
+        if (typeof url !== 'undefined') {
+          $history.find('#letters')
+            .prepend(
+              `<span class="letters"><button id="${emoji}" class="${firstClass}">`
+              + `<img src="${url}" alt="${emoji}"/><span style="display:none;">${emoji}</span></button></span>`
+            );
+
+        } else {
+          $history.find('#letters')
+            .prepend('<span class="letters"><button id="' + emoji + '" class="' + firstClass + '">' + emoji + '</button></span>');
+        }
 
       }
       //update size of icons
@@ -339,7 +352,7 @@ try {
           }
           $target.text(fave.emoji);
         }
-        archiveFave(!!fave.sticky, fave.emoji);
+        archiveFave(!!fave.sticky, fave.emoji, fave.url);
         //try to highlight in history
         highlightFave(fave.emoji, !!fave.sticky);
       }
@@ -360,7 +373,7 @@ try {
         Nodes.stickyButton.removeClass('pressed');
       }
       $target.text(fave.emoji);
-      archiveFave(fave.sticky, fave.emoji);
+      archiveFave(fave.sticky, fave.emoji, fave.url, fave.name);
       //try to highlight in history
       highlightFave($target.text(), fave.sticky);
       return false;
@@ -475,7 +488,7 @@ try {
                     translateX: 0,
                     delay     : 0,
                     easing    : 'linear',
-                    complete  : a => anime.remove('.' + randomClass)
+                   //  complete  : a => anime.remove('.' + randomClass)
                   });
                 });
               });
@@ -558,7 +571,7 @@ try {
                   delay   : 0,
                   easing  : 'linear',
                   complete: function () {
-                    anime.remove('.' + randomClass);
+                      anime.remove('.' + randomClass);
                   }
                 },
                 'destroyIt'
@@ -695,7 +708,7 @@ try {
             $target.text(emoji);
 
             var fave = myFavs.stashIt(emoji, true);
-            archiveFave(fave.sticky, emoji);
+            archiveFave(fave.sticky, emoji, fave.url);
             highlightFave(emoji, fave.sticky);
 
             myAnimation.addAnimation();
@@ -1850,7 +1863,8 @@ try {
       Nodes.emojiPickerName,
       {
         emojisPerRow: 31,
-        rows        : 5
+        rows        : 5,
+        style     : (Config.twemoji  === 'false' ? 'native' : 'twemoji')
       });
     App.myPicker.addPlugin('stickyHandler');
     App.myPicker.addPlugin('closeHandler');
