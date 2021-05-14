@@ -1,6 +1,9 @@
 import anime from 'animejs';
+import _u from '../helpers/_utils.js';
+import PP from './PPromise.js';
 //anime.suspendWhenDocumentHidden = false; // default true
 import Log from './Log.js';
+
 const log = new Log(false);
 
 class Animation {
@@ -1025,20 +1028,21 @@ class TimerCountDown {
     let accurateSlideParams;
       const accurateSlideFn = function( Y ) {
         let d = this.distance;
-        let nextY = Y + (this.speed * 30000);
-
-       return anime({
+        let nextY = Y + (this.speed * 300000);
+        anime.remove(sliderNode);
+        return anime({
           targets   : sliderNode,
           translateY: nextY,
-          duration  :  30000,
-          easing  : 'linear',
-          complete: a => {
-            if(Y === d)
+          duration  : 300000,
+          easing    : 'linear',
+          complete  : a => {
+            if (Y === d)
               return;
-            accurateSlideFn( ...accurateSlideParams )
+            accurateSlideFn(...accurateSlideParams)
           }
         })
-      }.bind(this)
+      }.bind(this);
+
 
     /* this animation will be kicked off with the other */
     this.queueFunc(function (milliPassed, previousMilli) {
@@ -1867,124 +1871,20 @@ class Trash {
   }
 
   static getXY(nodeXY) {
-    if (nodeXY instanceof Element) {
-      nodeXY = nodeXY.getBoundingClientRect();
-    }
-    try {
-      return (({top, left, height, width, bottom, right}) => ({
-        top   : top,
-        left  : left,
-        height: height,
-        width : width,
-        bottom: bottom,
-        right : right
-      }))(nodeXY);
-
-    } catch (e) {
-      console.log('getXY', e);
-      return {
-        top   : 0,
-        bottom: 0,
-        left  : 0,
-        right : 0,
-        width : 0,
-        height: 0
-      };
-    }
+    return _u.getXY(nodeXY);
   } //getXY
 
   static getSpecificXY(XY, choices = ['left', 'top', 'width', 'height']) {
-    if (XY instanceof Element) {
-      XY = Object.assign({}, Trash.getXY(XY));
-    }
-    if (choices && typeof choices === 'string') {
-      choices = [choices];
-    }
-
-    const O = {};
-    if (Array.isArray(choices)) {
-
-      choices.forEach(choice => {
-        O[choice] = XY[choice];
-      });
-      return O;
-    } else {
-      return XY;
-    }
-  } //getSpecificXY
-
-  static getSpecificDiffXY(start, end, choices = []) {
-    Trash.calcDiffXY(start, end, [2000, 2000]);
+    return _u.getSpecificXY(...arguments);
   }
 
   static calcDiffXY(
     start, /*emoji*/
     end, /* trash can*/
     maxHW = [50, 50]) {
-    const diff = {};
-    const _start = {};
-    if (start instanceof Element) {
-      start = start.getBoundingClientRect();
-    }
 
-    if (end instanceof Element) {
-      end = end.getBoundingClientRect();
-    }
-
-    try {
-      (({top, left, height, width, bottom, right},
-        {
-          top   : endT,
-          height: endH,
-          width : endW,
-          left  : endL,
-          bottom: endB,
-          right : endR
-        }) => {
-        const centerY = bottom - height / 2;
-        const centerX = right - width / 2;
-        const endCY = endB - endH / 2;
-        const endCX = endR - endW / 2;
-        //end
-        Object.assign(end, {
-          centerX: endCY,
-          centerY: endCY
-        });
-        //calc the center difference
-        Object.assign(_start, {
-          top    : top,
-          left   : left,
-          height : Math.min(height, maxHW[0]),
-          width  : Math.min(width, maxHW[1]),
-          centerX: centerX,
-          centerY: centerY,
-          bottom : bottom,
-          right  : right
-        });
-        Object.assign(diff, {
-          height : endH,
-          width  : endW,
-          bottom : endB - bottom,
-          right  : endR - right,
-          centerX: endCX - centerX,
-          centerY: endCY - centerY,
-          top    : endT - top, ///- height / 2,
-          //   top: (endT - (endH / 2)) - top,
-
-          //consider trashCan's future translateX ?
-          left: endL - left // width / 2) // - _Can.pushTranslateX)
-          //   left : (endL - (endW / 2 ) - _Can.pushTranslateX) - left
-        });
-      })(start, end);
-      return {
-        start: _start,
-        end  : end,
-        diff : diff
-      };
-    } catch (e) {
-      return false;
-    }
-  } //calcDiffXY
+    return _u.diffXY(...arguments);
+  }
 
   static #getBall(emoji) {
     //TODO: size this?
@@ -1997,7 +1897,6 @@ class Trash {
     trashBall.append(mask);
     return trashBall;
   } //getBall
-
 
   /*
   * App will call toss when it has something to throw out.
@@ -2071,6 +1970,9 @@ class Trash {
         translateY: 0,
         translateX: 0,
         scale     : 1
+      }, {
+        width : Math.max(calcDiff.start.width, 60),
+        height: Math.max(calcDiff.start.height, 60)
       }));
 
       //resize the candidate to match the start size of the trash
@@ -2118,16 +2020,23 @@ class Trash {
         // replace ball with a fake one that is in the can
         // then remove the real ball
 
+        //resize ball again
+        anime.set(trashBall, {
+            height: Math.min(TrashFullXY.height * .8, calcDiff.start.height),
+            width : Math.min(TrashFullXY.width * .8, calcDiff.start.width)
+          }
+        );
         const hiddenBall = Trash.#setHiddenBall(emoji, trashBall.firstElementChild);
+
 
         //remove the real ball is done in the animation
         anime.set(hiddenBall, {rotate: Math.random() * 90});
 
         //if ball is near the can then put it in the can. otherwise leave it on the ground for cleanup
         let putInCan;
-
+        const TrashFullXY = Trash.getXY(Trash.getCanNode());
         //if the can is in it's original spot then we're fine
-        putInCan = Trash.isAwithinB(_Can.xy, Trash.getXY(Trash.getCanNode()), {
+        putInCan = Trash.isAwithinB(_Can.xy, TrashFullXY, {
           //no adjustment
           left : 0,
           right: 0
@@ -2135,6 +2044,8 @@ class Trash {
 
         if (putInCan) {
           _Can.node.querySelector('.trashCan__bottom').append(hiddenBall);
+
+
         } else {
           //lay it on the floor cuz Can is elsewhere
           const dust = document.createElement('div');
@@ -2150,6 +2061,7 @@ class Trash {
               _Can.xy,
               {
                 translateY: 0,
+                scale     : 1,
                 translateX: 0,
                 rotateX   : 75,
                 rotateZ   : Math.random() * 90
@@ -2200,51 +2112,22 @@ class Trash {
   * when an animation completes then animation.finished promise is fulfilled
   * the problem is that it is instantly reset to a pending promise so you cannot check it again
   *
-  * #animateOnce wraps the animation in a promise that will only be resolved once;
-  *
+  * #animateOnce wraps the animation in a deffered promise race that will only be resolved one time;
+  *   further, it is  useful because animation automatically has a promise on it, BUT:
+  * - it resets on every loop
+  * - is difficult to initiate
+  * - does not return anything on success
    */
-  static animateOnce(animation, returnValue, earlyResolveDuration) {
+  static animateOnce(animation, returnValue, earlyResolveDuration, tick = 100, elapsed = 0) {
 
-    let tick = 100;
-    let elapsed = 0;
-    let isResolved = false;
-    returnValue = typeof returnValue === 'undefined' ? returnValue : animation;
-    let _P;
-    let interval;
+    returnValue = typeof returnValue !== 'undefined' ? returnValue : animation;
 
-    if (!earlyResolveDuration) {
-      //animation automatically has a promise on it, but it resets on every play
-      _P = animation.finished.then(() => {
-        isResolved = true;
-        return returnValue;
-      });
-    } else //
-    if (earlyResolveDuration) {
-      //else the resolution is not necessarily tied to end of the animation
-      _P = new Promise((resolve, reject) => {
-        interval = setInterval(() => {
-          //just in case the animation does somehow finish before expected
-          animation.finished.then(() => {
-            //automatically resolve
-            elapsed = earlyResolveDuration;
-            isResolved = true;
-            clearInterval(interval);
-            resolve(returnValue);
-          });
+    const deffered = new PP(animation.finished, [returnValue, 'animation failed']);
 
-          if (!animation.paused) {
-            elapsed += tick;
-          }
+    if(earlyResolveDuration) PP.resolveAtTick(earlyResolveDuration, deffered, elapsed, tick);
 
-          if (elapsed >= earlyResolveDuration) {
-            clearInterval(interval);
-            resolve(returnValue);
-          }
-        }, tick)
-      });
-    }
-    return _P;
-  }
+    return deffered;
+  } //animateOnce
 
   #animateBall(trashBall, doRemove = true, inGallery = false) {
     const emoji = trashBall.textContent;
@@ -2273,15 +2156,16 @@ class Trash {
     ).add({
       targets   : trashBall, // document.querySelector('.highlight'),
       opacity   : 1,
-      scale     : [{
-        value   : 2,
-        duration: 1700,
-        easing  : 'easeInQuad'
-      }, {
-        value   : 1,
-        duration: 300,
-        easing  : 'easeOutQuad'
-      }],
+      scale     : 0.2,
+      /*   scale     : [{
+           value   : .2, //2
+           duration: 1700,
+           easing  : 'easeInQuad'
+         }, {
+           value   : .2,
+           duration: 300,
+           easing  : 'easeOutQuad'
+         }], */
       translateY: [
         {
           value   : tranY[0],
@@ -2340,7 +2224,7 @@ class Trash {
         });
       },
       update    : a => {
-        let xy = trashBall.getBoundingClientRect();
+        // let xy = trashBall.getBoundingClientRect();
         /*   console.log({
              left    : xy.left,
              top     : xy.top,
