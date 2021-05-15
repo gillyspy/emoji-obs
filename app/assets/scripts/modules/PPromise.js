@@ -1,6 +1,6 @@
 const pTypes = ['any', 'all', 'race', 'allSettled'];
-const staticRedirects = ['resolve', 'reject'].concat(pTypes);
-const protoRedirects = ['catch', 'finally', 'then'];
+const staticRedirects = ['resolve', 'reject', ...pTypes];
+//const protoRedirects = ['catch', 'finally', 'then'];
 const stateKeys = ['isFulfilled', 'isPending', 'isRejected', 'isResolved'];
 const solid = Symbol.for('solid');
 const fluid = Symbol.for('fluid');
@@ -71,18 +71,20 @@ const stateDefaults = {
  * you can resolve/reject them all by using '*'
  */
 class PPromise {
-
+  #callback;
   #PPromise;
+  #Headless;
   #PPromises = []; //internal array of promises;
   #states = stateDefaults;
   /* if the deferred is conditional then conditions can be set externally
    * and those conditions must be met for it to resolve
    *
    */
+  #interaction = 'race';
   #isConditional = true; /* whether or not conditions even matter */
   #condition = null; /* the actual condition, if relevant */
   #Type;  /* type enum. default standard */
-  #logic = '0' // logic string
+  // #logic = '0' // logic string  / TODO;
 
   #args = {
     resolve: undefined,
@@ -99,6 +101,8 @@ class PPromise {
     reject : null
   }
 
+  #PromiseLibrary;
+  #isUnbreakable;
   /*
    * when you want a promise but want to resolve it externally
    *
@@ -106,17 +110,16 @@ class PPromise {
    */
   constructor(
     /* promise */ callbackOrPromises,
-    /* symbol */ type = standard,
-    /* pTypes */ nativeType = 'race',
-    /* array */ resolveRejectValues = []
+    /* array */ resolveRejectValues = [],
+    /* object */ opts = {
+      /* symbol */
+      type         : standard,
+      isUnbreakable: false,
+      /* pTypes */
+      interaction  : 'race'
+    }
   ) {
-    const
-      v = this.#values,
-      a = this.#args,
-      s = this.#states,
-      cb = this.#cbs,
-      that = this;
-    let callback;
+    const v = this.#values;
     this.#PPromises = [];
 
     this.#cbs.resolve = (resolve) => {
@@ -126,19 +129,21 @@ class PPromise {
       v.reject = reject;
     };
 
+    this.#isUnbreakable = !!opts.isUnbreakable;
+
     //1 determine the type of PPromise being requested. all stems from that
     /*
-     * case A:  type = solid ; nativeType :[ any, all,...] ; externalPromises = [ 1...n ]
+     * case A:  type = solid ; interaction :[ any, all,...] ; externalPromises = [ 1...n ]
      * -  callback here is required (typical of a standard promise)
      * -  ... or externalPromises is required
      * - "upgrade" the promise means
      */
 
     /*
-     * case B: type= standard (deferred); nativeType :  externalPromises = [1..n]
+     * case B: type= standard (deferred); interaction :  externalPromises = [1..n]
      * - B.1 callback not provided
      * -- if no callback is provided then it's simple deferred
-     * -- nativeType : [ any, all, ...]
+     * -- interaction : [ any, all, ...]
      * -- externalPromises [ 0..n]
      * -- the deferred case is incorporated as one of the promises (or the only one)
      *
@@ -147,14 +152,162 @@ class PPromise {
      * - "upgrade" the resulting promise by embedding a promise inside the deferred ???
      *
      */
-    this.#Type = PPromise.getType(type);
+    this.#Type = PPromise.getType(opts.type);
 
     //set stateDefaults
     Object.assign(this.#states, stateDefaults);
 
     if (this.#Type === solid && !callbackOrPromises)
-      throw TypeError('you must provide a callback or a promise for ' + this.#Type.description);
+      throw TypeError(`you must provide a callback or a promise for ${this.#Type.description}`);
 
+    this.#defineProperties();
+
+    this.type = this.#Type;
+    this.#interaction = opts.interaction;
+
+    this.#setHeadless();
+    this.#setRoot(resolveRejectValues, callbackOrPromises);
+
+    //establish native proxies
+    PPromise.#proxyMethods.call(this);
+
+    return this;
+  } //constructor
+
+  #setRoot(values, cbOrP) {
+    this.#setReturnValues(...values);
+    //replace Promises
+    this.#setPPromises(cbOrP);
+    //replace callback
+    this.#setCallback(cbOrP);
+    //replace PPromise
+    this.#setPPromise();
+
+    //bundle 1...n promises   i.e. if multiple, define their relationship/interaction
+    if (this.#PPromises.length) {
+      //put internal PPromise on front of the queue
+      this.#PPromises.unshift(this.#PPromise);
+      this.#PPromise = Promise[this.#interaction]([...this.#PPromises]);
+      /* the promise will call headless but
+  because we know that the internal promise will never have any direct chain (until resolved)
+  we can  dynamically assign it's "then" relationship to headless at that time.
+   */
+      //this.#PPromise.then(this.#Headless.resolve, this.#Headless.reject);
+    }
+  }
+
+  /* proxy a native promise into a (solid) PPromise
+   * do NOT allow a PPromise to be proxied -- this is just dumb
+   *
+   * this will attach good visibility into resolved status and allowed to get the returned value out without using
+   * promise methods (then, etc)
+   */
+  static #proxyPromise(promise) {
+    if (promise instanceof PPromise) {
+      return promise;
+    } else {
+      return new PPromise(promise, solid, []);
+    }
+  }
+
+  #setHeadless() {
+    this.#Headless = PPromise.getDeferred();
+  }
+
+  //upgrade the callback ( more status and in some cases adding deferred);
+  #setCallback(cb) {
+    const _cb = this.#cbs;
+    const _arg = this.#args;
+    const that = this;
+    if (typeof cb === 'undefined') {
+      this.#callback = (resolve, reject) => {
+        if (that.type !== solid) {
+          _arg.resolve = resolve;
+          _arg.reject = reject;
+        }
+      }
+    } else if (typeof cb === 'function') {
+      this.#callback = (resolve, reject) => {
+        cb(_cb.resolve, _cb.reject);
+        if (that.type !== solid) {
+          _arg.resolve = resolve;
+          _arg.reject = reject;
+        }
+      }
+    }
+  } //setCallback
+
+  static isPromise(p) {
+    return (p instanceof Promise || p instanceof PPromise);
+  }
+
+
+  #setPPromises(p) {
+    if (PPromise.isPromise(p)) {
+      this.#PPromises = [p];
+      return;
+    }
+
+    let A = Array.from(p);
+    this.#PPromises = A.length && PPromise.isPromise(A[0]) ? A : [];
+  }
+
+  // make a promise/deferred with the upgrade callback
+  #setPPromise(cbOrP = this.#callback) {
+    switch (this.#Type) {
+      case solid :
+      case standard:
+      case fluid:
+        this.#PPromise = PPromise.#getPromise(this.#states, cbOrP);
+        break;
+    }
+  }
+
+  #linkHeadless() {
+    this.#PPromise.then(this.#Headless.resolve, this.#Headless.reject);
+  }
+
+//
+  static
+  #getPromise(stateObject, cbOrP) {
+    const P = (typeof cbOrP === 'function') ? new Promise(cbOrP) : cbOrP;
+    PPromise.updateProperties(P, stateObject);
+    return P;
+  }
+
+  #setReturnValues(v, e) {
+    //allow for undefined values;
+    if (arguments.length)
+      this.updateValue(v);
+
+    if (arguments.length === 2)
+      this.updateReason(e);
+  } //setReturnValues
+
+  static updateProperties(promise, stateObject) {
+    //var s = this.#states;
+
+    promise.then(
+      value => {
+        stateObject.isFulfilled = true;
+        stateObject.isResolved = true;
+        stateObject.isPending = false;
+        stateObject.isRejected = false;
+
+        return value;
+      },
+      error => {
+        stateObject.isFulfilled = false;
+        stateObject.isResolved = false;
+        stateObject.isPending = true;
+        stateObject.isRejected = false;
+
+        return error;
+      });
+  } //setState
+
+//define object properties (getters & setters)
+  #defineProperties() {
     /**********************
      * define properties
      */
@@ -173,30 +326,39 @@ class PPromise {
       });
     });
 
-
-    //condtional; isConditional;
     Object.defineProperties(this, {
+      'isUnbreakable': {
+        get() {
+          this.#isUnbreakable;
+        },
+        set(v) {
+          if (this.#isUnbreakable || typeof v === 'undefined')
+            return;
+
+          this.#isUnbreakable = !!v;
+        }
+      },
       'state'        : {
         enumerable: true,
         get() {
-         return (this.isPending && 'pending') ||
+          return (this.isPending && 'pending') ||
             (this.isRejected && 'rejected') ||
             (this.isFulfilled && 'fulfilled') ||
-              undefined
+            undefined
         }
       },
-      'expectedValue':{
-          enumerable: true,
-        get(){
-            return Object.assign({},this.#values);
+      'expectedValue': {
+        enumerable: true,
+        get() {
+          return Object.assign({}, this.#values);
         }
       },
       'result'       : {
         enumerable: true,
-        get(){
-         return (this.isRejected && this.#values.reject) ||
+        get() {
+          return (this.isRejected && this.#values.reject) ||
             (this.isFulfilled && this.#values.resolve) ||
-              undefined
+            undefined
         }
       },
       'settled'      : {
@@ -256,156 +418,20 @@ class PPromise {
 
           if (typeof this.#Type === 'undefined')
             this.#setFluid();
-
-
         }
       }
     });
-    /**********************/
-    this.type = this.#Type;
+  } //defineProperties
 
-    //upgrade the callback (  all types )
-    if (['function', 'undefined'].includes(typeof callbackOrPromises)) {
-      //end up with one promise or deferred here
-      callback = this.#setCallback(callbackOrPromises);
-
-    } else if (callbackOrPromises instanceof Promise) {
-      this.#PPromises.push(callbackOrPromises);
-      callback = this.#setCallback();
-    } else if (Array.isArray([...callbackOrPromises])) {
-      this.#PPromises = [...callbackOrPromises];
-      callback = this.#setCallback()
-    }
-
-    // make a promise or deferred with callback
-    this.#setPPromise(callback);
-    if (this.#PPromises.length) {
-      //get PPromise
-      this.#PPromises.unshift(this.#PPromise);
-      this.#PPromises = Promise[nativeType](promises)
-    } else {
-      //
-    }
-
-    //prepare any custom return values
-    this.#setReturnValues(...resolveRejectValues);
-
-    //establish native proxies
-    PPromise.#proxyMethods.call(this, this.#PPromise);
-
-    return this;
-  } //constructor
-
-  /* proxy a native promise into a (solid) PPromise
-   * do NOT allow a PPromise to be proxied -- this is just dumb
-   *
-   * this will attach good visibility into resolved status and allowed to get the returned value out without using
-   * promise methods (then, etc)
-   */
-  static #proxyPromise(promise) {
-    if (promise instanceof PPromise) {
-      return promise;
-    } else {
-      return new PPromise(promise, solid, []);
-    }
+//library is where the structure of all related promises is.
+  #updateLibrary(promisesArray, interaction) {
+    const entry = {};
+    entry[interaction] = promisesArray;
+    this.#PromiseLibrary.push(entry);
   }
 
-  #setCallback(cb) {
-    const _cb = this.#cbs;
-    const _arg = this.#args;
-    const that = this;
-    if (typeof cb === 'undefined') {
-      return (resolve, reject) => {
-        if (that.type !== solid) {
-          _arg.resolve = resolve;
-          _arg.reject = reject;
-        }
-      }
-    } else {
-      return (resolve, reject) => {
-        cb(_cb.resolve, _cb.reject);
-        if (that.type !== solid) {
-          _arg.resolve = resolve;
-          _arg.reject = reject;
-        }
-      }
-    }
-  } //setCallback
-
-  // get a promis
-  #setPPromise(cbOrP) {
-    switch (this.#Type) {
-      case solid :
-      case standard:
-      case fluid:
-        this.#PPromise = PPromise.#getPromise(this.#states, cbOrP);
-        break;
-    }
-  }
-
-  //
-  static #getPromise(stateObject, cbOrP) {
-    const P = (typeof cbOrP === 'function') ? new Promise(cbOrP) : cbOrP;
-    PPromise.updateProperties(P, stateObject);
-    return P;
-  }
-
-  /*
-    #getDeferred() {
-      this.#callback;
-
-
-      PPromise.getDeffered()
-    } */
-
-  /*static getDeferred(deferTriggers, stateObject) {
-    const P = new Promise((f, r) => {
-      deferTriggers.resolve = f;
-      deferTriggers.reject = r;
-
-      //initialize status
-      Object.assign(stateObject, stateDefault);
-    });
-
-    PPromise.updateProperties(P, stateObject);
-
-    return P;
-  }*/
-
-  #setReturnValues(v, e) {
-    //allow for undefined values;
-    if (arguments.length)
-      this.updateValue(v);
-
-    if (arguments.length === 2)
-      this.updateReason(e);
-  } //setReturnValues
-
-  static updateProperties(promise, stateObject) {
-    //var s = this.#states;
-
-    promise.then(
-      value => {
-        stateObject.isFulfilled = true;
-        stateObject.isResolved = true;
-        stateObject.isPending = false;
-        stateObject.isRejected = false;
-
-        return value;
-      },
-      error => {
-        stateObject.isFulfilled = false;
-        stateObject.isResolved = false;
-        stateObject.isPending = true;
-        stateObject.isRejected = false;
-
-        return error;
-      });
-  } //setState
-
-  //e.g. if PPromise.all() is called or this.finally()
-  static #proxyMethods(
-    /* Promise */ p) {
+//e.g. if PPromise.all() is called or this.finally()
+  static #proxyMethods(/* Array */  library) {
     let that;
     if (this instanceof PPromise) {
       that = this;
@@ -416,18 +442,57 @@ class PPromise {
       PPromise[m] = function ( /*arguments */) {
         //call native promise
         let _p = Promise[m].apply(null, arguments);
+
+        if (that && library) {
+          //add it to the list of promises ? TODO:
+        }
+        //return different object depending on if bound by PPromise (internally)
         return that || _p;
       }
     });
 
+    /* for any of these...
+    * attach them to a dummy deferred (we'll call it headless promise)
+    * this dummy deferred will get called by the main promise/deferred when it resolves.
+    *
+    * Thus, until it resolves we can "move" / attach it to to a different promise
+     */
+
     // e.g.  this.finally( cb )
-    protoRedirects.forEach(m => {
-      PPromise.prototype[m] = function ( /*arguments */) {
-        let _p = p[m](...arguments);
-        return that || _p;
-        //return p[m].apply(this, arguments);
-      }.bind(that || this);
-    });
+    /* protoRedirects.forEach(m => {
+       PPromise.prototype[m] = function ( ) {
+         let _p = p[m](...arguments);
+
+         return that || _p;
+         //return p[m].apply(this, arguments);
+       }.bind(that || this);
+     });*/
+  } // proxyMethods
+
+  /******** all links in the promise chain need to be attached to the headless deferred ***/
+  #thenFinallyCatch(protoFn, ...args) {
+    this.#Headless[protoFn](...args);
+    return this;
+  }
+
+  then(...args) {
+    return this.#thenFinallyCatch('then', ...args)
+  }
+
+  finally
+  (
+    ...
+      args
+  ) {
+    return this.#thenFinallyCatch('finally', ...args);
+  }
+
+  catch
+  (
+    ...
+      args
+  ) {
+    return this.#thenFinallyCatch('catch', ...args)
   }
 
   static help(method) {
@@ -437,6 +502,7 @@ class PPromise {
       and then include this instance as one of the arguments`
     );
   }
+
 
   updateValue(value) {
     if (!this.isPending) {
@@ -485,6 +551,9 @@ class PPromise {
     if (arguments.length) {
       this.updateReason(reason)
     }
+    //link headless
+    this.#linkHeadless();
+    //reject
     this.#args.reject(this.#values.reject);
     return this.#values.reject;
   }
@@ -493,21 +562,19 @@ class PPromise {
     if (arguments.length) {
       this.updateValue(value);
     }
+    //link headless
+    this.#linkHeadless();
+    //resolve
     this.#args.resolve(this.#values.resolve);
     return this.#values.resolve
   }
 
-  //a quick version
-  static getDeferred() {
-    return new PPromise();
+//a basic deferred using PPromise
+  static getDeferred(...a) {
+    return new PPromise(...a);
   }
 
-  /* helper that does it based on clock time */
-  static resolveAtClock(end, deferred, start = new Date(), tick = 100) {
-
-  }
-
-  //lookup for a string to the enum
+//lookup for a string to the enum
   static getType(type) {
     if (typeof type === 'undefined') {
       type = standard;
@@ -539,7 +606,6 @@ class PPromise {
       return;
     }
     this.#Type = standard;
-
   }
 
   #setFluid() {
@@ -549,19 +615,6 @@ class PPromise {
     this.#Type = fluid;
     //this.#condition  =  this.#condition;
     this.#isConditional = true;
-
-  }
-
-  /*
-   * check if the new option is
-   */
-  #upgradeToSolid() {
-
-
-  }
-
-  #upgradeToStandard() {
-
   }
 
   #setConditional(type) {
@@ -569,7 +622,12 @@ class PPromise {
     return this;
   }
 
-  /* helper  that sets up a timer for you */
+  /* helper that does it based on clock time */
+  static resolveAtClock(end, deferred, start = new Date(), tick = 100) {
+
+  }
+
+  /* helper that sets up a timer for you */
   static resolveAtTick(end, deferred, start = 0, tick = 100) {
     if (deferred === true) {
       deferred = PPromise.getDeffered();
@@ -588,6 +646,67 @@ class PPromise {
 
   }//resolveWhen
 
+  replaceRoot(
+    values = [],
+    cbOrP = this.#callback,
+    /*object */ opts = {
+      type       : this.type,
+      interaction: this.#interaction
+    }) {
+    if (this.state !== 'pending' || this.isUnbreakable) {
+      return;
+    }
+    //unbreakable stays same
+    //this.isUnbreakable = false;
+
+    //set type according to property definition
+    this.type = opts.type;
+    this.#interaction = opts.interaction;
+    this.#setRoot(values, cbOrP);
+    return this;
+  }
+
+  /* drop the chain is akin to replace the internal headless promises */
+  dropChain(action, value) {
+    if (!this.isPending || this.isUnbreakable) {
+      return;
+    }
+    const droppedChain = this.#Headless;
+
+    //new chain
+    this.#setHeadless();
+
+    //if solid then immediately reject
+    if (this.#Type === solid)
+      droppedChain.reject('Promise broken: Root has dropped this chain');
+
+    //process droppedChain
+    else if (['resolve', 'reject'].includes(action))
+      droppedChain[action](value);
+
+    //if not solid then return the dropped chain
+    return this.#Headless;
+
+  }//dropChain
+  /*
+  * changeInteration is possible because the stored Promise does not actually attach the promise chain until after
+  * settling
+  *
+  * There is a headless deferred that is called.
+  *
+   is this dangerous?? maybe because:
+   -the asynchronous thread could complete during the swap
+   - there might be other attachments to it that need to get updated but you'll never know who they are
+   --> so essentially, you're creating a new promise not really destroying the old one
+   */
+  changeInteraction(type) {
+    //can only change interaction if the promise is not pending
+    if (this.state === 'pending' && this.type !== solid)
+      //the original array is still in tact so use that
+      this.#PPromise = PPromise[type]([...this.#PPromises]);
+
+    return this;
+  }
 }
 
 export default PPromise;
