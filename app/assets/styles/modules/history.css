@@ -15,18 +15,26 @@
     border: 2px dashed white;
 }
 
-.everything__history button {
-        border: none;
-        cursor: pointer;
-      /*  padding: 0;
-        width: 1.5em;
-        height: 1.5em;
-        font-size : 32px;*/
-    }
+.history.pressed {
+    border-radius: 8px;
+}
 
-.history--draggable {
+.everything__history button {
+    border: none;
+    cursor: pointer;
+    font-size: 1.4rem;
+    /* line-height: 1; */ /* no line-height here */
+
+
+    /*  padding: 0;
+      width: 1.5em;
+      height: 1.5em;
+      font-size : 32px;*/
+}
+
+.history--draggable--OLD {
     position: absolute;
-    display:flex;
+    display: flex;
     justify-content: center;
     align-items: center;
     z-index: 20000;
@@ -34,18 +42,19 @@
     background-color: rgba(0, 0, 0, 0) !important;
     border: none !important;
     cursor: pointer;
-    font-size: 10rem;
- /*  height: 100%;
-    width: 100%; */
+    font-size: 6rem; /* TODO: turn off cuz sub elements have this? */
+    /*  height: 100%;
+       width: 100%; */
     /*height: 40px;
     width : 40px; */
     height: 1.5em;
     width: 1.5em;
     padding: 0;
-    overflow:visible;
-    line-height: 0;
-    margin-left: -200px;
-    margin-right: -200px;
+    overflow: visible;
+    line-height: 1; /* 0; */ /* TODO: turn off cuz sub elements have this? */
+    /* margin-left: -200px;
+    margin-right: -200px; */
+    margin: 0;
 }
 .history__facade--draggable{
     position: absolute;
@@ -60,25 +69,147 @@
     font-size: 3rem;
     height: 40px;
     width : 40px;
-   /* height: 1.5em;
-    width: 1.5em; */
+    /* height: 1.5em;
+     width: 1.5em; */
     padding: 0;
-    overflow:visible;
+    overflow: visible;
 }
-.history--draggable  img {
+
+.history--draggable img {
     height: 100%;
     width: 100%;
     box-shadow: none;
 }
 
-.history__btn img {
-    height : 100%;
-    position: relative;
-       /* width: 100%;*/
-    margin-left: -100px;
-    margin-right:-100px;
+.history--draggable button {
+    border: 0;
 }
 
-.letters .history__btn img{
+.history__btn img {
+    height: 100%;
+    position: relative;
+    /* width: 100%;*/
+    margin-left: -100px;
+    margin-right: -100px;
+}
 
+.history__emoji {
+    position: absolute;
+    /* font-size: 1.5em;
+    line-height: 0.8em;
+     */
+    color: white;
+    height: 100%;
+    width: 100%;
+}
+
+.history_emojiURL {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    /* font-size : 1.5em;
+    line-height: 0.8em; */
+    color: rgba(0, 0, 0, 0);
+    background-repeat: no-repeat;
+    /* background-image: url(a;sldfja) */
+    border: 0.15em solid rgba(0, 0, 0, 0);
+    box-sizing: border-box;
+}
+
+
+.history__btn {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    flex-wrap: nowrap;
+    height: 1.5em;
+    width: 1.5em;
+    font-size: 2rem !important;
+    overflow: visible;
+    padding: 0;
+}
+
+
+.history--draggable {
+    z-index: 20000;
+    /* transform: scale(3); */ /* scaled by animejs instead */
+    position: absolute;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+
+}
+
+#letters {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.letters .history__btn img {
+
+}
+
+#letters > .letters {
+    /* flex : 2 1 50px; */
+    width: 50px;
+    height: 50px;
+    display: flex;
+    flex-wrap: nowrap;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.letters > .highlight {
+    transform: scale(2);
+    z-index: 1;
+    /*
+    font-size: 2rem !important;
+    line-height: 0;
+    position: relative;
+    padding : 0 25px 0 25px;
+    overflow : visible;
+    */
+}
+
+.letters .history__btn:hover {
+    transform: scale(2) !important;
+    z-index: 1 !important;
+}
+
+.gallery {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+}
+
+.dragTemp__pin {
+    font-size: 0.1em;
+    /*   margin-left: 21em;
+       margin-top: 21em;*/
+    margin-left: 100%;
+    opacity: 0.6;
+    align-self: flex-end;
+    vertical-align: sub;
+    /* position:relative*/
+    z-index: 20001;
+}
+
+
+.highlight span {
+    /*   margin-left: -100px;
+         margin-right: -100px;
+         font-size: 2rem;
+         vertical-align: text-top;
+         line-height: 1px; */
 }

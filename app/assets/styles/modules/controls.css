@@ -44,9 +44,9 @@
     justify-content: flex-start;
 }
 
-.everything__history button,
 .controls__drawing button,
 .controls__button {
+    line-height: 1;
     font-size: 20px;
     vertical-align: top;
     color: white;

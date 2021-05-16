@@ -38,32 +38,6 @@
 
 
 
-
-    #letters {
-        display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-content: flex-end;
-    justify-content: flex-start;
-    align-items: flex-start;
-    }
-
-    .highlight span{
-      margin-left: -100px;
-        margin-right: -100px;
-        font-size: 2rem;
-        vertical-align: text-top;
-        line-height: 1px;
-    }
-
-    .letters > .highlight{
-        font-size: 2rem !important;
-        line-height: 0;
-        position: relative;
-        padding : 0 25px 0 25px;
-        overflow : visible;
-    }
-
     .everything__top{
         position:relative;
         width:100%;

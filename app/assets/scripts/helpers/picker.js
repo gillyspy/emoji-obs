@@ -10,7 +10,7 @@ const defaults = {
   initialCategory: 'recents',
   showVariants   : true,
   position       : {
-    top     : 0,
+    top     : 50,
     position: 'absolute'
   },
   strategy       : 'absolute',
@@ -118,9 +118,12 @@ const _Picker = {
 
 class myPicker {
   #_ = {}; //options
-  #picker;
+  #picker; //the picker object
   #trigger;
   #facade = {};
+  #wrapper;
+  #root;  //the root node
+  #emojiClasses = ['emoji-picker__emoji','emoji'];
 
   constructor(rootNode, triggerNode, namePreviewNode, opts) {
     /*
@@ -135,7 +138,11 @@ class myPicker {
       this.#setRoot(rootNode);
     }
     this.#trigger = triggerNode;
+
+    this.launch();
+    this.#initNamePreview(namePreviewNode);
     this.#initTrigger();
+
   }
 
   #initTrigger() {
@@ -155,8 +162,28 @@ class myPicker {
 
   #initNamePreview(namePreviewNode) {
     if (namePreviewNode && namePreviewNode instanceof Element) {
-      namePreviewNode.addEventLister('mousemove', function () {
-        //TODO:
+      const wrapper = this.#root.firstElementChild;
+      const pickerGallery = document.querySelector('.emoji-picker__emoji');
+      const emojiClasses = this.#emojiClasses;
+
+      const namePreview = document.querySelector('.emoji_preview-name');
+      const emojiPreview = document.querySelector('.emoji_preview__emoji');
+      const twemojiPreview = document.querySelector('.emoji_preview__twemoji');
+
+      wrapper.addEventListener('mousemove', function (ev) {
+        if (! emojiClasses.some( cl=> ev.target.classList.contains(cl)) )
+          return true;
+
+        //if it's an image then go up one to the parent
+        let emojiEl = ev.target.nodeName === 'IMG' ? ev.target.parentElement : ev.target;
+        let twemojiEl = ev.target.nodeName === 'IMG' ? ev.target : ev.target.firstElementChild;
+
+        namePreview.textContent =  emojiEl.getAttribute('title');
+        emojiPreview.textContent = emojiEl.getAttribute('data-emoji');
+        twemojiPreview.style.backgroundImage = `url(${twemojiEl.getAttribute('src')})`;
+        twemojiPreview.textContent = emojiEl.getAttribute('data-emoji');
+
+        return true;
         //update the preview area with the name of this emoji
       });
       /*     .on('mouseover', 'button.emoji-picker__emoji', function () {
@@ -165,6 +192,11 @@ class myPicker {
            });
 
        */
+
+      //const namePreview = document.querySelectorAll('.emoji_preview-name');
+      // const emojiPreview = document.querySelectorAll('.emoji_preview-emoji');
+      //  namePreview.textContent = this.getAttribute('title');
+      //  emojiPreview.textContent = this.getAttribute('data-emoji')
     }
   }
 
@@ -182,8 +214,6 @@ class myPicker {
       }
       this.#picker = new EmojiButton(this.#_);
       this.#setPropsFacade();
-      this.#initNamePreview();
-
 
     } catch (e) {
       console.log({
@@ -196,8 +226,9 @@ class myPicker {
   }
 
   #setRoot(node) {
-    if (!this.#picker) {
-      this.#_.rootElement = node;
+    if (!this.#root) {
+      this.#root = node;
+      this.#_.rootElement = this.#root;
       return true;
     } else {
       return false;

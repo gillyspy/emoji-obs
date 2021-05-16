@@ -1,6 +1,14 @@
+import Log from '../modules/Log.js';
+
+const log = new Log('disabled'==='true');
 /*
 *
 */
+const isNodeInDom = (node)=>{
+  if (node instanceof Element)
+    return (node.getClientRects().length !== 0)
+}
+
 const getXY = function (nodeXY) {
   let isInDom = true;
   if (nodeXY instanceof Element) {
@@ -22,7 +30,7 @@ const getXY = function (nodeXY) {
     }))(nodeXY);
 
   } catch (e) {
-    console.log('getXY', e);
+    log.browser('getXY', e);
     return null
   }
 } //getXY
@@ -132,17 +140,17 @@ const diffXY = (
 const isAwithinB = (
   A, B, fudge, doCenterOnly = false,
   ignore = ['left', 'right', 'top', 'bottom']) => {
-
-  let isWithin = false;
-  const diff = {};
-  //thresholds
-  const compare = {
-    left   : 0,
-    top    : 0,
-    bottom : 0,
-    right  : 0,
-    centerX: 0,
-    centerY: 0
+  try {
+    let isWithin = false;
+    const diff = {};
+    //thresholds
+    const compare = {
+      left   : 0,
+      top    : 0,
+      bottom : 0,
+      right  : 0,
+      centerX: 0,
+      centerY: 0
   }
   if (typeof fudge === 'object') {
     //TODO: support ratios in fudge
@@ -199,8 +207,11 @@ const isAwithinB = (
   } else {
     isWithin = false;
   }
-
-  return false;
+    return false;
+  } catch (e) {
+    log.browser(e);
+    return false;
+  }
 } //isAwithinB
 
 
@@ -208,5 +219,6 @@ export default {
   diffXY       : diffXY,
   getXY        : getXY,
   getSpecificXY: getSpecificXY,
-  isAwithinB   : isAwithinB
+  isAwithinB   : isAwithinB,
+  isNodeInDom : isNodeInDom
 }

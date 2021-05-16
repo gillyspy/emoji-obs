@@ -637,7 +637,7 @@ class TimerCountDown {
       translateY: 0,
       duration  : 500,
       onComplete: function (a) {
-        a.remove()
+        a.remove('*')
       }
     });
     anime({
@@ -645,7 +645,7 @@ class TimerCountDown {
       translateY: 0,
       duration  : 2000,
       onComplete: function (a) {
-        a.remove()
+        a.remove('*')
       }
     })
 
@@ -653,7 +653,7 @@ class TimerCountDown {
     this.#scaleAnimation.forEach(a => {
       // a.restart();
       // a.pause();
-      a.remove();
+      a.remove('*');
     });
 
     //slide the slider back up ( this animation does not have to be time-accurate)
@@ -747,7 +747,7 @@ class TimerCountDown {
   }*/
 
   #animateDrain() {
-
+    const animationQ = this.#scaleAnimation;
     this.#distanceRemaining = this.#distance;
 
     let duration = this.durationJS();
@@ -848,63 +848,75 @@ class TimerCountDown {
       let newG;
       let doColorChange = false;
 
-      if (duration > 610000 ) {
-        doColorChange=true;
+      if (duration > 610000) {
+        doColorChange = true;
       }
       //anime as a time controller
-      anime({
-        targets : {ct: 0},
-        ct      : duration,
-        duration: duration,
-        update  : a => {
-          if (doColorChange) {
-            //all way  up red
-            newR = (a.progress *2 / ratioTarget) * 255;
-            //then down on yellow
-            newG = newR > 240 ? 510 - newR  : 255;
-            sliderNode.firstElementChild.style.backgroundColor = `rgba(${newR},${newG},0,.1)`;
-            sliderNode.firstElementChild.style.borderColor = `rgba(${newR},${newG},0,1)`;
-          }
-          //console.log(O[0])
-          //        delay   : anime.stagger(T1, {start: T0}),
-          if (a.currentTime > T) {
-            hMult = -1
-
-            if (!N.length) {
-              return;
+      animationQ.push(
+        anime({
+          targets : {ct: 0},
+          ct      : duration,
+          duration: duration,
+          update  : a => {
+            if (doColorChange) {
+              //all way  up red
+              newR = (a.progress * 2 / ratioTarget) * 255;
+              //then down on yellow
+              newG = newR > 240 ? 510 - newR : 255;
+              sliderNode.firstElementChild.style.backgroundColor = `rgba(${newR},${newG},0,.1)`;
+              sliderNode.firstElementChild.style.borderColor = `rgba(${newR},${newG},0,1)`;
             }
-            let node = N.shift();
-            let distance = H;
-            let putInCan = false;
-            if (!node) {
-              return;
-            }
-            let h = node.data ? node.data.h : 0;
-            if (N[0])
-              T += N[0].data.t;
+            //console.log(O[0])
+            //        delay   : anime.stagger(T1, {start: T0}),
+            if (a.currentTime > T) {
+              hMult = -1
 
-            //if slider is on the left then use positive offset to fall to X-positive
-            if (sliderNode.firstElementChild.classList &&
-              sliderNode.firstElementChild.classList.contains('flexClock__slider__button--left'))
-              hMult = 1;
+              if (!N.length) {
+                return;
+              }
+              let node = N.shift();
+              if (!_u.isNodeInDom(node)) {
+                a.remove('*');
+                node.remove();
+                return;
+              }
 
-            anime.timeline({
-              targets: node
-            })
-              .add({
-                translateY: [
-                  {
-                    value   : node.data.h,
-                    duration: 200,
-                    easing  : 'easeInQuad',
-                  },
-                  {
+
+              let distance = H;
+              let putInCan = false;
+              if (!node) {
+                return;
+              }
+              let h = node.data ? node.data.h : 0;
+              if (N[0])
+                T += N[0].data.t;
+
+              //if slider is on the left then use positive offset to fall to X-positive
+              if (sliderNode.firstElementChild.classList &&
+                sliderNode.firstElementChild.classList.contains('flexClock__slider__button--left'))
+                hMult = 1;
+
+              const fallen = node.firstElementChild;
+              const oldText = fallen.textContent;
+
+              animationQ.push(
+                anime.timeline({
+                  targets: node
+                })
+                  .add({
+                    translateY: [
+                      {
+                        value   : node.data.h,
+                        duration: 200,
+                        easing  : 'easeInQuad',
+                      },
+                      {
                     value   : Math.abs(distance) - node.data.h2, //account for the height of your average number
                     duration: 1000,
                     easing  : 'easeInQuad'
                   }
                 ],
-                translateX: [
+                translateX    : [
                   {
                     value   : hMult * 40,
                     duration: 100,
@@ -916,7 +928,7 @@ class TimerCountDown {
                     easing  : 'easeInQuad'
                   }
                 ],
-                rotateZ   : [
+                rotateZ       : [
                   {
                     value   : 45,
                     duration: 200,
@@ -933,39 +945,48 @@ class TimerCountDown {
                     easing  : 'linear'
                   }
                 ],
-                rotateX   : [
-                  {
-                    value   : 80,
-                    duration: 100,
-                    delay   : 1500,
-                    easing  : 'linear'
-                  }
-                ],
-                complete  : a => {
-                  const fallen = node.firstElementChild;
-                  try {
-                    let oldText = fallen.textContent;
-                    fallen.textContent = '💭';
-                    //put it IN the trashCan if it is near by
-                    //if the can is near on the X-axis then drop it in the can
-                    putInCan = _u.isAwithinB(
-                      node,
-                      Trash.getCanNode(),
-                      {},
-                      true,
-                      ['centerX']
-                    );
-                    if (putInCan){
-                      //put it in the can
-                      Trash.getCanNode().querySelector('.trashCan__bottom').append(fallen);
-                      anime.set(node, {
-                        translateX: 0,
-                        translateY: 0
-                      });
-                       fallen.textContent = oldText;
-                    } // else leave the splat on the floor
-                    else {
-                      //     const n = n.firstElementChild;
+                    rotateX   : [
+                      {
+                        value   : 80,
+                        duration: 300,
+                        delay   : 900,
+                        easing  : 'linear'
+                      }
+                    ],
+                    update    : a => {
+                      if (a.progress > 95)
+                        if (/\S+$/.test(oldText))
+                          fallen.textContent = '💭';
+
+                    },
+                    complete  : a => {
+                      if (!_u.isNodeInDom(node)) {
+                        node.remove();
+                        return;
+                      }
+                      try {
+                        if (/\S+$/.test(oldText))
+                          fallen.textContent = '💭';
+                        //put it IN the trashCan if it is near by
+                        //if the can is near on the X-axis then drop it in the can
+                        putInCan = _u.isAwithinB(
+                          node,
+                          Trash.getCanNode(),
+                          {},
+                          true,
+                          ['centerX']
+                        );
+                        if (putInCan) {
+                          //put it in the can
+                          Trash.getCanNode().querySelector('.trashCan__bottom').append(fallen);
+                          anime.set(node, {
+                            translateX: 0,
+                            translateY: 0
+                          });
+                          fallen.textContent = oldText;
+                        } // else leave the splat on the floor
+                        else {
+                          //     const n = n.firstElementChild;
                       //leave it on the floor
                       node.classList.add('floor__trash');
                       anime.set(node, Object.assign({},
@@ -976,17 +997,20 @@ class TimerCountDown {
                           opacity    : 1,
                           'font-size': '2em'
                         }));
-                      document.getElementById('floor').append(node);
+                          document.getElementById('floor').append(node);
+                        }
+                      } catch (e) {
+                        node.remove();
+                        console.log(e);
+                      }
                     }
-                  } catch (e) {
-                    console.log(e);
-                  }
-                }
-              });
-            H -= node.data.h;
+                  })
+              );
+              H -= node.data.h;
+            }
           }
-        }
-      })
+        })
+      );
     }, 1500);
 
     (go => {
@@ -1018,22 +1042,24 @@ class TimerCountDown {
 
 
     let accurateSlideParams;
-      const accurateSlideFn = function( Y ) {
-        let d = this.distance;
-        let nextY = Y + (this.speed * 300000);
-        anime.remove(sliderNode);
-        return anime({
-          targets   : sliderNode,
-          translateY: nextY,
-          duration  : 300000,
-          easing    : 'linear',
-          complete  : a => {
-            if (Y === d)
-              return;
-            accurateSlideFn(...accurateSlideParams)
-          }
-        })
-      }.bind(this);
+    let lastY = 0;
+    const accurateSlideFn = function (Y) {
+      let d = this.distance;
+      let nextY = Y + (this.speed * 300000);
+      anime.remove(sliderNode);
+      return anime({
+        targets   : sliderNode,
+        translateY: [lastY, nextY],
+        duration  : 300000,
+        easing    : 'linear',
+        complete  : a => {
+          if (Y === d)
+            return;
+          lastY = Y;
+          accurateSlideFn(...accurateSlideParams)
+        }
+      })
+    }.bind(this);
 
 
     /* this animation will be kicked off with the other */
@@ -1076,7 +1102,6 @@ class TimerCountDown {
       if (idx === 0) {
         idx = 0;
       }
-
 
       //iterate over all callbacks for this time index
       cbs[idx] && cbs[idx].forEach(x => {

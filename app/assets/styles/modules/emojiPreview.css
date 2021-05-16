@@ -17,6 +17,10 @@
     font-size: 2em;
 }
 
+.emoji_preview__twemoji{
+    background-repeat: no-repeat;
+}
+
 #picker {
     z-index: 8050;
     position: relative;

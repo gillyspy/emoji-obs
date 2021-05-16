@@ -74,6 +74,8 @@ try {
 
     Nodes.screenNode = document.getElementById('screen');
     Nodes.stickyButton = $('#stickybutton');
+    Nodes.gallery = document.getElementById('gallery');
+    Nodes.twemojiToggle = document.querySelector('.controls__twemojiToggle');
     const $picker = $('#picker');
 
     Nodes.emojiPickerTrigger = document.getElementsByClassName('controls__emojiPicker')[0];
@@ -124,23 +126,6 @@ try {
       return true;
     });
 
-
-    $('#MessageWrapper').on('click', function () {
-      /* refresh the animation when the message area is clicked
-      Assumption here is that someone is only clicking on the message area when:
-      - drawing canvas is hidden
-      - ### thus they want to drag the emoji ###
-       */
-      let fav = myFavs.recallFave($target.text());
-      if (fav) {
-        if (fav.sticky) {
-          myAnimation.removeAnimation();
-        } else {
-          myAnimation.restartAnimation();
-        }
-      }
-    });
-
     $afk.on('click', function (ev) {
       var randomId, $this;
       var doShow = true;
@@ -168,6 +153,7 @@ try {
       return false;
     });
 
+    //probably obsolete
     $hideButton.on('click', function () {
       var fav = myFavs.recallFave($target.text());
       myAnimation.toggleHide(fav.sticky);
@@ -267,6 +253,7 @@ try {
 
     });
 
+    //TODO:obsolete. replace with lookup in gallery
     Nodes.stickyButton.on('click', function (ev) {
       //make the current emoji sticky
       var fav = myFavs.recallFave($target.text());
@@ -286,7 +273,8 @@ try {
       return false;
     });
 
-    //
+
+    //TODO: obsolete. Find another highlight method
     const highlightFave = function (emoji, sticky = false) {
       emoji = emoji || $target.text();
       $('.highlight').removeClass('highlight');
@@ -302,11 +290,13 @@ try {
     } // highlightFave
 
     //put the emoji in the "dock"
-    const archiveFave = function (sticky = false, emoji, url, name) {
+    const archiveFave = function (sticky = false, emoji, url, name, preferTwemoji = false) {
       var firstClass = sticky ? 'history pressed history__btn' : 'history history__btn';
       $('.highlight').removeClass('highlight');
       //$highlight = [];
       emoji = emoji || $target.text();
+      let twemojiOpacity = +preferTwemoji;
+      let emojiOpacity = +(!twemojiOpacity);
       //add unique entry to the history
       if ($('#' + emoji).length === 0) {
         if( Config.twemoji === 'flag'  ){
@@ -316,17 +306,23 @@ try {
         if (typeof url !== 'undefined') {
           $history.find('#letters')
             .prepend(
-              `<span class="letters"><button id="${emoji}" class="${firstClass}">`
-              + `<img src="${url}" alt="${emoji}" style="position:relative;"/>`
-              + `<span style="opacity:0;position:absolute;">${emoji}</span></button></span>`
+              `<span class="letters">`
+              + `<button id="${emoji}" class="${firstClass}">`
+                + `<span style="background-image:url(${url});position:absolute;opacity:${twemojiOpacity}" class="history_emojiURL">${emoji}</span>`
+                + `<span style="position:absolute;opacity:${emojiOpacity}" class="history__emoji">${emoji}</span>`
+              + `</button>`
+              +`</span>`
             );
+          //              + `<img src="${url}" alt="${emoji}" style="position:relative;"/>`
 
         } else {
           $history.find('#letters')
             .prepend(
-              `<span class="letters"><button id="${emoji}" class="${firstClass}">`
-              + `<span>${emoji}</span>`
-              + `</button></span>`
+              `<span class="letters">
+                  <button id="${emoji}" class="${firstClass}">
+                    <span style="position:absolute;" class="history__emoji">${emoji}</span>
+                  </button>
+              </span>`
             );
         }
 
@@ -411,6 +407,30 @@ try {
       //$(this).appendTo('#gallery');
     });
 
+    //this should persist through the session
+    //TODO: make it such that this setting is initiated when selecting the emoji / twemoji and when reloading
+    //cached emojis (e.g. when restoring your session)
+    Nodes.twemojiToggle.addEventListener('click', (ev) => {
+      const twemoji = gallery.lastElementChild.querySelector('.history__emoji');
+      const emoji = gallery.lastElementChild.querySelector('.history_emojiURL');
+
+      if (twemoji.style.opacity === '0' || twemoji.style.opacity === 0) {
+        twemoji.style.opacity = 1;
+        emoji.style.opacity = 0;
+      } else {
+        twemoji.style.opacity = 0;
+        emoji.style.opacity = 1;
+      }
+      //visual feedback of the click
+      anime({
+        targets: ev.target,
+        rotateY : 360,
+        duration : 1000
+      });
+
+
+    });
+
     /* *
     * clicking on a history emoji makes it:
     * - come to the top z-index
@@ -430,13 +450,14 @@ try {
           while (myAnimation.animationCache[randomClass]) {
             randomClass = 'draggable' + Math.floor(Math.random() * 1000);
           }
-          let $temp = $('<span class="randomClass dragTemp">&nbsp;&nbsp;&nbsp;&nbsp;</span>');
+          let $temp = $('<span class="randomClass dragTemp"></span>');
 
 
           /*
           if it is sticky then give it a pin
            */
-          let fave = myFavs.recallFave($this.text());
+          let emoji = this.id;
+          let fave = myFavs.recallFave(emoji);
           let pin = $('<span class="dragTemp__pin">📌</span>')
           pin.hide()
           $temp.append(pin);
@@ -471,32 +492,35 @@ try {
             if (Math.random() > .8) {
               const parentNode = $this[0].parentElement;
               const emojiTrash = new TrashCan(Nodes.screenNode, $this[0]);
-              TrashCan.animateOnce(anime({
+              let a = anime({
                 targets : parentNode,
                 scale   : 1,
                 duration: 2000
-              }), true, 0).then(a => {
-                emojiTrash.tossIt(true, $this[0]).then(() => {
-                  //    parentNode.remove()
-                  $this
-                    .appendTo($origin)
-                    .removeClass('history--draggable')
-                    .addClass('history__btn');
-                  $temp.removeData('draggable').remove();
-                  anime({
-                    targets   : '.' + randomClass,
-                    scale     : .2,
-                    opacity   : [0, 1],
-                    rotate    : 0,
-                    duration  : 3000,
-                    translateY: 0,
-                    translateX: 0,
-                    delay     : 0,
-                    easing    : 'linear',
-                    //  complete  : a => anime.remove('.' + randomClass)
-                  });
+              });
+              emojiTrash.tossIt(true, $this[0], a.finished).then(() => {
+                //    parentNode.remove()
+                $this
+                  .appendTo($origin)
+                  .removeClass('history--draggable')
+                  .addClass('history__btn');
+                $temp.removeData('draggable').remove();
+                anime({
+                  targets   : '.' + randomClass,
+                  scale     : 1,  //.2,
+                  opacity   : [0, 1],
+                  rotate    : 0,
+                  duration  : 3000,
+                  translateY: 0,
+                  translateX: 0,
+                  delay     : 0,
+                  easing    : 'linear',
+                  //  complete  : a => anime.remove('.' + randomClass)
                 });
               });
+
+              // TrashCan.animateOnce(, true, 0).then(a => {
+
+              // });
               return;
             } //if
 
@@ -513,7 +537,7 @@ try {
               .timeline(randomClass + 'From', {loop: 1})
               .addToTimeline(randomClass + 'From', {
                 targets   : $this[0].parentElement,//$this[0],
-                scale     : .2, //.8, //
+                scale     : 1, //.2, //.8, //
                 opacity   : 1,
                 duration  : 500,
                 rotateY   : [{
@@ -624,9 +648,10 @@ try {
             .addClass(randomClass);
 
           $this.addClass(randomClass)
-            .removeClass('history__btn')
             .prependTo($temp)
-            .addClass('history--draggable');
+            .removeClass('highlight')
+          // .removeClass('history__btn')
+          //.addClass('history--draggable');
           anime.set($temp[0],
             (({left, top, height, width}) => ({
                 top   : top,
@@ -637,13 +662,16 @@ try {
             )($this[0].getBoundingClientRect())
           );
 
+          //TODO: get screen dimensions and calculate a number here. also try to keep center circle area clear
+          //cuz that's the center of the video
+
           let randomY = Math.floor(530 * Math.random()) + 10;
           let randomX = Math.floor(950 * Math.random()) + 10;
 
           myAnimation.timeline(randomClass + 'To', {loop: 1})
             .addToTimeline(randomClass + 'To', {
                 targets   : $temp[0],
-                scale     : [.2, 1],
+                scale     : 3, //scale here instead of in css such that there is "growth"
                 opacity   : 1,
                 translateZ: 0,
 //            translateY: randomY,//random distance
@@ -705,9 +733,9 @@ try {
     );//history.on
 
     //recall from history dock it should also update browser cache/history
-    $history.on('click', 'button', function (ev) {
+    /*$history.on('click', 'button', function (ev) {
       let $this = $(this);
-      let emoji = $this.text();
+      let emoji = this.id; //$this.text();
       //if it's draggable then click does nothing
       let to = setTimeout(function () {
           if (!$this.hasClass('history--draggable')) {
@@ -734,7 +762,7 @@ try {
         //if the user double clicks within this time period then it is ok
         // if they single click then it will wait
         800);
-    });
+    });*/
 
     $('body').on('keydown', function (ev) {
       // let direction = 0;
@@ -786,7 +814,7 @@ try {
       //last item in the gallery is the most recent [because of implied z-index]
       $('#gallery').find('.dragTemp:last').each(function () {
         let $temp = $(this);
-        let fave = myFavs.recallFave($temp.find('button').text());
+        let fave = myFavs.recallFave($temp.find('button').id); //.text());
         let randomClass = $temp.data('draggable').randomClass;
 
         if (fave && fave.sticky)
@@ -1003,42 +1031,41 @@ try {
       let btn = ev.target;
       let $ms = $('.messageTarget__pre');
       let $mt = $('.messageTarget');
-      console.log('hi');
       let preModifiers = [
-        'messageTarget__pre--off', //0
-        'messageTarget__pre--narrow', //1
-        'messageTarget__pre--right', //2
-        'messageTarget__pre--right',//3
         'messageTarget__pre--full', //4
         'messageTarget__pre--narrow', //5
         'messageTarget__pre--left',//6
         'messageTarget__pre--left', //7
         'messageTarget__pre--full', //8
+        'messageTarget__pre--off', //0
+        'messageTarget__pre--narrow', //1
+        'messageTarget__pre--right', //2
+        'messageTarget__pre--right',//3
       ];
 
       let targetModifiers = [
-        'messageTarget--nothing',
-        'messageTarget--top', //1
-        'messageTarget--top',//2
-        'messageTarget--bottom',//3
         'messageTarget--bottom', //4
         'messageTarget--bottom',//6
         'messageTarget--bottom',//6
         'messageTarget--top',//7
         'messageTarget--top',//8
+        'messageTarget--nothing',
+        'messageTarget--top', //1
+        'messageTarget--top',//2
+        'messageTarget--bottom'//3
       ];
 
       //⏯️↕️⏮️⏯️↕️↔️⏮️  ️⏬
       let buttonContents = [
-        '⏏️',
-        '⬆️',
-        '↗️',
-        '↘️',
         '↔️',
         '⬇️',
         '↙️',
         '↖️',
-        '↕️'
+        '↕️',
+        '⏏️',
+        '⬆️',
+        '↗️',
+        '↘️'
       ];
       //determine which index currently have.
       for (var i = 0; i < preModifiers.length; i++) {
@@ -1119,17 +1146,25 @@ try {
             easing  : 'linear',
             duration: dur
           }
-          /*, {
-           value   : -90,
-           easing  : 'linear',
-           duration: dur,
-           delay   : delay
-         } */
+          , {
+            value   : -90,
+            easing  : 'linear',
+            duration: dur,
+            delay   : delay
+          }, {
+            value   : 0,
+            easing  : 'easeInOutQuad',
+            duration: 3000
+          }
         ]
       });
     }
 
-
+    document.querySelector('#clockForm').addEventListener('submit', (ev) => {
+      ev.preventDefault()
+      document.querySelector('.emojipreview__clock').click();
+      return false;
+    });
     new MeetingCountDown(
       Nodes.screenNode,
       document.querySelector('.emojipreview__clock'),
@@ -1162,20 +1197,6 @@ try {
             times    : [5, 10],
             completed: [],
             cb       : (minsLeft, opts) => {
-              const sliderBtn = MeetingCountDown.getSlider().firstElementChild;
-              const rotationDuration = 84.8528137423857 / (this.distance / 10000);
-              const secondStageDelay = 10000 - rotationDuration * 2;
-
-              ['restart', 'pause', 'remove']
-                .forEach(c => App.Animations.sliderRotate[c]('*'));
-
-              App.Fn.Animations.sliderRotate =
-                //swap out the slider promise with a new one
-                App.Fn.sliderRotate(sliderBtn, rotationDuration, secondStageDelay);
-
-              //TODO: is this necessary? or will it just call the correct action because of "by reference" lookup
-              App.Promises.clockCleanup.replaceRoot();
-
 
             }
           },
@@ -1250,17 +1271,17 @@ try {
 
               //resolve early
               //TrashCan.animateOnce(spotlightAnimation, spotlightAnimation, 3000)
-              //spotlightAnimation.finished.then(a => {
-              //spotlight is actually wrapped so we want it's first child
-              /*    spotlightToss.tossIt(false, spotlight, spotlightAnimation.finished).then(x => {
+              spotlightAnimation.finished.then(a => {
+                  //spotlight is actually wrapped so we want it's first child
+                  spotlightToss.tossIt(false, spotlight, spotlightAnimation.finished).then(x => {
 
                     //more visible in the trash
                     spotlight.style.overflow = 'visible';
                     // spotlight.remove();//dont remove it cuz we like seeing it in the trash
                     //  spotlightAnimation.remove();
                   }); /**/
-              //}
-              //);
+                }
+              );
 
               shadowAnimation.finished.then(() => {
                 shadowAnimation.remove();
@@ -1278,12 +1299,8 @@ try {
               /* integer */ minsLeft,
               /* Object */ opts
             ) {
-
               const slider = MeetingCountDown.getSlider();
               const sliderBtn = slider.firstElementChild;
-              const sliderAnimation = this.goReturnValue;
-              const rotationDuration = 84.8528137423857 / (this.distance / 10000);
-              const secondStageDelay = 10000 - rotationDuration * 2;
 
               if (sliderBtn) {
                 sliderBtn.style.borderColor = '';
@@ -1291,35 +1308,19 @@ try {
                 sliderBtn.classList.remove('flexClock__slider__button--green', 'flexClock__slider__button--red');
               }
               //restore sloth rotation by quick-setting it
-              if (sliderAnimation) {
-                sliderAnimation.then((v) => {
-                  //kill other animations on it;
-                  anime.remove(slider);
-                  anime.remove(sliderBtn);
-                  //slide back up in 10 seconds ... while also rotating
 
-                  anime({
-                    targets: sliderBtn,
-                    rotateZ: [{
-                      value   : -45,
-                      easing  : 'linear',
-                      duration: rotationDuration
-                    }, {
-                      value   : 0,
-                      easing  : 'linear',
-                      duration: rotationDuration,
-                      delay   : secondStageDelay - 10
-                    }]
-                  });
+              //kill other animations on it;
+              anime.remove(slider);
+              //anime.remove(sliderBtn);
+              //slide back up in 10 seconds ... while also rotating
 
-                  anime({
-                    targets   : slider,
-                    duration  : 10000,
-                    translateY: 0,
-                    easing    : 'linear'
-                  });
-                });
-              }
+              anime({
+                targets   : slider,
+                duration  : 10000,
+                translateY: 0,
+                easing    : 'linear'
+              });
+
               let triggerNode = this.triggerNode;
               MeetingCountDown.grandFinale();
               let oneClick = function (ev) {
@@ -1377,7 +1378,8 @@ try {
           }
         ]
       },
-      //go callback (fired on countdown starting);
+
+//go callback (fired on every refresh of the internal timer animation)
       function (opts) {
         //rotate sloth
         const slider = MeetingCountDown.getSlider();
@@ -1390,7 +1392,10 @@ try {
         sliderBtn && sliderBtn.classList.add('flexClock__slider__button--green');
 
         // 84.8528137423857 is distance from center point to corner of sliderBtn's boundingRect
-
+        if (App.Animations.sliderRotate)
+          App.Animations.sliderRotate.restart()
+          && App.Animations.sliderRotate.pause()
+          && App.Animations.sliderRotate.remove('*');
         App.Animations.sliderRotate =
           App.Fn.sliderRotate(sliderBtn, rotationDuration, secondStageDelay);
 
@@ -1895,7 +1900,8 @@ try {
       }
     });
 
-    Nodes.emojiPickerName = document.getElementsByClassName('emoji-picker__wrapper')[0];
+    Nodes.emojiPickerName = document.getElementsByClassName('emoji_preview-name')[0];
+    //document.getElementsByClassName('emoji-picker__wrapper')[0];
     Nodes.pickerWrapper = document.getElementById('picker');
     App.myPicker = new pickerHelper(
       Nodes.pickerWrapper,
@@ -1904,11 +1910,11 @@ try {
       {
         emojisPerRow: 31,
         rows        : 5,
-        style     : (Config.twemoji  === 'false' ? 'native' : 'twemoji')
+        style       : (Config.twemoji === 'false' ? 'native' : 'twemoji')
       });
     App.myPicker.addPlugin('stickyHandler');
     App.myPicker.addPlugin('closeHandler');
-    App.myPicker.launch();
+    //App.myPicker.launch();
     App.myPicker.registerCB('emoji', function (p) {
       const props = App.myPicker.getProps();
       if (props.options.makeEmojiSticky) {

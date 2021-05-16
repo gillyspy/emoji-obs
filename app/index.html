@@ -24,8 +24,8 @@
         <div class="buffer"></div>
     </section>
     <section id="screen" class="everything__screen">
-        <div id="MessageWrapper" class="messageTarget messageTarget--nothing">
-            <pre id="MessageTarget" class="messageTarget__pre messageTarget__pre--narrow messageTarget__pre--off"></pre>
+        <div id="MessageWrapper" class="messageTarget messageTarget--bottom">
+            <pre id="MessageTarget" class="messageTarget__pre messageTarget__pre--full"></pre>
         </div>
 
         <div id="floor" class="floor">
@@ -91,6 +91,11 @@
             <div id="PageHelp" class="pageHelp">
                 <button class="pageHelp__button controls__button big" title="Help">❔</button>
             </div>
+            <button class="emoji_preview__twemoji controls__button--twemoji controls__button big"
+                    style="color:rgba(0,0,0,0);background-image:url(https://twemoji.maxcdn.com/v/13.0.0/svg/1f60e.svg)"
+                    title="Preview of on-deck twemoji">😎
+            </button>
+            <button class="emoji_preview__emoji controls__button big" title="Preview of on-deck emoji">😎</button>
             <button class="emoji_preview-name" title="Preview emoji's name">…</button>
         </div>
         <!--   -->
@@ -115,7 +120,7 @@
                     </button>
                     <button id="trashEmoji" class="big trash controls__button" title="Trash Active Emoji">🗑️</button>
                     <button  class="big controls__button controls__spiderAnimations web__trigger" title="SpiderWeb">🕸️</button>
-
+                    <button class="big controls__button controls__twemojiToggle" title="Toggle Twemoji">✨</button>
                 </div>
                 <div id="MessageSource" class="messageSource controls__message controls--btnrow">
                     <form>
@@ -125,13 +130,13 @@
                         </button>
                         <textarea id="Message" rows="3" cols="45"
                                   placeholder="  Type an on-screen message here"></textarea>
-                        <button title="change width: output" class="messageSource__changeW controls__button big">⏏️
+                        <button title="change width: output" class="messageSource__changeW controls__button big">↔️
                         </button>
                     </form>
                 </div>
             </div>
             <div id="emojipreview" class="together controls--btnrow controls__right controls__preview">
-                <button class="emoji_preview__emoji controls__button big" title="Preview of on-deck emoji">😎</button>
+
                 <button class="sticky big emojipreview__pin controls__button" title="Activate on-deck with a pin">📌*
                 </button>
                 <br/>
@@ -139,7 +144,9 @@
                     🐁
                 </button>
                 <button class="big emojipreview__clock controls__button">⏳</button>
-                <input placeholder="XXYYh" class="emojipreview__clocknum" type="text" size="5"/>
+                <form id="clockForm">
+                    <input placeholder="XXYYh" class="emojipreview__clocknum" type="text" size="5"/>
+                </form>
                 <br/>
             </div>
         </div>

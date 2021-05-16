@@ -179,17 +179,6 @@
 }
 
 
-
-    .dragTemp__pin {
-        font-size: 2px;
-        margin-left: 21em;
-        margin-top: 21em;
-        vertical-align: sub;
-        position:absolute
-    }
-
-
-
         input, textarea {
         font-weight: bold;
         color : white  ;
