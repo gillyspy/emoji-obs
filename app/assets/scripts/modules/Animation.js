@@ -317,22 +317,17 @@ class TimerCountDown {
     }))(_TimerCountDown);
   }
 
-  static makeWarning(text, classList = [], node) {
+  static makeWarning(text, classList = []) {
     const wrapClass = 'flexClock__warnWrap';
     let warningWrap =
       //  flexClock__warningArea
       _TimerCountDown.container.getElementsByClassName(wrapClass);
 
-    if (warningWrap.length) {
-      warningWrap = warningWrap[0];
-    } else {
-      warningWrap = document.createElement('div');
-      warningWrap.classList.add(wrapClass);
-    }
+    warningWrap = warningWrap.length ? warningWrap[0] : document.createElement('div');
+    warningWrap.classList.add(wrapClass);
 
-    if (TimerCountDown.locate(false).isLeft) {
+    if (TimerCountDown.locate(false).isLeft)
       warningWrap.classList.add(wrapClass + '--left');
-    }
 
     const warning = document.createElement('button');
     const subWarning = document.createElement('span');
@@ -342,12 +337,9 @@ class TimerCountDown {
     warning.append(subWarning);
     warningWrap.append(warning);
 
-    node && warning.append(node);
-
     //append it to the same outer container (NOT inside the clock area)
     _TimerCountDown.container.append(warningWrap);
 
-    //make the warning draggable
     return warning;
   }
 
@@ -950,33 +942,34 @@ class TimerCountDown {
                   }
                 ],
                 complete  : a => {
-
+                  const fallen = node.firstElementChild;
                   try {
-                    let oldText = node.firstElementChild.textContent;
-                    node.firstElementChild.textContent = '💭';
+                    let oldText = fallen.textContent;
+                    fallen.textContent = '💭';
                     //put it IN the trashCan if it is near by
                     //if the can is near on the X-axis then drop it in the can
-                    putInCan = Trash.isAwithinB(node, Trash.getCanNode(), {
-                      //adjust for falling X trajectory which, here, affects left and right co-ordinates
-                      left : (hMult * 50),
-                      right: (hMult * 50)
-                    }, true, ['centerX']);
-                    if (putInCan || !!oldText ){
+                    putInCan = _u.isAwithinB(
+                      node,
+                      Trash.getCanNode(),
+                      {},
+                      true,
+                      ['centerX']
+                    );
+                    if (putInCan){
                       //put it in the can
-                      Trash.getCanNode().querySelector('.trashCan__bottom').append(node.firstElementChild);
+                      Trash.getCanNode().querySelector('.trashCan__bottom').append(fallen);
                       anime.set(node, {
                         translateX: 0,
                         translateY: 0
                       });
-                       node.firstElementChild.textContent = oldText;
+                       fallen.textContent = oldText;
                     } // else leave the splat on the floor
                     else {
                       //     const n = n.firstElementChild;
                       //leave it on the floor
                       node.classList.add('floor__trash');
-                   //   node.firstElementChild.textContent = '💭';
                       anime.set(node, Object.assign({},
-                        Trash.getXY(node), {
+                        _u.getSpecificXY(node, ['top','left','width','height']), {
                           translateX : 0,
                           translateY : 0,
                           border     : 0,
@@ -984,7 +977,6 @@ class TimerCountDown {
                           'font-size': '2em'
                         }));
                       document.getElementById('floor').append(node);
-                      //anime.set(subn, {translateX: '', translateY : ''});
                     }
                   } catch (e) {
                     console.log(e);
@@ -1151,8 +1143,8 @@ class TimerCountDown {
         case (previousMilli === null):
         case  (curY !== pxDistance): //&& (milliPassed % 2000 !== previousMilli % 2000)):
 
-          let timeToNextAdjustment = that.#_.timeLeft % 2000
-          console.log(timeToNextAdjustment, that.#_.timeLeft, milliPassed);
+          let timeToNextAdjustment = that.#_.timeLeft % 2000;
+          log.browser(timeToNextAdjustment, that.#_.timeLeft, milliPassed);
 
 
 
@@ -1786,89 +1778,6 @@ class Trash {
     }
   }
 
-  /*
-  * use the co-ordinates of A and B to determine if they overlap
-  *
-  * fudge --> provide negative numbers to have a better chance of fitting
-  * { left : -100p}
-  *
-  * fudge --> positive number to make it harder
-  * { left : 100}
-  *
-  * fudge --> ratio (positive or negative) for similar effect
-  *
-   */
-  static isAwithinB(A, B, fudge, doCenterOnly = false, ignore = ['left', 'right', 'top', 'bottom']) {
-
-    let isWithin = false;
-    const diff = {};
-    //thresholds
-    const compare = {
-      left   : 0,
-      top    : 0,
-      bottom : 0,
-      right  : 0,
-      centerX: 0,
-      centerY: 0
-    }
-    if (typeof fudge === 'object') {
-      //TODO: support ratios in fudge
-
-      for (let f in fudge) {
-        //make xy narrower to have a better chance of "fitting"
-        compare[f] = 0 + fudge[f];
-      }
-    } else if (!fudge) {
-      fudge = {};
-    }
-
-    // get XY for the A object / node
-    const xyA = Trash.getXY(A);
-
-    //update XY based upon what is in the fudge adjustments. defaults are 0 fudge
-    Object.assign(compare, fudge);
-    for (let c in compare) {
-      xyA[c] += compare[c];
-    }
-    Object.assign(diff, Trash.calcDiffXY(B, xyA, [2000, 2000]));
-
-    if (!doCenterOnly) {
-      isWithin = true;
-      ignore.forEach(side => {
-        if (isWithin) {
-          if (side === 'left' || side === 'top')
-            isWithin = (diff.diff[side] >= 0)
-          if (side === 'right' || side === 'bottom')
-            isWithin = (diff.diff[side] <= 0)
-        }
-      })
-      return isWithin;
-    } else if (doCenterOnly && !isNaN(diff.diff.centerX) && !isNaN(diff.diff.centerY)) {
-      isWithin = true;
-      if (ignore.indexOf('centerX') >= 0 || ignore.indexOf('centerY') >= 0) {
-        //ignore = ignore
-      } else {
-        //default for center behaviours
-        ignore = ['centerX', 'centerY']
-      }
-      ignore.forEach(side => {
-        if (isWithin) {
-          if (side === 'centerX')
-            //if the center X line differences are smaller than the width of the container then it's good
-            isWithin = (Math.abs(diff.diff[side]) <= diff.start.width)
-          if (side === 'centerY')
-            //if the center Y line differences are smaller than the height of the container then it's good
-            isWithin = (Math.abs(diff.diff[side]) <= diff.start.height)
-        }
-      })
-      return isWithin;
-
-    } else {
-      isWithin = false;
-    }
-
-    return false;
-  }
 
   static getXY(nodeXY) {
     return _u.getXY(nodeXY);
@@ -1914,7 +1823,6 @@ class Trash {
   * }
    */
   tossIt(doRemove, startXY, nodeAnimation = true, selectorsToCleanUpAfter = []) {
-
     //asynchronously begin animation on the can
     this.#pushCan();
     _Can.inUse = true;
@@ -2006,7 +1914,6 @@ class Trash {
 
       const ballFlight = this.#animateBall(trashBall, doRemove, inGallery);
 
-
       //make sure can has completed being pushed out
       await _Can.pushCan;
 
@@ -2022,8 +1929,8 @@ class Trash {
 
         //resize ball again
         anime.set(trashBall, {
-            height: Math.min(TrashFullXY.height * .8, calcDiff.start.height),
-            width : Math.min(TrashFullXY.width * .8, calcDiff.start.width)
+            height: Math.min(_Can.xy.height * .8, calcDiff.start.height),
+            width : Math.min(_Can.xy.width * .8, calcDiff.start.width)
           }
         );
         const hiddenBall = Trash.#setHiddenBall(emoji, trashBall.firstElementChild);
@@ -2036,7 +1943,7 @@ class Trash {
         let putInCan;
         const TrashFullXY = Trash.getXY(Trash.getCanNode());
         //if the can is in it's original spot then we're fine
-        putInCan = Trash.isAwithinB(_Can.xy, TrashFullXY, {
+        putInCan = _u.isAwithinB(_Can.xy, TrashFullXY, {
           //no adjustment
           left : 0,
           right: 0

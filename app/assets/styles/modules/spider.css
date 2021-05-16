@@ -1,0 +1,70 @@
+
+.web__draggable--hide{
+    display:none
+}
+.web__cob {
+font-size: 25em;
+    position: absolute;
+    font-weight: bolder;
+    top: 0;
+    left: 0;
+    text-align: left;
+    margin-left: -250px;
+    margin-top: -250px;
+    color: whitesmoke;
+    height : 25rem;
+    width: 25rem;
+    overflow: visible;
+}
+
+.web__spider__wheel {
+        position: absolute;
+    /* top: 40px;
+    left: 30px;*/
+    left : -50px;
+    top: -50px;
+    /* width: 600px; */
+    display: flex;
+    height: 100%;
+    align-content: center;
+    justify-content: flex-start;
+    align-items: center;
+    transform-origin: left;
+    /* transform: rotate(90deg); */
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+
+.web__thread{
+    width: 10px; /* changing width */
+    border-top :1px solid black;
+    border-bottom :1px solid white;
+    flex: 1;
+    flex-grow: 3;
+}
+
+.web__spider{
+    top: 0;
+    transform: rotateZ(45deg);
+    margin-left:-20px;
+    font-size: 5rem;
+    flex: auto;
+    transform-origin: center;
+    flex-shrink: 0;
+}
+
+.web__draggable{
+    position:absolute;
+    left : 250px;
+    top: 200px;
+    opacity : 0;
+    width : 5rem;
+    height : 5rem;
+}
+
+.web__relative{
+top : 0;
+    position:relative;
+left : 0;
+
+}

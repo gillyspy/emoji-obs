@@ -28,10 +28,10 @@ const getXY = function (nodeXY) {
 } //getXY
 
 const getSpecificXY = (XY, choices = ['left', 'top', 'width', 'height']) => {
-  if (XY instanceof Element) {
+  if (XY instanceof Element || typeof XY === 'object') {
     XY = Object.assign({}, getXY(XY));
   } else {
-    throw TypeError('accepts and object or Node');
+    throw TypeError('accepts an Object or Node');
   }
   if (choices && typeof choices === 'string') {
     choices = [choices];
@@ -51,7 +51,7 @@ const getSpecificXY = (XY, choices = ['left', 'top', 'width', 'height']) => {
 const diffXY = (
   /* Element */ start,
   /* Element */  end,
-  /*Array */ maxHW = [50, 50]) => {
+  /*Array */ maxHW = [2000, 2000]) => {
   const diff = {};
   const _start = {};
   try {
@@ -117,9 +117,96 @@ const diffXY = (
   }
 } //calcDiffXY
 
+/*
+  * use the co-ordinates of A and B to determine if they overlap
+  *
+  * fudge --> provide negative numbers to have a better chance of fitting
+  * { left : -100p}
+  *
+  * fudge --> positive number to make it harder
+  * { left : 100}
+  *
+  * fudge --> ratio (positive or negative) for similar effect
+  *
+   */
+const isAwithinB = (
+  A, B, fudge, doCenterOnly = false,
+  ignore = ['left', 'right', 'top', 'bottom']) => {
+
+  let isWithin = false;
+  const diff = {};
+  //thresholds
+  const compare = {
+    left   : 0,
+    top    : 0,
+    bottom : 0,
+    right  : 0,
+    centerX: 0,
+    centerY: 0
+  }
+  if (typeof fudge === 'object') {
+    //TODO: support ratios in fudge
+
+    for (let f in fudge) {
+      //make xy narrower to have a better chance of "fitting"
+      compare[f] = 0 + fudge[f];
+    }
+  } else if (!fudge) {
+    fudge = {};
+  }
+
+  // get XY for the A object / node
+  const xyA = getXY(A);
+
+  //update XY based upon what is in the fudge adjustments. defaults are 0 fudge
+  Object.assign(compare, fudge);
+  for (let c in compare) {
+    xyA[c] += compare[c];
+  }
+  Object.assign(diff, diffXY(B, xyA, [2000, 2000]));
+
+  if (!doCenterOnly) {
+    isWithin = true;
+    ignore.forEach(side => {
+      if (isWithin) {
+        if (side === 'left' || side === 'top')
+          isWithin = (diff.diff[side] >= 0)
+        if (side === 'right' || side === 'bottom')
+          isWithin = (diff.diff[side] <= 0)
+      }
+    })
+    return isWithin;
+  } else if (doCenterOnly && !isNaN(diff.diff.centerX) && !isNaN(diff.diff.centerY)) {
+    isWithin = true;
+    if (ignore.indexOf('centerX') >= 0 || ignore.indexOf('centerY') >= 0) {
+      //ignore = ignore
+    } else {
+      //default for center behaviours
+      ignore = ['centerX', 'centerY']
+    }
+    ignore.forEach(side => {
+      if (isWithin) {
+        if (side === 'centerX')
+          //if the center X line differences are smaller than the width of the container then it's good
+          isWithin = (Math.abs(diff.diff[side]) <= diff.start.width)
+        if (side === 'centerY')
+          //if the center Y line differences are smaller than the height of the container then it's good
+          isWithin = (Math.abs(diff.diff[side]) <= diff.start.height)
+      }
+    })
+    return isWithin;
+
+  } else {
+    isWithin = false;
+  }
+
+  return false;
+} //isAwithinB
+
 
 export default {
-  diffXY : diffXY,
-  getXY : getXY,
-  getSpecificXY: getSpecificXY
+  diffXY       : diffXY,
+  getXY        : getXY,
+  getSpecificXY: getSpecificXY,
+  isAwithinB   : isAwithinB
 }

@@ -1,0 +1,72 @@
+.controls{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    width:100%
+}
+
+.control__left {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: stretch;
+    width: 60%;
+}
+
+.controls__left {
+    flex: 1 1 auto;
+}
+
+.controls__right{
+    flex : 1 0 0;
+}
+
+.controls--btnrow{
+    display:flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.controls--row{
+    display:flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.controls--col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.everything__history button,
+.controls__drawing button,
+.controls__button {
+    font-size: 20px;
+    vertical-align: top;
+    color: white;
+    border-radius: 7px;
+       padding: 0;
+    /*   dding: 0px 6px 0px 6px ;*/
+        width : 1.5em;
+        height: 1.5em;
+      /*  margin: 6px 0px 0px 0px;*/
+
+
+        /* margin:0px */
+    }
+.controls__drawing button ,
+.controls__button {
+    border: 1px dashed white;
+    background: rgba(255, 255, 255, .1);
+}
+
+ .controls__button--pressed {
+      appearance: none;
+    background-color: lightgrey;
+ }

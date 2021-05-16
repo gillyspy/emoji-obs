@@ -326,7 +326,7 @@ MouseActions.makeDraggable =
 
       log.browser('startXY',startXY);
       //perform client callback
-      opts.mousedownCB && opts.mousedownCB.apply(this,[ev]);
+      opts.mousedownCB && opts.mousedownCB.apply(this,[ev,node]);
 
       // return false;
     });
@@ -348,14 +348,14 @@ MouseActions.makeDraggable =
         log.browser('left', (startXY.tX + (ev.pageX - startXY.X))+'px');
         log.browser('top', ( startXY.tY + (ev.pageY - startXY.Y))+'px');
 
-        opts.mousemoveCB && opts.mousemoveCB.apply(this,[ev]);
+        opts.mousemoveCB && opts.mousemoveCB.apply(this,[ev,node]);
       }
     });
 
     target.addEventListener('mouseup', function (ev) {
       log.browser('stop drag')
       isDragging = false;
-      opts.mouseupCB && opts.mouseupCB.apply(this,[ev]);
+      opts.mouseupCB && opts.mouseupCB.apply(this,[ev,node] );
 
       //return false;
     });

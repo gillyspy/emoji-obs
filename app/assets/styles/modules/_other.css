@@ -188,25 +188,6 @@
         position:absolute
     }
 
-.history--draggable {
-    position: absolute;
-    display:flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 20000;
-    /*       // opacity: 1 !important; */
-    background-color: rgba(0, 0, 0, 0) !important;
-    border: none !important;
-    cursor: pointer;
-    font-size: 1.5em;
-    height: 1.5em;
-    width: 1.5em;
-    padding: 0;
-    overflow:visible;
-}
-.history--draggable  img {
-    box-shadow: none;
-}
 
 
         input, textarea {
@@ -266,10 +247,10 @@
     display: none;
 }
 
-
+/*
 img {
     box-shadow: 0 0 5px 10px #555;
-}
+} */
 
     .ml1 {
         font-weight: 900;

@@ -7,6 +7,7 @@ import A from './modules/Animation';
 import P from './helpers/promiseFactory.js';
 import PP from './modules/PPromise.js'
 import pickerHelper from './helpers/picker.js';
+import _u from './helpers/_utils.js';
 
 import Init from './modules/Init.js';
 
@@ -14,7 +15,7 @@ import Log from './modules/Log.js';
 import Drawing from './modules/Drawing.js';
 import MouseActions from './modules/FollowMouse.js';
 
-require("./modules/ArrayUpdates.js");
+require("./helpers/ArrayUpdates.js");
 const Animation = A.Animation;
 const IdlePath = A.RocketPath;
 const TrashCan = A.TrashCan;
@@ -168,7 +169,6 @@ try {
     });
 
     $hideButton.on('click', function () {
-      //archiveFave();
       var fav = myFavs.recallFave($target.text());
       myAnimation.toggleHide(fav.sticky);
       if ($target.is(':hidden')) {
@@ -317,12 +317,17 @@ try {
           $history.find('#letters')
             .prepend(
               `<span class="letters"><button id="${emoji}" class="${firstClass}">`
-              + `<img src="${url}" alt="${emoji}"/><span style="display:none;">${emoji}</span></button></span>`
+              + `<img src="${url}" alt="${emoji}" style="position:relative;"/>`
+              + `<span style="opacity:0;position:absolute;">${emoji}</span></button></span>`
             );
 
         } else {
           $history.find('#letters')
-            .prepend('<span class="letters"><button id="' + emoji + '" class="' + firstClass + '">' + emoji + '</button></span>');
+            .prepend(
+              `<span class="letters"><button id="${emoji}" class="${firstClass}">`
+              + `<span>${emoji}</span>`
+              + `</button></span>`
+            );
         }
 
       }
@@ -352,7 +357,7 @@ try {
           }
           $target.text(fave.emoji);
         }
-        archiveFave(!!fave.sticky, fave.emoji, fave.url);
+        archiveFave(!!fave.sticky, fave.emoji, fave.url, fave.name);
         //try to highlight in history
         highlightFave(fave.emoji, !!fave.sticky);
       }
@@ -425,7 +430,7 @@ try {
           while (myAnimation.animationCache[randomClass]) {
             randomClass = 'draggable' + Math.floor(Math.random() * 1000);
           }
-          let $temp = $('<span class="randomClass dragTemp"></span>');
+          let $temp = $('<span class="randomClass dragTemp">&nbsp;&nbsp;&nbsp;&nbsp;</span>');
 
 
           /*
@@ -480,7 +485,7 @@ try {
                   $temp.removeData('draggable').remove();
                   anime({
                     targets   : '.' + randomClass,
-                    scale     : 1,
+                    scale     : .2,
                     opacity   : [0, 1],
                     rotate    : 0,
                     duration  : 3000,
@@ -488,12 +493,13 @@ try {
                     translateX: 0,
                     delay     : 0,
                     easing    : 'linear',
-                   //  complete  : a => anime.remove('.' + randomClass)
+                    //  complete  : a => anime.remove('.' + randomClass)
                   });
                 });
               });
               return;
             } //if
+
 
             //to fall to where the broom level already is
             const newY =
@@ -506,60 +512,60 @@ try {
             myAnimation
               .timeline(randomClass + 'From', {loop: 1})
               .addToTimeline(randomClass + 'From', {
-                  targets   : $this[0].parentElement,//$this[0],
-                  scale     : .8,
-                  opacity   : 1,
-                  duration  : 500,
-                  rotateY   : [{
-                    value   : 0,
-                    duration: 1500
-                  }, {value: Math.random() * 40 - 20}],
-                  translateX: 0,
-                  translateY: 0,
-                  top       : [{
-                    value   : newY - Math.random() * 100,
-                    duration: 1600,
-                    delay   : 400
-                  }],
-                  rotateX   : [{
-                    value   : 70,
-                    duration: 500
-                  }, {
-                    value   : 70,
-                    duration: 1500
-                  }],
-                  easing    : "easeOutExpo",
-                  complete  : a => {
-                    //put a "copy" on the floor as splat
-                    if ($this[0].parentElement) {
-                      const splat = $this[0].parentElement.cloneNode(true);
-                      splat.classList.add('floor__trash');
-                      //remove draggable classes
-                      splat.classList.remove(...
-                        [...splat.classList].filter(cl => /drag/i.test(cl))
-                      );
-                      if (TrashCan.addDust(splat)) {
-                        console.log('dust added');
-                      }
-                      //if landed in the trash that's great
-                      if (TrashCan.isAwithinB(splat, TrashCan.getCanNode(), {}, true)) {
-                        TrashCan.putInCan(splat);
-                        splat.classList.remove('floor__trash');
-                        splat.style.top = null;
-                        splat.style.left = null;
-                      } else {
-                        TrashCan.addDust(splat) && console.log('dust added');
-                      }
-
+                targets   : $this[0].parentElement,//$this[0],
+                scale     : .2, //.8, //
+                opacity   : 1,
+                duration  : 500,
+                rotateY   : [{
+                  value   : 0,
+                  duration: 1500
+                }, {value: Math.random() * 40 - 20}],
+                translateX: 0,
+                translateY: 0,
+                top       : [{
+                  value   : newY - Math.random() * 100,
+                  duration: 1600,
+                  delay   : 400
+                }],
+                rotateX   : [{
+                  value   : 70,
+                  duration: 500
+                }, {
+                  value   : 70,
+                  duration: 1500
+                }],
+                easing    : "easeOutExpo",
+                complete  : a => {
+                  //put a "copy" on the floor as splat
+                  if ($this[0].parentElement) {
+                    const splat = $this[0].parentElement.cloneNode(true);
+                    splat.classList.add('floor__trash');
+                    //remove draggable classes
+                    splat.classList.remove(...
+                      [...splat.classList].filter(cl => /drag/i.test(cl))
+                    );
+                    if (TrashCan.addDust(splat)) {
+                      console.log('dust added');
+                    }
+                    //if landed in the trash that's great
+                    if (_u.isAwithinB(splat, TrashCan.getCanNode(), {}, true)) {
+                      TrashCan.putInCan(splat);
+                      splat.classList.remove('floor__trash');
+                      splat.style.top = null;
+                      splat.style.left = null;
+                    } else {
+                      TrashCan.addDust(splat) && console.log('dust added');
                     }
 
-                    //put the original back in history at "front"
-                    $this
-                      .appendTo($origin)
-                      .removeClass('history--draggable')
-                      .addClass('history__btn');
-                    $temp.removeData('draggable').remove();
                   }
+
+                  //put the original back in history at "front"
+                  $this
+                    .appendTo($origin)
+                    .removeClass('history--draggable')
+                    .addClass('history__btn');
+                  $temp.removeData('draggable').remove();
+                }
                 }
               )
               .addToTimeline(randomClass + 'From',
@@ -602,9 +608,9 @@ try {
                       myAnimation.doTimeline(randomClass + 'Fade', 'pause');
                     }
                   },
-                  mouseupCB  : function (ev) {
+                  mouseupCB: function (ev, node) {
                     //resume the "linger" animation after mouseup
-                    Config.linger && MouseActions.linger(ev.target);
+                    Config.linger && MouseActions.linger(node);
                   }
                 })
             })
@@ -637,7 +643,7 @@ try {
           myAnimation.timeline(randomClass + 'To', {loop: 1})
             .addToTimeline(randomClass + 'To', {
                 targets   : $temp[0],
-                scale     : 5,
+                scale     : [.2, 1],
                 opacity   : 1,
                 translateZ: 0,
 //            translateY: randomY,//random distance
@@ -708,7 +714,7 @@ try {
             $target.text(emoji);
 
             var fave = myFavs.stashIt(emoji, true);
-            archiveFave(fave.sticky, emoji, fave.url);
+            archiveFave(fave.sticky, emoji, fave.url, fave.name);
             highlightFave(emoji, fave.sticky);
 
             myAnimation.addAnimation();
@@ -1099,6 +1105,30 @@ try {
      * When you resume it will catch up (warp)
      *
      */
+    //setup some animations the MeetingCountDown callbacks will use
+    App.Fn.sliderRotate = function (node, dur, delay) {
+      return anime({
+        targets: node, //slider.firstElementChild,
+        rotateZ: [
+          {
+            value   : 0,
+            duration: 0
+          },
+          {
+            value   : -45,
+            easing  : 'linear',
+            duration: dur
+          }
+          /*, {
+           value   : -90,
+           easing  : 'linear',
+           duration: dur,
+           delay   : delay
+         } */
+        ]
+      });
+    }
+
 
     new MeetingCountDown(
       Nodes.screenNode,
@@ -1108,26 +1138,47 @@ try {
       {
         callbacks: [{
           times: [-3],
-          cb: (minsLeft,opts)=>{
+          cb   : (minsLeft, opts) => {
             Nodes.spiderTrigger.click();
           }
         },
           {
-          times: [-1, -2,  -4, -5, -6, -7, -8, -9, -10],
-          cb   : (minsLeft, opts) => {
+            times: [-1, -2, -3, -4, -5, -6, -7, -8, -9, -10],
+            cb   : (minsLeft, opts) => {
 
-            let randomIdx = Math.floor(Math.random() * 4.99);
-            if (!opts.spam) {
-              opts.spam = ['🤬', '😰', '👿', '💩', '💣'];
+              let randomIdx = Math.floor(Math.random() * 4.99);
+              if (!opts.spam) {
+                opts.spam = ['🤬', '😰', '👿', '💩', '💣'];
+              }
+              let spam = document.getElementById(opts.spam[randomIdx]);
+              if (spam) {
+                let ev2 = document.createEvent('MouseEvents')
+                ev2.initEvent('dblclick', true, true);
+                spam.dispatchEvent(ev2);
+              }
             }
-            let spam = document.getElementById(opts.spam[randomIdx]);
-            if (spam) {
-              let ev2 = document.createEvent('MouseEvents')
-              ev2.initEvent('dblclick', true, true);
-              spam.dispatchEvent(ev2);
+          },
+          { //these are the times when the slider resets.
+            times    : [5, 10],
+            completed: [],
+            cb       : (minsLeft, opts) => {
+              const sliderBtn = MeetingCountDown.getSlider().firstElementChild;
+              const rotationDuration = 84.8528137423857 / (this.distance / 10000);
+              const secondStageDelay = 10000 - rotationDuration * 2;
+
+              ['restart', 'pause', 'remove']
+                .forEach(c => App.Animations.sliderRotate[c]('*'));
+
+              App.Fn.Animations.sliderRotate =
+                //swap out the slider promise with a new one
+                App.Fn.sliderRotate(sliderBtn, rotationDuration, secondStageDelay);
+
+              //TODO: is this necessary? or will it just call the correct action because of "by reference" lookup
+              App.Promises.clockCleanup.replaceRoot();
+
+
             }
-          }
-        },
+          },
           { /* spotlight & shadow */
             times    : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60],
             completed: [],
@@ -1147,22 +1198,9 @@ try {
                 spotlight.classList.remove('flexClock__spotlight--doubledigit');
               }
 
-
               //only do this the if its not draggable
               if (!MouseActions.isDraggable(wrap)) {
                 MouseActions.makeDraggable(wrap, {}, false);
-
-                const slider = MeetingCountDown.getSlider();
-                const screen = Nodes.screenNode;
-
-                //using the difference of the slider position the wrap
-                const XY = TrashCan.calcDiffXY(slider, screen, [2000, 2000]);
-                const widthToSubtract = wrap.getBoundingClientRect().width / 2;
-                anime.set(wrap, {
-                  left: Math.abs(XY.end.width - XY.start.centerX - widthToSubtract),
-                  top : Math.abs(XY.end.height - XY.start.centerX - widthToSubtract)
-                });
-
               }
 
             const spotlightAnimation = anime.timeline({
@@ -1206,33 +1244,33 @@ try {
               easing  : 'easeOutQuint'
             }); /**/
 
-            //using the child will strip off all the animation transformations
+              //using the child will strip off all the animation transformations
 
-            const spotlightToss = new TrashCan(Nodes.screenNode, spotlight);
+              const spotlightToss = new TrashCan(Nodes.screenNode, spotlight);
 
-            //resolve early
-            TrashCan.animateOnce(spotlightAnimation, spotlightAnimation, 3000)
-              .then(a => {
-                  //spotlight is actually wrapped so we want it's first child
-                  spotlightToss.tossIt(false, spotlight, spotlightAnimation).then(x => {
+              //resolve early
+              //TrashCan.animateOnce(spotlightAnimation, spotlightAnimation, 3000)
+              //spotlightAnimation.finished.then(a => {
+              //spotlight is actually wrapped so we want it's first child
+              /*    spotlightToss.tossIt(false, spotlight, spotlightAnimation.finished).then(x => {
 
                     //more visible in the trash
                     spotlight.style.overflow = 'visible';
-                   // spotlight.remove();//dont remove it cuz we like seeing it in the trash
-                  //  spotlightAnimation.remove();
-                  });
-                }
-              );
+                    // spotlight.remove();//dont remove it cuz we like seeing it in the trash
+                    //  spotlightAnimation.remove();
+                  }); /**/
+              //}
+              //);
 
-            shadowAnimation.finished.then(() => {
-              shadowAnimation.remove();
-              shadow.remove();
-            });
+              shadowAnimation.finished.then(() => {
+                shadowAnimation.remove();
+                //       shadow.remove();
+              });
 
-            spotlightAnimation.play();
-            shadowAnimation.play();
+              spotlightAnimation.play();
+              shadowAnimation.play();
 
-          }
+            }
         },
           {
             times: [0], //essentially on expiry
@@ -1339,7 +1377,7 @@ try {
           }
         ]
       },
-      //go
+      //go callback (fired on countdown starting);
       function (opts) {
         //rotate sloth
         const slider = MeetingCountDown.getSlider();
@@ -1353,27 +1391,25 @@ try {
 
         // 84.8528137423857 is distance from center point to corner of sliderBtn's boundingRect
 
-        App.Animations.clockOn =
-          anime({
-            targets: sliderBtn, //slider.firstElementChild,
-            rotateZ: [{
-              value   : -45,
-              easing  : 'linear',
-              duration: rotationDuration
-            }, {
-              value   : -90,
-              easing  : 'linear',
-              duration: rotationDuration,
-              delay   : secondStageDelay
-            }]
-          });
-        //set a custom, adhoc property to carry forward to other callbacks
-        this.goReturnValue = new PP(App.Animations.clockOn.finished, [App.Animations.clockOn, 'forcefailure']);
+        App.Animations.sliderRotate =
+          App.Fn.sliderRotate(sliderBtn, rotationDuration, secondStageDelay);
+
+        //add to the cleanupprocess
+        App.Promises.clockCleanup.then(() => {
+          App.Animations.sliderRotate.remove();
+        })
+        this.goReturnValue = App.Promises.sliderRotate;
 
       },
       //on
       function (opts) {
-        //show
+        //start/refresh a cleanup queue that will be triggered at "off"
+        if (App.Promises.clockCleanup)
+          //resolve any existing
+          App.Promises.clockCleanup.resolve();
+
+        //start a new one
+        App.Promises.clockCleanup = PP.getDeferred();
 
         const clock = document.getElementById('flexClock');
         clock.classList.remove('flexClock--hide');
@@ -1397,7 +1433,7 @@ try {
               right : pageX
             });
           })(ev, mouseLocation)
-          let isMouseOver = TrashCan.isAwithinB(mouseLocation, clock);
+          let isMouseOver = _u.isAwithinB(mouseLocation, clock);
 
           if (!isMouseOver)
             return true;
@@ -1490,6 +1526,10 @@ try {
       },
       //off
       function () {
+        //animations to clean up
+
+        //fire the cleanup Promise
+        App.Promises.clockCleanup.resolve();
 
         anime({
           targets   : '.flexClock__sub--A .flexClock__step',
@@ -1538,7 +1578,7 @@ try {
           right : pageX
         });
       })(ev, mouseLocation)
-      let isMouseOver = TrashCan.isAwithinB(mouseLocation, broom);
+      let isMouseOver = _u.isAwithinB(mouseLocation, broom);
 
       if (!isMouseOver)
         return true;
@@ -1610,7 +1650,7 @@ try {
           right : pageX
         });
       })(ev, mouseLocation)
-      let isMouseOver = TrashCan.isAwithinB(mouseLocation, cobWeb);
+      let isMouseOver = _u.isAwithinB(mouseLocation, cobWeb);
 
       if (!isMouseOver)
         return true;
@@ -1898,11 +1938,12 @@ try {
               picker.options.stickyHandler['element'].trigger(picker.options.stickyHandler['event']);
 
 */
-
     Window.anime = anime;
     Window.App = App;
     Window.TimerCountDown = MeetingCountDown;
     Window.Trash = TrashCan;
+
+    Window.PP = PP;
   }); //doc ready
 } catch (e) {
   document.body.textContent = JSON.stringify(e);

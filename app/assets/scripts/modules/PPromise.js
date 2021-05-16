@@ -111,13 +111,7 @@ class PPromise {
   constructor(
     /* promise */ callbackOrPromises,
     /* array */ resolveRejectValues = [],
-    /* object */ opts = {
-      /* symbol */
-      type         : standard,
-      isUnbreakable: false,
-      /* pTypes */
-      interaction  : 'race'
-    }
+    /* object */ opts
   ) {
     const v = this.#values;
     this.#PPromises = [];
@@ -128,6 +122,17 @@ class PPromise {
     this.#cbs.reject = (reject) => {
       v.reject = reject;
     };
+
+    let args = PPromise.argsHelper(...arguments);
+    callbackOrPromises = args[0];
+    resolveRejectValues = args[1];
+    opts = Object.assign({
+      /* symbol */
+      type         : standard,
+      isUnbreakable: false,
+      /* pTypes */
+      interaction  : 'race'
+    }, args[2] );
 
     this.#isUnbreakable = !!opts.isUnbreakable;
 
@@ -165,8 +170,14 @@ class PPromise {
     this.type = this.#Type;
     this.#interaction = opts.interaction;
 
-    this.#setHeadless();
     this.#setRoot(resolveRejectValues, callbackOrPromises);
+
+    //headless is an unbreakable PPromise itself so this is necessary also for loops
+    if (!this.#isUnbreakable)
+      this.#setHeadless();
+    //else (this.#isUnbreakable)
+    // this.#Headless = this.#PPromise; //??
+
 
     //establish native proxies
     PPromise.#proxyMethods.call(this);
@@ -211,7 +222,15 @@ class PPromise {
   }
 
   #setHeadless() {
-    this.#Headless = PPromise.getDeferred();
+    //const cb = this.#setCallback()
+    this.#Headless = PPromise.getDeferred({isUnbreakable: true});
+  }
+
+  #getBasicDeferredCB() {
+    return (resolve, reject) => {
+      _arg.resolve = resolve;
+      _arg.reject = reject;
+    }
   }
 
   //upgrade the callback ( more status and in some cases adding deferred);
@@ -243,6 +262,10 @@ class PPromise {
 
 
   #setPPromises(p) {
+    if( !p ){
+      this.#PPromises = [];
+      return;
+    }
     if (PPromise.isPromise(p)) {
       this.#PPromises = [p];
       return;
@@ -264,7 +287,9 @@ class PPromise {
   }
 
   #linkHeadless() {
-    this.#PPromise.then(this.#Headless.resolve, this.#Headless.reject);
+    if (!this.isUnbreakable) {
+      this.#PPromise.then(this.#Headless.resolve, this.#Headless.reject);
+    }
   }
 
 //
@@ -311,6 +336,7 @@ class PPromise {
     /**********************
      * define properties
      */
+    let that = this;
     stateKeys.forEach(s => {
       //e.g.  this.isFulfilled
       Object.defineProperty(that, s, {
@@ -328,8 +354,9 @@ class PPromise {
 
     Object.defineProperties(this, {
       'isUnbreakable': {
+        enumerable : true,
         get() {
-          this.#isUnbreakable;
+          return this.#isUnbreakable;
         },
         set(v) {
           if (this.#isUnbreakable || typeof v === 'undefined')
@@ -430,6 +457,37 @@ class PPromise {
     this.#PromiseLibrary.push(entry);
   }
 
+  static argsHelper(...args) {
+    let cbOrP, values = [], opts = {};
+    let a=[];
+    args.forEach(arg => {
+      if (typeof arg === 'function') {
+        cbOrP = arg;
+        return
+      } else if (PPromise.isPromise(arg)) {
+        cbOrP = arg;
+        return
+      }
+      try {
+        let A = Array.from(arg);
+        if (PPromise.isPromise(A[0])) {
+          cbOrP = arg;
+          return
+        }
+        if (Array.isArray(A)) {
+          values = A
+        }
+        if (typeof arg === 'object') {
+          opts = arg
+        }
+      }catch(e) {
+
+      }
+    });
+    a = [cbOrP, values , opts];
+    return a;
+  }
+
 //e.g. if PPromise.all() is called or this.finally()
   static #proxyMethods(/* Array */  library) {
     let that;
@@ -471,7 +529,11 @@ class PPromise {
 
   /******** all links in the promise chain need to be attached to the headless deferred ***/
   #thenFinallyCatch(protoFn, ...args) {
-    this.#Headless[protoFn](...args);
+    if (this.isUnbreakable)
+      this.#PPromise[protoFn](...args);
+    else
+      this.#Headless[protoFn](...args);
+
     return this;
   }
 
@@ -569,9 +631,15 @@ class PPromise {
     return this.#values.resolve
   }
 
-//a basic deferred using PPromise
+  static #getBasicDeferred() {
+    //TODO:
+  }
+
+  //a basic deferred using PPromise
   static getDeferred(...a) {
-    return new PPromise(...a);
+    let args = PPromise.argsHelper(...a);
+    args[2].isUnbreakable = true;
+    return new PPromise(...args);
   }
 
 //lookup for a string to the enum
