@@ -161,7 +161,8 @@ class myPicker {
 
   #initNamePreview(namePreviewNode) {
     if (namePreviewNode && namePreviewNode instanceof Element) {
-      const emojiArea = this.#root.querySelector('.emoji-picker__emojis');
+      const emojiArea = this.#root.firstElementChild;
+      //.querySelector('.emoji-picker__emojis');
       //      const pickerGallery = document.querySelector('.emoji-picker__emoji');
       const emojiClasses = this.#emojiClasses;
 

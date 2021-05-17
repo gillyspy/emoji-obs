@@ -495,6 +495,8 @@ try {
             if (Math.random() > .8) {
               const parentNode = $this[0].parentElement;
               const emojiTrash = new TrashCan(Nodes.screenNode, $this[0]);
+              anime.remove(parentNode);
+              anime.remove(parentNode.children);
               let a = anime({
                 targets : parentNode,
                 scale   : 1,
@@ -566,13 +568,16 @@ try {
                   //put a "copy" on the floor as splat
                   if ($this[0].parentElement) {
                     const splat = $this[0].parentElement.cloneNode(true);
+                    [splat, ...splat.children].forEach(c=>{
+                      c.removeAttribute('id');
+                    });
                     splat.classList.add('floor__trash');
                     //remove draggable classes
                     splat.classList.remove(...
                       [...splat.classList].filter(cl => /drag/i.test(cl))
                     );
                     if (TrashCan.addDust(splat)) {
-                      console.log('dust added');
+                    //  console.log('dust added');
                     }
                     //if landed in the trash that's great
                     if (_u.isAwithinB(splat, TrashCan.getCanNode(), {}, true)) {

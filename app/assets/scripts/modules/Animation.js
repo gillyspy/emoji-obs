@@ -1055,7 +1055,8 @@ class TimerCountDown {
         complete  : a => {
           if (Y === d)
             return;
-          lastY = Y;
+
+          lastY = nextY;
           accurateSlideFn(...accurateSlideParams)
         }
       })
@@ -1427,12 +1428,22 @@ class Trash {
           //animate the broom emoji
           anime({
             targets  : broom.firstElementChild,
-            rotateZ  : [-45, -20],
+            rotateZ  : [-20, -45], //45, -20],
             duration : 500,
             direction: 'aternate',
-            easing   : 'easeInOutQuad',
+            easing   : 'easeOutQuad',
             loop     : 6
           });
+
+          /* dust animations
+          var dust = Window.anime({ targets : '.floor_gg', translateX : (e,i)=> [0, (Math.random()*50+50)],
+ translateY:[{value : (e,i)=>Math.random()*-20, duration :600},{ value : 0, duration : 200}],
+rotateZ : [{value : -30, duration : 100 },{value : -30, duration :600},{value: 0, duration : 100}],
+opacity : [{ value : 0, duration : 300}, { value : 1, duration: 400}, {value:0, duration :100}],
+
+easing : 'easeOutQuad', duration : 800, delay : Window.anime.stagger(200)});
+           */
+
         },
         update    : a => {
           cb && cb(a,_Broom.nextDust);
@@ -1867,13 +1878,18 @@ class Trash {
 
       //clone it (and contents)
 
-      const nodeToBallUp = doRemove ? this.#emoji.cloneNode(true) : this.#emoji;
 
+      const nodeToBallUp = doRemove ? this.#emoji.cloneNode(true) : this.#emoji;
+      if(doRemove) {
+        [nodeToBallUp,...nodeToBallUp.children].forEach(c => {
+          c.removeAttribute('id');
+        })
+      }
       //determine if the node is in the gallery. (helpful later)
       const parentNode = this.#emoji.parentElement;
       const inGallery = parentNode.classList.contains('history--draggable');
 
-      const emoji = nodeToBallUp.textContent;
+      const emoji = nodeToBallUp.textContent.replaceAll(/\s\b/g,'');
 
       //get the ball (holder)
       const trashBall = Trash.#getBall(emoji);
@@ -2007,8 +2023,10 @@ class Trash {
         }
         hiddenBall.classList.remove('trashCan__ball2--hide');
         trashBall.remove();
-        resolve(true);
-      });
+        resolve(hiddenBall);
+      }).then(v=>{
+        console.log('hiddenball', v);
+      })
 
       // resolve(true);
       ballFlight.play();
@@ -2022,11 +2040,14 @@ class Trash {
 
 
       //delete this item from the queue is taken care of elsewhere
+      resolve();
     });
 
-    tossPromise.then(() => {
-
-      this.#trashOffCB
+    tossPromise.then((v) => {
+      console.log(v);
+      this.#trashOffCB && this.#trashOffCB();
+    }).catch( e=>{
+      console.log('error in tossIt', e);
     });
 
     //add this promise to the front of the queue
