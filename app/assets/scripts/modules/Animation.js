@@ -1918,7 +1918,8 @@ easing : 'easeOutQuad', duration : 800, delay : Window.anime.stagger(200)});
       anime.set(trashBall, Object.assign({}, this.#startXY, {
         translateY: 0,
         translateX: 0,
-        scale     : 1
+        scale     : 1,
+        opacity : 1
       }, {
         width : Math.max(calcDiff.start.width, 60),
         height: Math.max(calcDiff.start.height, 60)
@@ -2097,19 +2098,19 @@ easing : 'easeOutQuad', duration : 800, delay : Window.anime.stagger(200)});
     ];
     return anime.timeline({
         autoplay: false
-      } /*).add(
-      Object.assign({}, this.#startXY, {
-        height    : 20,
-        width     : 20,
-        scale     : .2,
-        opacity   : 1,
-        translateY: 0,
-        translateX: 0
-      }) */
+      } ).add({
+      //Object.assign({}, this.#startXY, {
+    //    height    : 20,
+     //   width     : 20,
+        scale     : 1,
+        opacity   : 1
+       // translateY: 0,
+       // translateX: 0
+      }
     ).add({
       targets   : trashBall, // document.querySelector('.highlight'),
-      opacity   : 1,
-      scale     : 0.2,
+      opacity   : [2,10],
+      scale     : [1,1],
       /*   scale     : [{
            value   : .2, //2
            duration: 1700,
