@@ -336,7 +336,7 @@ try {
 
     } //archiveFave
 
-    //add to the emojiPicker cache
+    //initialize to the emojiPicker cache / history
     const populateDock = function () {
 
       let myA = myFavs.getStash();
@@ -353,7 +353,7 @@ try {
           }
           $target.text(fave.emoji);
         }
-        archiveFave(!!fave.sticky, fave.emoji, fave.url, fave.name);
+        archiveFave(!!fave.sticky, fave.emoji, fave.url, fave.name, fave.preferTwemoji);
         //try to highlight in history
         highlightFave(fave.emoji, !!fave.sticky);
       }
@@ -367,6 +367,7 @@ try {
       var fave = myFavs.stashIt(selection);
 
       myAnimation.addAnimation();
+
       if (fave.sticky) {
         myAnimation.removeAnimation();
         Nodes.stickyButton.addClass('pressed');
@@ -374,7 +375,8 @@ try {
         Nodes.stickyButton.removeClass('pressed');
       }
       $target.text(fave.emoji);
-      archiveFave(fave.sticky, fave.emoji, fave.url, fave.name);
+
+      archiveFave(fave.sticky, fave.emoji, fave.url, fave.name, fave.preferTwemoji);
       //try to highlight in history
       highlightFave($target.text(), fave.sticky);
       return false;
@@ -413,6 +415,9 @@ try {
     Nodes.twemojiToggle.addEventListener('click', (ev) => {
       const twemoji = gallery.lastElementChild.querySelector('.history__emoji');
       const emoji = gallery.lastElementChild.querySelector('.history_emojiURL');
+      if(! twemoji || !emoji ){
+        return;
+      }
 
       if (twemoji.style.opacity === '0' || twemoji.style.opacity === 0) {
         twemoji.style.opacity = 1;
@@ -427,8 +432,6 @@ try {
         rotateY : 360,
         duration : 1000
       });
-
-
     });
 
     /* *
@@ -878,7 +881,20 @@ try {
           emojisource = emojisource[0]
           //make the idle animation use a new emoji text content
           if (emojisource) {
-            document.querySelector('.idleAnimation__span').textContent = emojisource.textContent;
+            document.querySelector('.idleAnimation__span').textContent = emojisource.id;
+          //TODO: make it twemoji aware
+            /*
+              const clone = emojisource.cloneNode(true);
+
+              clone.id = 'kwijboPath';
+              [...clone.classList].forEach( cl =>{
+                if(/draggable\d/.test(cl)){
+                  clone.classList.remove(cl);
+                }
+              })
+              document.querySelector('.idleAnimation__span').textContent='';
+              document.querySelector('.idleAnimation__span').append(clone);
+             */
           }
           myMouseActions.forceIdle();
 
@@ -1907,27 +1923,25 @@ try {
       Nodes.pickerWrapper,
       Nodes.emojiPickerTrigger,
       Nodes.emojiPickerName,
+      ['stickyHandler', 'twemojiHandler', 'closeHandler'],
       {
+        emojiCache : myFavs,
         emojisPerRow: 31,
         rows        : 5,
         style       : (Config.twemoji === 'false' ? 'native' : 'twemoji')
       });
-    App.myPicker.addPlugin('stickyHandler');
-    App.myPicker.addPlugin('closeHandler');
-    //App.myPicker.launch();
-    App.myPicker.registerCB('emoji', function (p) {
-      const props = App.myPicker.getProps();
-      if (props.options.makeEmojiSticky) {
-        //click the pin button
-        Nodes.stickyButton.click();
-      }
-    });
-    /*******************/
     App.myPicker.registerCB('emoji', selection => {
-      // reset animation on every new emoji
+      const props = App.myPicker.getProps();
+      //  if (props.options.stickyHandler.makeEmojiSticky)
+      //click the pin button
+      // Nodes.stickyButton.click();
+      selection.sticky = !!props.options.stickyHandler.makeEmojiSticky;
+      selection.preferTwemoji = !!props.options.twemojiHandler.preferTwemoji;
+
       App.Fn.injectSelection(selection);
       $('#' + selection.emoji).dblclick();
     });
+    /*******************/
     /*
          if (picker.options.makeEmojiSticky) {
               doHandlerOnHide = true;

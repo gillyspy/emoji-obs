@@ -26,7 +26,7 @@ class Drawing {
       {
         name   : 'hide',
         title  : 'Close Drawing Panel',
-        content: '🛑',
+        content: '✍🏻',
         classes: ['drawing__btn', 'drawing__btn--pressed']
       },
       {

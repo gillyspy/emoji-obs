@@ -106,6 +106,21 @@ class Favorites {
     }
   }
 
+  toggleTwemoji(position, favorite){
+        if (!favorite) {
+      if (typeof position !== 'undefined' && !isNaN(position)) {
+        this.position = position;
+      }
+      favorite = this.stash[this.position];
+    }
+    log.browser('toggleTwemoji', this.position, favorite, this);
+    favorite.preferTwemoji = !favorite.preferTwemoji;
+
+    log.browser(favorite);
+    return favorite;
+  }
+
+
   toggleSticky(position, favorite) {
     if (!favorite) {
       if (typeof position !== 'undefined' && !isNaN(position)) {
@@ -121,14 +136,22 @@ class Favorites {
   }
 
   stashIt(emoji, addHistory = true) {
-    let name = (typeof emoji === 'object') ? emoji.name : emoji;
-    let url = (typeof emoji === 'object') ?  emoji.url : null;
-    let fave = this.recallFave(name);
+    let name = emoji,
+      url = null,
+      preferTwemoji = false,
+      fave;
+    if (typeof emoji === 'object') {
+      name = emoji.name;
+      url = emoji.url || null;
+      preferTwemoji = !!preferTwemoji
+    }
+
+    fave = this.recallFave(name);
     //do we already have it stashed
     if (fave && typeof emoji === 'object') {
-      //already have so update if relevant
+      //already have cached ... so only update the definition
       Object.assign(fave, emoji);
-    } else if(!fave) {
+    } else if (!fave) {
       //new entry
       if (this.nameIndex.length >= this.max) {
         //remove the oldest one

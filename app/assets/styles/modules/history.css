@@ -17,6 +17,7 @@
 
 .history.pressed {
     border-radius: 8px;
+    background-color: rgba(50,50,50,.2);
 }
 
 .everything__history button {

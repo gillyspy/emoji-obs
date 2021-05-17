@@ -203,11 +203,10 @@
         box-shadow: none !important;
     }
 
-#history button.pressed,
 #buttons button.pressed,
 .drawing button.pressed {
     appearance: none;
-    background-color: lightgrey;
+    background-color: lightgray;
 }
 
 
