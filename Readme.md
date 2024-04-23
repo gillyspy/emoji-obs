@@ -2,15 +2,18 @@ Download and install OBS (exercise for the reader -- no special configs needed).
 
 ## Steps to Deploy
 1. fork my github repo https://github.com/gillyspy/emoji-obs (master branch of course)
-2. Run `npm install` 
-3. Make changes. Examples: 
+2. Use node version that is compatible (I tried v12.21.0)
+3. Run `npm install`
+4. modify the webpack.config.js file to the host and port that you want
+5. Make changes. Examples: 
     * Change default emojis in \app\scripts\modules\Init.js
     * Change which of the defaults are sticky in the same file
         * Load your own "afk" (💤) image in folder app\assets\img\afk.gif -- Anything with an aspect ratio of 1.8 should be fine
+6. Launch a server with `npm run dev`
 
 ## Steps to Quick Setup
 1. Create a new scene (or use the default "Scene" )
- 	* Setup your camera as you like (part of basic OBS setup)
+ 	* Setup your camera as you like (part of basic OBS setup) 
 2. Add to your scene a "Browser" element
 3. Put in the public URL of wherever you deploy it
     * It should end up like this: 
@@ -26,7 +29,7 @@ Download and install OBS (exercise for the reader -- no special configs needed).
 
 ## How to Interact
 * Emoji button brings up an emoji selector. There is a large preview to help you see it better
-* Res-ize your "browser" scene element so that the buttons are off the camera (they will still be on the interact)
+* Res-ize your "browser" scene element so that the buttons are off the camera (they will still be on the "interact" screen)
 * Click on any emoji in the history to make it active
 * Emoji's, by default, will slowly fade out over 40 seconds unless you 📌 them 
 * ✍ to toggle drawing with your mouse. Drawing is on by default
@@ -47,9 +50,17 @@ Download and install OBS (exercise for the reader -- no special configs needed).
     * If(picker window is open)
         * Use tab and arrow keys to navigate the menu
 
+## Known Issues
+* Does not run on newer versions of node due to some library incompatibilities such as node/crypto
+* the twemoji library is broken.  This will need to be fixed by removing the underlying emoji package, but this causes difficulty in navigating the emoji search.
+
 ## Appendix: Why Emoji Picker for OBS Anyway?
 #### Windows 
-In any text field in windows you can bring up an emoji window with win + .  (windows key + period) but for some reason the browser embedded in OBS does not support these multibyte characters as input. Further, if you try to input them by Text box, etc then you are rejected.  But if they are already in a web page then they are supported so this is why this project works the way it does (at least as far as emojis go).
+In any text field in windows you can bring up an emoji window with win + .  (windows key + period), 
+but for some reason the browser embedded in OBS does not support these multibyte characters as input. 
+Further, if you try to input them by Text box, etc then you are rejected.  
+But if they are already in a web page then they are supported so this is why this project works the way it does 
+(at least as far as emojis go).
 #### Mac
 Additional problem is there is no OS way to get an emoji if you're on Mojave
 
